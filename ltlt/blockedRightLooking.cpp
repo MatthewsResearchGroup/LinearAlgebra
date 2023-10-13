@@ -16,7 +16,7 @@
 using namespace MArray;
 using std::tie;
  
-void ltlt_blockRL(const matrix_view<double>& X, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB, len_type k = -1, bool first_column = false)
+void ltlt_blockRL(const matrix_view<double>& X, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
 {
     auto [T, m, B] = partition_rows<DYNAMIC,1,DYNAMIC>(X);
     auto n = X.length(0);

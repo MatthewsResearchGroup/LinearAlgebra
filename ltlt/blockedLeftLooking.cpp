@@ -13,33 +13,52 @@
 
 using namespace MArray;
 using std::tie;
- 
-void ltlt_blockLL(const row_view<const double>& lx0, const matrix_view<double>& X)
+
+void ltlt_blockLL(const matrix_view<double>& X, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
 {
     auto [T, m, B] = partition_rows<DYNAMIC,1,DYNAMIC>(X);
     // auto n = X.length(0);
     // if (k == -1)
-    //     k = n;
+        // k = n;
     matrix_view<double> L = false ? X.shifted(1, -1) : X.rebased(1, 1);
-    row<double> temp{X.length(0)};
+    matrix<double> temp{X.length(0), X.length(0)};
  
-    while (B.size() > n - k)
+    while (B)
     {
         // (  T ||  m |       B      )
         // ( R0 || r1 | R2 | r3 | R4 )
         auto [R0, r1, R2, r3, R4] = repartition<DYNAMIC,1>(T, m, B, block_size);
-
+        auto R0p = not_first(R0);
 
         /*left-looking*/
-
-        blas::skew_tridiag_gemm(-1, L[R2 | r3 | R4][R0 | r1], subdiag(X[R0 | r1][R0 | r1]), L[R1 | r2][R0| r1].T(), 1, X[R2 | r3 | R4][r1 | R2]);
+        temp[r1][R0p] =  L[r1][R0p];
+        temp[r1][r1] =  1;
+        temp[R2][R0p] =  L[R2][R0p];
+        temp[R2][r1] =  L[R2][r1];
+        blas::skew_tridiag_gemm(-1, L[R2 | r3 | R4][R0p | r1], subdiag(X[R0p | r1][R0p | r1]), temp[r1 | R2][R0p| r1].T(), 1, X[R2 | r3 | R4][r1 | R2]);
 
         LTLT_UNB(X[r1 | R2 | r3 | R4][r1 | R2 | r3 | R4],  (r1 | R2).size(), true); 
 
         // ( R0 | r1 || r2 | R3 )
         // (    T    ||  m |  B )
- 
-
         tie(T, m, B) = continue_with<2>(R0, r1, R2, r3, R4);
     }
+}
+
+
+void sktrmm(double alpha, const row_view<const double>& T, const matrix_view<double>& A)
+{
+    for (auto i : columns(T))
+    {
+        sktrmv(alpha, T, A[all][i])
+    }
+
+}
+
+void skew_tridiag_gemm(double alpha, const matrix_view<const double>& A,
+                                     const row_view   <const double>& T,
+                                     const matrix_view<const double>& B,
+                       double beta,  const matrix_view<      double>& C)
+{
+
 }
