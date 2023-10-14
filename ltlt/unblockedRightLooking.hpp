@@ -22,8 +22,10 @@ void ltlt_unblockeRL(const matrix_view<double>& X, len_type k = -1, bool first_c
     auto n = X.length(0);
     if (k == -1)
         k = n;
+
     matrix_view<double> L = first_column ? X.shifted(1, -1) : X.rebased(1, 1);
     row<double> temp{X.length(0)};
+
     if (first_column)
         blas::skr2(1.0, L[B, m], X[B, m], 1.0, X[B, B]);
 
