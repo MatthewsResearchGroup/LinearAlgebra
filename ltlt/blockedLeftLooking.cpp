@@ -55,10 +55,18 @@ void sktrmm(double alpha, const row_view<const double>& T, const matrix_view<dou
 
 }
 
+/*
+* C = alpha A ( T B ) + beta C 
+*/
 void skew_tridiag_gemm(double alpha, const matrix_view<const double>& A,
                                      const row_view   <const double>& T,
                                      const matrix_view<const double>& B,
                        double beta,  const matrix_view<      double>& C)
 {
+    // B <- T B
 
+    // copy of B
+    matrix<double> tempB = B;
+    sktrmm(1, T, tempB);
+    gemm(alpha, A, tempB, beta, C); 
 }
