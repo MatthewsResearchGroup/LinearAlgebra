@@ -31,4 +31,3 @@ void ltlt_blockLL(const matrix_view<double>& X, const std::function<void(const m
     }
 }
 
-
