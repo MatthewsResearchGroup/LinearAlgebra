@@ -103,4 +103,9 @@ inline void skew_tridiag_rankk(double alpha, const matrix_view<const double>& A,
 }
 }
 
+template <typename T> range_t<T> not_first(const range_t<T>& x)
+{
+    range(x.first()+1, x.last()+1);
+}
+
 #endif

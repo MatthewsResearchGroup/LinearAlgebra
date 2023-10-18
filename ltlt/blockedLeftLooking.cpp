@@ -1,6 +1,6 @@
 #include "ltlt.hpp"
 
-void ltlt_blockLL(const matrix_view<double>& X, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
+void ltlt_blockLL(const matrix_view<double>& X, len_type block_size , const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
 {
     auto [T, m, B] = partition_rows<DYNAMIC,1,DYNAMIC>(X);
     // auto n = X.length(0);
@@ -30,4 +30,5 @@ void ltlt_blockLL(const matrix_view<double>& X, const std::function<void(const m
         tie(T, m, B) = continue_with<2>(R0, r1, R2, r3, R4);
     }
 }
+
 
