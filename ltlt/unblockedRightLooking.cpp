@@ -1,20 +1,4 @@
-#ifndef __UNBLOCKRIGHTLOOKING_HPP
-#define __UNBLOCKRIGHTLOOKING_HPP
-
-// include reqiured header file
-
-#include <type_traits>
-#include <utility>
-#include <tuple>
-#include <array>
-
-#include "flame.hpp"
-#include "blas.h"
-#include "marray_view.hpp"
-#include "expression.hpp"
-
-using namespace MArray;
-using std::tie;
+#include "ltlt.hpp"
 
 void ltlt_unblockeRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false)
 {
@@ -45,6 +29,3 @@ void ltlt_unblockeRL(const matrix_view<double>& X, len_type k = -1, bool first_c
         tie(T, m, B) = continue_with(R0, r1, r2, R3);
     }
 }
-
-
-#endif

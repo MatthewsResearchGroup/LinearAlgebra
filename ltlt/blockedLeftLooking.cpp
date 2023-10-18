@@ -1,18 +1,4 @@
-#ifndef MARRAY_FLAME_HPP
-#define MARRAY_FLAME_HPP
-
-#include <type_traits>
-#include <utility>
-#include <tuple>
-#include <array>
-
-#include "marray_view.hpp"
-#include "expression.hpp"
-#include "blas.h"
-#include "flame.hpp"
-
-using namespace MArray;
-using std::tie;
+#include "ltlt.hpp"
 
 void ltlt_blockLL(const matrix_view<double>& X, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
 {
@@ -46,27 +32,3 @@ void ltlt_blockLL(const matrix_view<double>& X, const std::function<void(const m
 }
 
 
-void sktrmm(double alpha, const row_view<const double>& T, const matrix_view<double>& A)
-{
-    for (auto i : columns(T))
-    {
-        sktrmv(alpha, T, A[all][i])
-    }
-
-}
-
-/*
-* C = alpha A ( T B ) + beta C 
-*/
-void skew_tridiag_gemm(double alpha, const matrix_view<const double>& A,
-                                     const row_view   <const double>& T,
-                                     const matrix_view<const double>& B,
-                       double beta,  const matrix_view<      double>& C)
-{
-    // B <- T B
-
-    // copy of B
-    matrix<double> tempB = B;
-    sktrmm(1, T, tempB);
-    gemm(alpha, A, tempB, beta, C); 
-}

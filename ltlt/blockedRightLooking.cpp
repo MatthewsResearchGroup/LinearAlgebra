@@ -1,33 +1,16 @@
-#ifndef MARRAY_FLAME_HPP
-#define MARRAY_FLAME_HPP
-
-#include <type_traits>
-#include <utility>
-#include <tuple>
-#include <array>
-
-#include "marray_view.hpp"
-#include "expression.hpp"
-#include "blas.h"
-#include "flame.hpp"
-
-#include <functional>
-
-using namespace MArray;
-using std::tie;
+#include "ltlt.hpp"
  
 void ltlt_blockRL(const matrix_view<double>& X, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
 {
     auto [T, m, B] = partition_rows<DYNAMIC,1,DYNAMIC>(X);
     auto n = X.length(0);
-    if (k == -1)
-        k = n;
-    matrix_view<double> L = first_column ? X.shifted(1, -1) : X.rebased(1, 1);
+    
+    matrix_view<double> L = false ? X.shifted(1, -1) : X.rebased(1, 1);
     row<double> temp{X.length(0)};
-    if (first_column)
-        blas::skr2(1.0, L[B, m], X[B, m], 1.0, X[B, B]);
+    //if (first_column)
+    //    blas::skr2(1.0, L[B, m], X[B, m], 1.0, X[B, B]);
 
-    while (B.size() > n - k)
+    while (B)
     {
         // (  T ||  m |       B      )
         // ( R0 || r1 | R2 | r3 | R4 )
