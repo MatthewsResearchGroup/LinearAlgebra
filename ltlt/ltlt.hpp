@@ -88,6 +88,18 @@ inline void skew_tridiag_gemm(double alpha, const matrix_view<const double>& A,
     gemm(alpha, A, tempB, beta, C); 
 }
 
+inline void skew_tridiag_rankk(double alpha, const matrix_view<const double>& A,
+                                            const row_view   <const double>& T,
+                              double beta,  const matrix_view<      double>& C)
+{
+    // B <- T B
+
+    // copy of B
+    matrix<double> tempB = A.T();
+    sktrmm(1, T, tempB);
+    gemmt(alpha, A, tempB, beta, C); 
+}
+
 }
 }
 
