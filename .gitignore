@@ -2,3 +2,7 @@
 .vscode
 marray/.git
 blis/.git
+blis/lib
+bin
+.clangd
+.project

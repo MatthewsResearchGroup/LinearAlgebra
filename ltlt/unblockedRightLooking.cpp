@@ -1,8 +1,8 @@
 #include "ltlt.hpp"
 
-void ltlt_unblockRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false)
+void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
 {
-    auto [T, m, B] = partition_rows<DYNAMIC, 1 DYNAMIC>(X);
+    auto [T, m, B] = partition_rows<DYNAMIC, 1, DYNAMIC>(X);
     auto n = X.length(0);
     if (k == -1)
         k = n;
@@ -11,7 +11,7 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k = -1, bool first_co
     row<double> temp{X.length(0)};
 
     if (first_column)
-        blas::skr2(1.0, L[B, m], X[B, m], 1.0, X[B, B]);
+        blas::skr2('L', 1.0, L[B][m], X[B][m], 1.0, X[B][B]);
 
     while(B.size() > n - k)
     {
@@ -19,10 +19,10 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k = -1, bool first_co
         // (R0 || r1 | r2 | R3) 4 * 4 partition
 
         auto [R0, r1, r2, R3] = repartition(T, m, B);
-        
-        L[R3,r2] = X[R3, r1] / X[r2, r1];
-        
-        blas::skr2(1.0, L[R3, r2], X[R3, r2], 1.0, X[R3, R3]);
+
+        L[R3][r2] = X[R3][r1] / X[r2][r1];
+
+        blas::skr2('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
 
         // (R0 | r1 || r2 | R3 )
         // (T       || m  | B  )

@@ -7,6 +7,9 @@
 #include <array>
 #include <functional>
 
+//must come first
+#define MARRAY_USE_BLIS
+
 #include "marray_view.hpp"
 #include "expression.hpp"
 #include "blas.h"
@@ -38,24 +41,27 @@ inline void sktrmv(double alpha, const row_view<const double>& T, const row_view
         x[0] = 0.0;
         return;
     }
-    
+
     auto ximinus1 = x[0];
-    x[0] = -T[0] * x[1];
+    x[0] = alpha * (-T[0] * x[1]);
 
     for (auto i : range(1,n-1))
     {
-        auto xi = T[i-1] * ximinus1 - T[i] * x[i+1];
+        auto xi = alpha * (T[i-1] * ximinus1 - T[i] * x[i+1]);
         ximinus1 = x[i];
         x[i] = xi;
     }
 
-    x[n-1] = T[n-2] * ximinus1;
+    x[n-1] = alpha * (T[n-2] * ximinus1);
 }
 
 /*
  * y = alpha A T x + beta y
  */
-inline void skewtrigemv(double alpha, matrix_view<const double>& A, row_view<const double>& T, row_view<const double>& x, double beta, row_view<double>& y)
+inline void skewtrigemv(double alpha, const matrix_view<const double>& A,
+                                      const row_view   <const double>& T,
+                                      const row_view   <const double>& x,
+                        double beta,  const row_view   <      double>& y)
 {
     /*
      * x <- T x
@@ -73,7 +79,7 @@ inline void sktrmm(double alpha, const row_view<const double>& T, const matrix_v
 }
 
 /*
-* C = alpha A ( T B ) + beta C 
+* C = alpha A ( T B ) + beta C
 */
 inline void skew_tridiag_gemm(double alpha, const matrix_view<const double>& A,
                                             const row_view   <const double>& T,
@@ -85,27 +91,36 @@ inline void skew_tridiag_gemm(double alpha, const matrix_view<const double>& A,
     // copy of B
     matrix<double> tempB = B;
     sktrmm(1, T, tempB);
-    gemm(alpha, A, tempB, beta, C); 
+    gemm(alpha, A, tempB, beta, C);
 }
 
-inline void skew_tridiag_rankk(double alpha, const matrix_view<const double>& A,
-                                            const row_view   <const double>& T,
-                              double beta,  const matrix_view<      double>& C)
+inline void skew_tridiag_rankk(char uplo,
+                               double alpha, const matrix_view<const double>& A,
+                                             const row_view   <const double>& T,
+                               double beta,  const matrix_view<      double>& C)
 {
     // B <- T B
 
     // copy of B
     matrix<double> tempB = A.T();
     sktrmm(1, T, tempB);
-    gemmt(alpha, A, tempB, beta, C); 
+    gemmt(uplo, alpha, A, tempB, beta, C);
 }
 
-}
-}
+} //namespace blas
+} //namespace MArray
 
 template <typename T> range_t<T> not_first(const range_t<T>& x)
 {
     range(x.first()+1, x.last()+1);
 }
+
+void ltlt_unblockRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false);
+
+void ltlt_unblockLL(const matrix_view<double>& X, len_type k = -1, bool first_column = false);
+
+void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB);
+
+void ltlt_blockLL(const matrix_view<double>& X, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB);
 
 #endif

@@ -1,33 +1,31 @@
 #include "ltlt.hpp"
-#include "unblockLeftLooking.hpp"
-#include "unblockRightLooking.hpp"
-#include "blockLeftLooking.hpp"
-#include "blockRightLooking.hpp"
+
+#include <random>
 
 int main()
 {
     /*
-     *  testing unblockLeftLooking first. 
-     *  
+     *  testing unblockLeftLooking first.
+     *
      */
 
     // build a skew symmtri matrix first.
-    // B = A - A.T 
- 
-    int n; // square matrix size
-  
-    matrix_view<double> A{n,n};
+    // B = A - A.T
+
+    auto n = 100; // square matrix size
+
+    matrix<double> A{n, n};
 
     // initialize matrix A
-    A.for_each_element([&](auto& Aij){ Aij = rng.uniform(0,1); });
+    std::mt19937_64 rng;
+    std::uniform_real_distribution<> uniform;
+    A.for_each_element([&](auto& Aij){ Aij = uniform(rng); });
 
-    matrix_view<double> B = A - A.T();
+    matrix<double> B = A - A.T();
 
+    for (auto i : range(n))
+        for (auto j : range(n))
+            printf("%f\n", B[i][j]);
 
-    for i : range(n):
-        for j : range(n):
-            printf("%f", B[i][j]);
-
-        
     return 0;
 }
