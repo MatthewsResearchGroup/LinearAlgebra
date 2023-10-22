@@ -30,4 +30,3 @@ void ltlt_blockLL(const matrix_view<double>& X, const std::function<void(const m
         tie(T, m, B) = continue_with<2>(R0, r1, R2, r3, R4);
     }
 }
-

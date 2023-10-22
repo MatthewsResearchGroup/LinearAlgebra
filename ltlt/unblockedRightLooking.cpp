@@ -1,6 +1,6 @@
 #include "ltlt.hpp"
 
-void ltlt_unblockeRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false)
+void ltlt_unblockRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false)
 {
     auto [T, m, B] = partition_rows<DYNAMIC, 1 DYNAMIC>(X);
     auto n = X.length(0);
