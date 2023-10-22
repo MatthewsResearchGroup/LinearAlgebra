@@ -1,6 +1,6 @@
 #include "ltlt.hpp"
 
-void ltlt_blockLL(const matrix_view<double>& X, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
+void ltlt_blockLL(const matrix_view<double>& X, len_type block_size , const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
 {
     auto [T, m, B] = partition_rows<DYNAMIC,1,DYNAMIC>(X);
     // auto n = X.length(0);
