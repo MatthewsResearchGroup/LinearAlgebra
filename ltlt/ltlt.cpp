@@ -28,4 +28,15 @@ int main()
             printf("%f\n", B[i][j]);
 
     return 0;
+
+    // timing 
+    // bli_clock.h   bli_clock
+    // count the FLOPs of different algorithms
+    //
+    
+    //
+    //
+    // testing
+    //
+    // (A - L @ T @ L.T()) v
 }

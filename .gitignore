@@ -6,3 +6,4 @@ blis/lib
 bin
 .clangd
 .project
+build/*

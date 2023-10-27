@@ -1,8 +1,9 @@
-CXX=/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13
-CXXFLAGS=-fopenmp -std=c++17 -g -O0 -DDEBUG -Wno-unused-result 
-CXXFLAGS+=-I../marray/marray
-LDFLAGS=-fopenmp
-BLAS=-lblas
+CXX=g++
+CXXFLAGS+=-fopenmp -std=c++17 -g -O0 -DDEBUG -Wno-unused-result 
+CXXFLAGS+=-I../marray/marray 
+CXXFLAGS+=-I../build/blis/include/firestorm
+LDFLAGS=-fopenmp -L../buid/blis/lib/firestorm
+BLAS=-lblis
 LIBS=-lm -ldl
 
 exe=../bin/ltlt
