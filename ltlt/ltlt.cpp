@@ -29,11 +29,11 @@ int main()
 
     return 0;
 
-    // timing 
+    // timing
     // bli_clock.h   bli_clock
     // count the FLOPs of different algorithms
     //
-    
+
     //
     //
     // testing

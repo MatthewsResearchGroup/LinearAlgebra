@@ -66,8 +66,9 @@ inline void skewtrigemv(double alpha, const matrix_view<const double>& A,
     /*
      * x <- T x
      */
-    sktrmv(1.0, T, x);
-    gemv(alpha, A, x, beta, y);
+    row<double> tempx = x;
+    sktrmv(1.0, T, tempx);
+    gemv(alpha, A, tempx, beta, y);
 }
 
 inline void sktrmm(double alpha, const row_view<const double>& T, const matrix_view<double>& A)
@@ -112,7 +113,7 @@ inline void skew_tridiag_rankk(char uplo,
 
 template <typename T> range_t<T> not_first(const range_t<T>& x)
 {
-    range(x.first()+1, x.last()+1);
+    return range(x.from()+1, x.to());
 }
 
 void ltlt_unblockRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false);
