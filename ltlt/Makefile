@@ -2,8 +2,10 @@ CXX=g++
 CXXFLAGS+=-fopenmp -std=c++17 -g -O0 -DDEBUG -Wno-unused-result 
 CXXFLAGS+=-I../marray/marray 
 CXXFLAGS+=-I../build/blis/include/firestorm
-LDFLAGS=-fopenmp -L../build/blis/lib/firestorm -ld_classic
-BLAS=-lblis
+CXXFLAGS+=-I../blis/frame/base
+LDFLAGS=-fopenmp ../build/blis/lib/firestorm/libblis.a 
+#-ld_classic
+#BLAS=-lblis
 LIBS=-lm -ldl
 
 exe=../bin/ltlt
@@ -23,7 +25,7 @@ clean:
 
 $(exe): $(objs)
 	@mkdir -p $(dir $(exe))
-	$(CXX) $(LDFLAGS) -o $(exe) $(objs) $(BLAS) $(LIBS)
+	$(CXX) $(LDFLAGS) -o $(exe) $(objs) $(LIBS)
 
 %.o: %.cpp
 	@mkdir -p $(dir $@).deps
