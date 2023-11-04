@@ -1,9 +1,10 @@
 CXX=g++
-CXXFLAGS+=-fopenmp -std=c++17 -g -O0 -DDEBUG -Wno-unused-result 
+CXXFLAGS+=-std=c++17 -g -O0 -DDEBUG -Wno-unused-result 
 CXXFLAGS+=-I../marray/marray 
 CXXFLAGS+=-I../build/blis/include/firestorm
 CXXFLAGS+=-I../blis/frame/base
-LDFLAGS=-fopenmp ../build/blis/lib/firestorm/libblis.a 
+LDFLAGS=-g ../build/blis/lib/firestorm/libblis.a  
+#-fsanitize=address
 #-ld_classic
 #BLAS=-lblis
 LIBS=-lm -ldl
