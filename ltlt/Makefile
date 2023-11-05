@@ -1,6 +1,7 @@
-CXX=/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13
+#CXX=/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13
+CXX=g++-13
 CXXFLAGS=-fopenmp -std=c++17 -g -O0 -DDEBUG -Wno-unused-result 
-CXXFLAGS+=-I../marray/marray
+CXXFLAGS+=-I../marray/marray -I../blis/include/haswell
 LDFLAGS=-fopenmp
 BLAS=-lblas
 LIBS=-lm -ldl
@@ -24,6 +25,6 @@ $(exe): $(objs)
 	@mkdir -p $(dir $(exe))
 	$(CXX) $(LDFLAGS) -o $(exe) $(objs) $(BLAS) $(LIBS)
 
-%.o: %.cxx
+%.o: %.cpp
 	@mkdir -p $(dir $@).deps
 	$(CXX) $(CXXFLAGS) -MT $@ -MP -MMD -MF $(dir $@).deps/$(notdir $(@:.o=.d)) -o $@ -c $<
