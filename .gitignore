@@ -9,3 +9,7 @@ blis/lib
 bin
 .clangd
 .project
+build/*
+.deps
+*.o
+build

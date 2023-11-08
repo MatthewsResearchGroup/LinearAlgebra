@@ -1,9 +1,11 @@
-#CXX=/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13
 CXX=g++-13
-CXXFLAGS=-fopenmp -std=c++17 -g -O0 -DDEBUG -Wno-unused-result 
-CXXFLAGS+=-I../marray/marray -I../blis/include/haswell
-LDFLAGS=-fopenmp
-BLAS=-lblas
+CXXFLAGS+=-fopenmp -std=c++17 -g -O0 -DMARRAY_ENABLE_ASSERTS -DDEBUG -Wno-unused-result 
+CXXFLAGS+=-I../marray/marray 
+CXXFLAGS+=-I../build/blis/include/firestorm
+CXXFLAGS+=-I../blis/frame/base
+LDFLAGS=-fopenmp ../build/blis/lib/firestorm/libblis.a 
+#-ld_classic
+#BLAS=-lblis
 LIBS=-lm -ldl
 
 exe=../bin/ltlt
@@ -23,7 +25,7 @@ clean:
 
 $(exe): $(objs)
 	@mkdir -p $(dir $(exe))
-	$(CXX) $(LDFLAGS) -o $(exe) $(objs) $(BLAS) $(LIBS)
+	$(CXX) $(LDFLAGS) -o $(exe) $(objs) $(LIBS)
 
 %.o: %.cpp
 	@mkdir -p $(dir $@).deps
