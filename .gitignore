@@ -1,5 +1,8 @@
 *.swp
 .vscode
+.DS_Store
+build
+.deps
 marray/.git
 blis/.git
 blis/lib
