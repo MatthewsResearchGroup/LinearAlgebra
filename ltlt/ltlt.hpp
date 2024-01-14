@@ -33,8 +33,7 @@ namespace blas
 inline void sktrmv(double alpha, const row_view<const double>& T, const row_view<double>& x)
 {
     auto n = x.length();
-    MARRAY_ASSERT(T.length(0) == n);
-    MARRAY_ASSERT(T.length(1) == n);
+    MARRAY_ASSERT(T.length(0) == n-1);
 
     if (n == 0)
         return;
@@ -76,7 +75,7 @@ inline void skewtrigemv(double alpha, const matrix_view<const double>& A,
 
 inline void sktrmm(double alpha, const row_view<const double>& T, const matrix_view<double>& A)
 {
-    for (auto i : columns(T))
+    for (auto i : columns(A))
     {
         sktrmv(alpha, T, A[all][i]);
     }
@@ -108,6 +107,7 @@ inline void skew_tridiag_rankk(char uplo,
     // copy of B
     matrix<double> tempB = A.T();
     sktrmm(1, T, tempB);
+// printf("%d, %d, %d\n", tempB.length(0), tempB.length(1), A.length(1));
     gemmt(uplo, alpha, A, tempB, beta, C);
 }
 

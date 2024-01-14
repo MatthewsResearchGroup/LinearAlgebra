@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS+=-std=c++17 -g -O0 -DDEBUG -Wno-unused-result 
+CXXFLAGS+=-std=c++17 -g -O0 -DDEBUG -Wno-unused-result -DMARRAY_ENABLE_ASSERTS -DDEBUG -Wno-unused-result 
 CXXFLAGS+=-I../marray/marray 
 CXXFLAGS+=-I../build/blis/include/firestorm
 CXXFLAGS+=-I../blis/frame/base

@@ -12,7 +12,7 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
 
     if (first_column)
         blas::skr2('L', 1.0, L[B][m], X[B][m], 1.0, X[B][B]);
-
+    printf("blocked matrix n, k: %d, %d \n", n, k);
     while(B.size() > n - k)
     {
         // (T  || m  |   B    )

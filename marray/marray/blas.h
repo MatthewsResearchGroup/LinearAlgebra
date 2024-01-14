@@ -4968,8 +4968,8 @@ gemmt(char uplo, T alpha, U&& A, V&& B, W beta, X&& C)
 
     MARRAY_ASSERT(C_.length(0) == m);
     MARRAY_ASSERT(C_.length(1) == m);
-    MARRAY_ASSERT(B_.length(0) == m);
-    MARRAY_ASSERT(B_.length(1) == k);
+    MARRAY_ASSERT(B_.length(0) == k);
+    MARRAY_ASSERT(B_.length(1) == m);
 
     MARRAY_ASSERT(uplo == 'L' || uplo == 'U');
     bli_gemmt(uplo == 'U' ? BLIS_UPPER : BLIS_LOWER, BLIS_NO_TRANSPOSE, BLIS_NO_TRANSPOSE, m, k,
