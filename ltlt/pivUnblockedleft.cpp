@@ -1,6 +1,6 @@
 #include "ltlt.hpp"
 
-void ltlt_unblockLL(const matrix_view<double>& X, len_type k, bool first_column)
+void ltlt_unblockLL(const matrix_view<double>& X, len_type k, bool first_column, const row_view<int>& pi)
 {
     auto [T, m, B] = partition_rows<DYNAMIC,  1, DYNAMIC>(X);
     auto n = X.length(0);
@@ -46,7 +46,15 @@ void ltlt_unblockLL(const matrix_view<double>& X, len_type k, bool first_column)
                                1.0,         X   [r2|R3][r1   ]);
         }
 
+        auto pi2 = blas::iamax(X[r2|R3][r1]);
+        pi[r2] = pi2;
+        pivot_rows(X[r2|R3][r2], pi2);
+
         L[R3][r2] = X[R3][r1] / X[r2][r1];
+
+        pivot_rows(L[r2|R3][R0|r1], pi2);
+        pivot_both(X[r2|R3][r2|R3], pi2);
+
         printf("\nPrint X after updating:\n");
         for (auto i : range(n))
         {
