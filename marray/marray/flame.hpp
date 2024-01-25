@@ -5,7 +5,9 @@
 #include <utility>
 #include <tuple>
 #include <array>
+#include <complex> 
 
+#include "bli_type_defs.h"
 #include "marray_view.hpp"
 #include "expression.hpp"
 #include "blas.h"
@@ -410,10 +412,94 @@ void pivot_columns(const MArray& A, len_type pi)
 }
 
 template <typename MArray>
-void pivot_both(const MArray& A, len_type pi)
+void pivot_both(const MArray& A, len_type pi, struc_t struc)
 {
-    pivot_rows(A, pi);
-    pivot_colums(A, pi);
+    auto n = A.length(0);
+    MARRAY_ASSERT(A.length(1) == n);
+    
+    if (pi == 0)
+        return;
+
+    auto head = range(1,pi);
+    auto tail = range(pi+1,n);
+
+    switch (struc) 
+    {
+        case BLIS_GENERAL:
+            pivot_rows(A, pi);
+            pivot_colums(A, pi);
+            break;
+
+        case BLIS_SYMMETRIC:
+            blas::swap(A[tail][0], A[tail][pi]);
+            
+            for  (auto i : head)
+            {
+                auto Ai0 = A[i][0];
+                auto Apii = A[pi][i];
+                A[i][0] = Apii;
+                A[pi][i] = Ai0;
+            }
+
+            std::swap(A[0][0], A[pi][pi]);
+
+            A[pi][0] = A[pi][0];
+            
+            break;
+
+        case BLIS_HERMITIAN:
+            blas::swap(A[tail][0], A[tail][pi]);
+            
+            for  (auto i : head)
+            {
+                auto Ai0 = A[i][0];
+                auto Apii = A[pi][i];
+                A[i][0] = conj(Apii);
+                A[pi][i] = conj(Ai0);
+            }
+
+            std::swap(A[0][0], A[pi][pi]);
+
+            A[pi][0] = conj(A[pi][0]);
+            
+            break;
+
+        case BLIS_SKEW_SYMMETRIC:
+            blas::swap(A[tail][0], A[tail][pi]);
+            
+            for  (auto i : head)
+            {
+                auto Ai0 = A[i][0];
+                auto Apii = A[pi][i];
+                A[i][0] = -Apii;
+                A[pi][i] = -Ai0;
+            }
+
+            std::swap(A[0][0], A[pi][pi]);
+
+            A[pi][0] = -A[pi][0];
+            
+            break;
+
+        case BLIS_SKEW_HERMITIAN:
+            blas::swap(A[tail][0], A[tail][pi]);
+            
+            for  (auto i : head)
+            {
+                auto Ai0 = A[i][0];
+                auto Apii = A[pi][i];
+                A[i][0] = -conj(Apii);
+                A[pi][i] = -conj(Ai0);
+            }
+
+            std::swap(A[0][0], A[pi][pi]);
+
+            A[pi][0] = -conj(A[pi][0]);
+            
+            break;
+    }
+    
+
 }
 
 } //namespace MArray

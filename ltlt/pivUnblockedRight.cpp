@@ -31,7 +31,7 @@ void ltlt_pivot_unblockRL(const matrix_view<double>& X, len_type k, bool first_c
         L[R3][r2] = X[R3][r1] / X[r2][r1];
 
         pivot_rows(L[r2|R3][R0|r1], pi2);
-        pivot_both(X[r2|R3][r2|R3], pi2);
+        pivot_both(X[r2|R3][r2|R3], pi2, BLIS_GENERAL);
 
         blas::skr2('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
 
