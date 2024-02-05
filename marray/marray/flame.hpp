@@ -484,7 +484,7 @@ void pivot_both(const MArray& A, len_type pi, struc_t struc)
         case BLIS_SKEW_HERMITIAN:
             blas::swap(A[tail][0], A[tail][pi]);
             
-            for  (auto i : head)
+            for (auto i : head)
             {
                 auto Ai0 = A[i][0];
                 auto Apii = A[pi][i];
