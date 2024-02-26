@@ -9,7 +9,9 @@
 #include <random>
 
 //must come first
-#define MARRAY_USE_BLIS
+//#define MARRAY_USE_BLIS
+#define BLIS_ENABLE_STD_COMPLEX
+#include "blis.h"
 
 #include "marray_view.hpp"
 #include "expression.hpp"
@@ -108,7 +110,8 @@ inline void skew_tridiag_rankk(char uplo,
     matrix<double> tempB = A.T();
     sktrmm(1, T, tempB);
 // printf("%d, %d, %d\n", tempB.length(0), tempB.length(1), A.length(1));
-    gemmt(uplo, alpha, A, tempB, beta, C);
+    //gemmt(uplo, alpha, A, tempB, beta, C);
+    gemm(alpha, A, tempB, beta, C);
 }
 
 } //namespace blas
@@ -117,6 +120,16 @@ inline void skew_tridiag_rankk(char uplo,
 template <typename T> range_t<T> not_first(const range_t<T>& x)
 {
     return range(x.from()+1, x.to());
+}
+
+template <typename T> range_t<T> R3_trunc(const range_t<T>& R0, const range_t<T>& R3, len_type k)
+{
+    if ( R0.from() + k < R3.from())
+    {
+        return range(R3.from(), -1);
+    }
+    else
+        return range(R3.from(), R0.from() +k );
 }
 
 inline matrix<double> make_L(const matrix_view<const double>& X)
@@ -185,6 +198,35 @@ inline double norm(const Tensor& x)
     return sqrt(norm2(x));
 }
 
+inline matrix<double> gemm_chao(const double alpha, 
+               const matrix_view<double>& A, 
+               const matrix_view<double>& B)
+{
+    auto m = A.length(0);
+    auto k = A.length(1);
+    auto n = B.length(1);
+
+
+    matrix<double> C{m, n};
+
+    MARRAY_ASSERT(C.length(0) == m);
+    MARRAY_ASSERT(C.length(1) == n);
+    MARRAY_ASSERT(B.length(0) == k);
+
+    for (auto i : range(m))
+    {
+        for (auto j : range(n))
+        {
+            double s = 0.0;
+            for (auto p : range(k))
+            {
+                s += alpha * A[i][p] * B[p][j];
+            }
+            C[i][j] = s;
+        }
+    }
+    return C;
+}
 
 void ltlt_unblockRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false);
 

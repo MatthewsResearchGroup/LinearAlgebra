@@ -21,9 +21,14 @@ int main()
      *  testing with different matrix size
      *
      */
-    auto n = 7; // square matrix size
+    auto n = 21; // square matrix size
+                //
     // test(n, ltlt_unblockLL);
-    test(n, ltlt_blockRL, false);
+    // test(n, ltlt_unblockRL);
+    // test(n, ltlt_blockRL, false);
+    // test(n, ltlt_blockRL, true);
+    // test(n, ltlt_blockLL, false);
+    test(n, ltlt_blockLL, true);
     // for (auto n = 50; n <= 2000; n = n + 50)
     //     test(n, ltlt_unblockLL);
 

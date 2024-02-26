@@ -1,3 +1,4 @@
+#if 0
 #include "flame.hpp"
 #include "fwd/marray_fwd.hpp"
 #include "ltlt.hpp"
@@ -40,3 +41,4 @@ void ltlt_pivot_unblockRL(const matrix_view<double>& X, len_type k, bool first_c
         tie(T, m, B) = continue_with(R0, r1, r2, R3);
     }
 }
+#endif

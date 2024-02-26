@@ -2,16 +2,18 @@
 
 void ltlt_unblockLL(const matrix_view<double>& X, len_type k, bool first_column)
 {
+    printf("Do we use unblockedLeftLooking\n\n");
     auto [T, m, B] = partition_rows<DYNAMIC,  1, DYNAMIC>(X);
     auto n = X.length(0);
 
     if (k == -1)
-        k = n ;
+        k = n - 1;
 
     matrix_view<double> L = first_column ? X.shifted(1, -1) : X.rebased(1, 1);
     row<double> temp{X.length(0)};
 
-    while(B.size() > n - k)
+    printf("B.size = %d, n =  %d, k = %d , n - k = %d\n", B.size(), n, k, n - k);
+    while(B.size() > n - k - 1)
     {
         // (T  || m  ||   B    )
         // (R0 || r1 || r2 | R3) 4 * 4 partition
@@ -28,7 +30,7 @@ void ltlt_unblockLL(const matrix_view<double>& X, len_type k, bool first_column)
             printf("\n");
         }
         
-        if (!R0.empty() || first_column)
+        if (!R0.empty())
         {    
             auto R0p = first_column ? R0 : not_first(R0);
             temp[R0p] = L[r1][R0p];

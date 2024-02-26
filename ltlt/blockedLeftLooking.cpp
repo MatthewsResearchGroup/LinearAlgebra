@@ -4,6 +4,7 @@ void ltlt_blockLL(const matrix_view<double>& X, len_type block_size, const std::
 {
     auto [T, m, B] = partition_rows<DYNAMIC,1,DYNAMIC>(X);
 
+    printf("Is the code running here 1?\n");
     // auto n = X.length(0);
     // if (k == -1)
         // k = n;
@@ -16,19 +17,22 @@ void ltlt_blockLL(const matrix_view<double>& X, len_type block_size, const std::
         // (  T ||  m |       B      )
         // ( R0 || r1 | R2 | r3 | R4 )
         auto [R0, r1, R2, r3, R4] = repartition<DYNAMIC,1>(T, m, B, block_size);
-        auto R0p = not_first(R0);
 
-        /*left-looking*/
-        temp[r1][R0p] = L[r1][R0p];
-        temp[r1][r1 ] = 1; // L[r1][r1]
-        temp[R2][R0p] = L[R2][R0p];
-        temp[R2][r1 ] = L[R2][r1 ];
-        blas::skew_tridiag_gemm(-1.0,         L   [R2 |r3|R4][R0p|r1],
-                                      subdiag(X   [R0p|r1   ][R0p|r1]),
-                                              temp[r1 |R2   ][R0p|r1].T(),
-                                 1.0,         X   [R2 |r3|R4][r1 |R2]);
-
-        LTLT_UNB(X[r1 | R2 | r3 | R4][r1 | R2 | r3 | R4],  (r1 | R2).size(), true);
+        if (!R0.empty())
+        {
+            auto R0p = not_first(R0);
+            /*left-looking*/
+            temp[r1][R0p] = L[r1][R0p];
+            temp[r1][r1 ] = 1; // L[r1][r1]
+            temp[R2][R0p] = L[R2][R0p];
+            temp[R2][r1 ] = L[R2][r1 ];
+            blas::skew_tridiag_gemm(-1.0,         L   [R2 |r3|R4][R0p|r1],
+                                          subdiag(X   [R0p|r1   ][R0p|r1]),
+                                                  temp[r1 |R2   ][R0p|r1].T(),
+                                     1.0,         X   [R2 |r3|R4][r1 |R2]);
+        }
+        printf("R0.empty = %d\n", R0.empty());
+        LTLT_UNB(X[r1 | R2 | r3 | R4][r1 | R2 | r3 | R4],  (r1 | R2).size(), !R0.empty());
 
         // ( R0 | r1 | R2 || r3 | R4 )
         // (      T       ||  m |  B )
