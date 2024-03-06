@@ -4,7 +4,7 @@
    An object-based framework for developing high-performance BLAS-like
    libraries.
 
-   Copyright (C) 2023, The University of Texas at Austin
+   Copyright (C) 2023, SiFive, Inc.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are
@@ -30,38 +30,50 @@
    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
 */
 
-/* RISC-V autodetection code which works with native or cross-compilers.
-   Compile with $CC -E and ignore all output lines starting with #.  On RISC-V
-   it may return rv32i (base 32-bit integer RISC-V), rv32iv (rv32i plus vector
-   extensions), rv64i (base 64-bit integer RISC-V), or rv64iv (rv64i plus
-   vector extensions). On 128-bit integer RISC-V, it falls back to generic
-   for now. For toolchains which do not yet support RISC-V feature-detection
-   macros, it will fall back on generic, so the BLIS configure script may need
-   the RISC-V configuration to be explicitly specified. */
+// clang-format off
+#ifdef AXPYV
 
-// false if !defined(__riscv) || !defined(__riscv_xlen)
-#if __riscv && __riscv_xlen == 64
+AXPYV(PRECISION_CHAR, void)
+{
+    // Computes y = y + alpha * conj(x)
+    //           == y + alpha * x       (real case)
+    
+    (void) conjx; // Suppress unused parameter warnings
+    const DATATYPE* restrict alpha = alpha_;
+    const DATATYPE* restrict x = x_;
+    DATATYPE* restrict y = y_;
 
-#if __riscv_vector // false if !defined(__riscv_vector)
-rv64iv
-#else
-rv64i
-#endif
+    if (n <= 0) return;
+    if (*alpha == 0) return;
 
-// false if !defined(__riscv) || !defined(__riscv_xlen) || __riscv_e32 != 0
-#elif __riscv && __riscv_xlen == 32 && !__riscv_e32
+    size_t avl = n;
+    while (avl) {
+        size_t vl = VSETVL(PREC, LMUL)(avl);
+        RVV_TYPE_F(PREC, LMUL) xvec, yvec;
 
-#if __riscv_vector // false if !defined(__riscv_vector)
-rv32iv
-#else
-rv32i
-#endif
+        if (incx == 1)
+            xvec = VLE_V_F(PREC, LMUL) (x, vl);
+        else
+            xvec = VLSE_V_F(PREC, LMUL)(x, FLT_SIZE * incx, vl);
 
-#else
+        if (incy == 1)
+            yvec = VLE_V_F(PREC, LMUL) (y, vl);
+        else
+            yvec = VLSE_V_F(PREC, LMUL)(y, FLT_SIZE * incy, vl);
 
-generic  // fall back on BLIS runtime CPUID autodetection algorithm
+        yvec = VFMACC_VF(PREC, LMUL)(yvec, *alpha, xvec, vl);
 
-#endif
+        if (incy == 1)
+            VSE_V_F(PREC, LMUL) (y, yvec, vl);
+        else
+            VSSE_V_F(PREC, LMUL)(y, FLT_SIZE * incy, yvec, vl);
+
+        x += vl * incx;
+        y += vl * incy;
+        avl -= vl;
+    }
+}
+
+#endif // AXPYV
