@@ -8,10 +8,8 @@
 #include <functional>
 #include <random>
 
-//must come first
-//#define MARRAY_USE_BLIS
 #define BLIS_ENABLE_STD_COMPLEX
-#include "blis.h"
+#define MARRAY_USE_BLIS
 
 #include "marray_view.hpp"
 #include "expression.hpp"

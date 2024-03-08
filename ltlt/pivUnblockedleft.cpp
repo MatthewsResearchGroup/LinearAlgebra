@@ -1,7 +1,7 @@
-#if 0 
+#include "flame.hpp"
 #include "ltlt.hpp"
 
-void ltlt_pivot_unblockLL(const matrix_view<double>& X, len_type k, bool first_column, const row_view<int>& pi)
+void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<int>& pi, len_type k, bool first_column)
 {
     auto [T, m, B] = partition_rows<DYNAMIC,  1, DYNAMIC>(X);
     auto n = X.length(0);
@@ -12,7 +12,7 @@ void ltlt_pivot_unblockLL(const matrix_view<double>& X, len_type k, bool first_c
     matrix_view<double> L = first_column ? X.shifted(1, -1) : X.rebased(1, 1);
     row<double> temp{X.length(0)};
 
-    while(B.size() > n - k)
+    while (B.size() > n - k)
     {
         // (T  || m  ||   B    )
         // (R0 || r1 || r2 | R3) 4 * 4 partition
@@ -76,4 +76,4 @@ void ltlt_pivot_unblockLL(const matrix_view<double>& X, len_type k, bool first_c
     }
 }
 
-#endif
+
