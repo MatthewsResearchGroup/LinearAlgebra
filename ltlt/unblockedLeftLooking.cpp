@@ -49,16 +49,6 @@ void ltlt_unblockLL(const matrix_view<double>& X, len_type k, bool first_column)
         }
 
         L[R3][r2] = X[R3][r1] / X[r2][r1];
-        printf("\nPrint X after updating:\n");
-        for (auto i : range(n))
-        {
-            for (auto j : range(n))
-            {
-                printf("%f, " , X[i][j]);
-            }
-            printf("\n");
-        }
-
         // (R0 | r1 || r2 | R3 )
         // (T       || m  | B  )
 

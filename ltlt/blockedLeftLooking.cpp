@@ -16,7 +16,11 @@ void ltlt_blockLL(const matrix_view<double>& X, len_type block_size, const std::
     {
         // (  T ||  m |       B      )
         // ( R0 || r1 | R2 | r3 | R4 )
+        printf("Before the reparititiion\n");
+        printf("T = %d - %d, m = %d, B = %d - %d\n", T.from(), T.to(), m, B.from(), B.to());
         auto [R0, r1, R2, r3, R4] = repartition<DYNAMIC,1>(T, m, B, block_size);
+        printf("After the reparititiion\n");
+        printf("R0 = %d - %d, r1 = %d, R2 = %d - %d, r3 = %d, R4 = %d - %d\n\n", R0.from(), R0.to(), r1, R2.from(), R2.to(), r3, R4.from(), R4.to());
 
         if (!R0.empty())
         {

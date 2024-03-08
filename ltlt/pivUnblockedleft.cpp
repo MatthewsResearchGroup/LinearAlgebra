@@ -1,3 +1,4 @@
+#if 0 
 #include "ltlt.hpp"
 
 void ltlt_pivot_unblockLL(const matrix_view<double>& X, len_type k, bool first_column, const row_view<int>& pi)
@@ -75,3 +76,4 @@ void ltlt_pivot_unblockLL(const matrix_view<double>& X, len_type k, bool first_c
     }
 }
 
+#endif

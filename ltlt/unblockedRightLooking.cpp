@@ -33,12 +33,13 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
         // (R0 || r1 | r2 | R3) 4 * 4 partition
 
         auto [R0, r1, r2, R3] = repartition(T, m, B);
+        printf("R3 = %d - %d\n", R3.from(), R3.to());
 
         L[R3][r2] = X[R3][r1] / X[r2][r1];
 
         if ( k == -1)
         {
-            printf("Normal Unblock Rightlooking Algorithm..\n");
+            // printf("Normal Unblock Rightlooking Algorithm..\n");
             //blas::skr2('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
             blas::ger( 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
             blas::ger(-1.0, X[R3][r2], L[R3][r2], 1.0, X[R3][R3]);
@@ -46,23 +47,25 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
         }
         else
         {
-            printf("Truncated Unblock Rightlooking Algorithm..\n");
+            // printf("Truncated Unblock Rightlooking Algorithm..\n");
+            // Since we only get [r1 | R2 | r3 | R4] from the blocked algorithm, 
+            // therefore we need to start R0 here, where the begining of R0 here is the r1 in the blocked algorithmms
             auto R3trunc = R3_trunc(R0, R3, k);
-            printf("R3 range: %d, %d\n", R3trunc.from(), R3trunc.to());
-            printf("R3trunc range: (%d, %d)\n", R3trunc.from(), R3trunc.to());
+            // printf("R3 range: %d, %d\n", R3.from(), R3.to());
+            // printf("R3trunc range: (%d, %d)\n", R3trunc.from(), R3trunc.to());
             blas::ger( 1.0, L[R3][r2], X[R3trunc][r2], 1.0, X[R3][R3trunc]);
             blas::ger(-1.0, X[R3][r2], L[R3trunc][r2], 1.0, X[R3][R3trunc]);
         }    
 
-        printf("\nPrint X after updating:\n");
-        for (auto i : range(n))
-        {
-            for (auto j : range(n))
-        {
-            printf("%f, " , X[i][j]);
-        }
-            printf("\n");
-        }
+        // printf("\nPrint X after updating:\n");
+        // for (auto i : range(n))
+        // {
+        //     for (auto j : range(n))
+        // {
+        //     printf("%f, " , X[i][j]);
+        // }
+        //     printf("\n");
+        // }
         // (R0 | r1 || r2 | R3 )
         // (T       || m  | B  )
         tie(T, m, B) = continue_with(R0, r1, r2, R3);

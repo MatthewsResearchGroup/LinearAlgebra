@@ -7,7 +7,8 @@
 #include <array>
 #include <complex>
 
-#include "bli_type_defs.h"
+
+// #include "bli_type_defs.h"
 #include "marray_view.hpp"
 #include "expression.hpp"
 #include "blas.h"
@@ -141,26 +142,32 @@ auto repartition(len_type bs, direction dir,
     {
         auto& last = detail::nth_arg<NOld-1>(args...);
         MARRAY_ASSERT(last.size() >= NFixed);
+        auto ndynamic = std::min(bs, last.size())-NFixed;
 
-        std::array<len_type,NNew+1> sizes{last.front(), (Sizes == DYNAMIC ? std::min(bs, last.size())-NFixed : Sizes)...};
+        std::array<len_type,NNew+2> sizes{last.front(), (Sizes == DYNAMIC ? ndynamic : Sizes)..., last.size()-NFixed-ndynamic};
         ((sizes[NewIdx+1] += sizes[NewIdx]), ...);
+        sizes[NNew+1] += sizes[NNew];
+        MARRAY_ASSERT(sizes[NNew+1] == last.back()+1);
 
         return std::make_tuple(convert(nth_arg<FirstIdx>(args...))...,
                                make_range<len_type,Sizes>(sizes[NewIdx], sizes[NewIdx+1])...,
-                               range_t<len_type>{last.front()+bs, last.back()+1});
+                               range(sizes[NNew], sizes[NNew+1]));
     }
     else
     {
         auto& first = detail::nth_arg<NOld-1>(args...);
         MARRAY_ASSERT(first.size() >= NFixed);
+        auto ndynamic = std::min(bs, first.size())-NFixed;
 
         constexpr std::array rev{Sizes...};
 
-        std::array<len_type,NNew+1> sizes{(rev[NNew-1-NewIdx] == DYNAMIC ? std::min(bs, first.size())-NFixed : rev[NNew-1-NewIdx])..., first.back()+1};
-        (..., (sizes[NewIdx] = sizes[NewIdx+1]-sizes[NewIdx]));
+        std::array<len_type,NNew+2> sizes{first.size()-NFixed-ndynamic, (rev[NNew-1-NewIdx] == DYNAMIC ? ndynamic : rev[NNew-1-NewIdx])..., first.back()+1};
+        (..., (sizes[NewIdx+1] = sizes[NewIdx+2]-sizes[NewIdx+1]));
+        sizes[0] = sizes[1]-sizes[0];
+        MARRAY_ASSERT(sizes[0] == first.front());
 
-        return std::make_tuple(range_t<len_type>{first.front(), first.back()+1-bs},
-                               make_range<len_type,rev[NNew-1-NewIdx]>(sizes[NewIdx], sizes[NewIdx+1])...,
+        return std::make_tuple(range(sizes[0], sizes[1]),
+                               make_range<len_type,rev[NNew-1-NewIdx]>(sizes[NewIdx+1], sizes[NewIdx+2])...,
                                convert(nth_arg<FirstIdx+1>(args...))...);
     }
 }
