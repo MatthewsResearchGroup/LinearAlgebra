@@ -9,6 +9,7 @@
 #include <random>
 
 //must come first
+#define BLIS_ENABLE_STD_COMPLEX
 #define MARRAY_USE_BLIS
 
 #include "marray_view.hpp"

@@ -8,9 +8,11 @@
 #include <complex> 
 
 #include "bli_type_defs.h"
+#include "fwd/marray_fwd.hpp"
 #include "marray_view.hpp"
 #include "expression.hpp"
 #include "blas.h"
+#include "types.hpp"
 
 namespace MArray
 {
@@ -498,9 +500,81 @@ void pivot_both(const MArray& A, len_type pi, struc_t struc)
             
             break;
     }
-    
-
 }
+
+template <typename MArray, typename Pivot>
+std::enable_if_t<!std::is_integral_v<Pivot>>
+pivot_both(const MArray& A, const Pivot& p, struc_t struc)
+{
+    auto [T, B] = partition_rows(A);
+
+    MARRAY_ASSERT(A.dimension() == 2);
+    MARRAY_ASSERT(p.dimension() == 1);
+    MARRAY_ASSERT(A.length(0) == A.length(1));
+    MARRAY_ASSERT(A.length(0) == p.length(0));
+
+    while (B)
+    {
+        // (  T ||    B    )
+        // ( R0 || r1 | R2 )
+        auto [R0, r1, R2] = repartition(T, B);
+
+        pivot_both(A[r1 | R2][r1 | R2], p[r1], struc);
+
+        // ( R0 | r1 || R2 )
+        // (    T    ||  B )
+        tie(T, B) = continue_with(R0, r1, R2);
+    }
+}
+
+template <typename MArray, typename Pivot>
+std::enable_if_t<!std::is_integral_v<Pivot>>
+pivot_rows(const MArray& A, const Pivot& p)
+{
+    auto [T, B] = partition_rows(A);
+
+    MARRAY_ASSERT(A.dimension() == 2);
+    MARRAY_ASSERT(p.dimension() == 1);
+    MARRAY_ASSERT(A.length(0) == p.length(0));
+
+    while (B)
+    {
+        // (  T ||    B    )
+        // ( R0 || r1 | R2 )
+        auto [R0, r1, R2] = repartition(T, B);
+
+        pivot_rows(A[r1 | R2][slice::all], p[r1]);
+
+        // ( R0 | r1 || R2 )
+        // (    T    ||  B )
+        tie(T, B) = continue_with(R0, r1, R2);
+    }
+}
+
+template <typename MArray, typename Pivot>
+std::enable_if_t<!std::is_integral_v<Pivot>>
+pivot_columns(const MArray& A, const Pivot& p)
+{
+    auto [T, B] = partition_columns(A);
+
+    MARRAY_ASSERT(A.dimension() == 2);
+    MARRAY_ASSERT(p.dimension() == 1);
+    MARRAY_ASSERT(A.length(1) == p.length(0));
+
+    while (B)
+    {
+        // (  T ||    B    )
+        // ( R0 || r1 | R2 )
+        auto [R0, r1, R2] = repartition(T, B);
+
+        pivot_columns(A[slice::all][r1 | R2], p[r1]);
+
+        // ( R0 | r1 || R2 )
+        // (    T    ||  B )
+        tie(T, B) = continue_with(R0, r1, R2);
+    }
+}
+
 
 } //namespace MArray
 

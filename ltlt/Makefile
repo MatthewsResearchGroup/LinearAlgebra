@@ -1,9 +1,14 @@
 CXX=g++
 CXXFLAGS+=-std=c++17 -g -O0 -DDEBUG -Wno-unused-result -DMARRAY_ENABLE_ASSERTS -DDEBUG -Wno-unused-result 
 CXXFLAGS+=-I../marray/marray 
-CXXFLAGS+=-I../build/blis/include/firestorm
+CXXFLAGS+=-I../build/blis/include/firestorm -I../build/blis/include/haswell
 CXXFLAGS+=-I../blis/frame/base
-LDFLAGS=-g ../build/blis/lib/firestorm/libblis.a  
+ARCH=$(shell uname -m)
+ifeq ($(ARCH),arm64)
+LDFLAGS=-g ../build/blis/lib/firestorm/libblis.a 
+else
+LDFLAGS=-g ../build/blis/lib/haswell/libblis.a
+endif
 #-fsanitize=address
 #-ld_classic
 #BLAS=-lblis
