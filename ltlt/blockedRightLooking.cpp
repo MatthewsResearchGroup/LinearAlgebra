@@ -16,6 +16,7 @@ void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::
     {
         count += 1;
         printf("interation: %d\n", count);
+        printf("X before the unblock looking algorithm...\n");
         for (auto i : range(n))
         {
             for (auto j : range(n))
@@ -37,9 +38,9 @@ void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::
         //printf("\n");
         /*right-looking*/
 
-        LTLT_UNB(X[r1 | R2 | r3 | R4][r1 | R2 | r3 | R4],  (r1 | R2).size() + 1, false);
+        LTLT_UNB(X[r1 | R2 | r3 | R4][r1 | R2 | r3 | R4],  (r1 | R2).size(), false);
         
-        printf("X after unblokced algorithm \n");
+        printf("X after unblokced algorithm and before skew_tridiag_rankk \n");
         for (auto i : range(n))
         {
             for (auto j : range(n))
@@ -49,17 +50,17 @@ void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::
             printf("\n");
         }
         // print L[r3|R4][R2|r3]
-        printf("print L[r3|R4][R2|r3]\n");
-        printf("r3|R4 : %d - %d \n", (r3|R4).front(), (r3|R4).back());
-        printf("R2|r3 : %d - %d \n", (R2|r3).front(), (R2|r3).back());
-        for (auto i : (r3|R4))
-        {
-        for (auto j : (R2|r3))
-        {
-            printf("%f, ", L[i][j]);
-        }
-            printf("\n");
-        }
+        // printf("print L[r3|R4][R2|r3]\n");
+        // printf("r3|R4 : %d - %d \n", (r3|R4).front(), (r3|R4).back());
+        // printf("R2|r3 : %d - %d \n", (R2|r3).front(), (R2|r3).back());
+        // for (auto i : (r3|R4))
+        // {
+        // for (auto j : (R2|r3))
+        // {
+        //     printf("%f, ", L[i][j]);
+        // }
+        //     printf("\n");
+        // }
         
  
         temp[r3][R2] = L[r3][R2];
@@ -67,72 +68,100 @@ void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::
         temp[R4][R2] = L[R4][R2];
         temp[R4][r3] = L[R4][r3];
 
-        printf("print temp[r3|R4][R2|r3]\n");
-        for (auto i : (r3|R4))
-        {
-        for (auto j : (R2|r3))
-        {
-            printf("%f, ", temp[i][j]);
-        }
-            printf("\n");
-        }
+        // printf("print temp[r3|R4][R2|r3]\n");
+        // for (auto i : (r3|R4))
+        // {
+        // for (auto j : (R2|r3))
+        // {
+        //     printf("%f, ", temp[i][j]);
+        // }
+        //     printf("\n");
+        // }
 
-        printf("\n");
+        // printf("\n");
 
-        printf("T .......\n");
-        for (auto i : (R2|r3))
-        {
-        for (auto j : (R2|r3))
-        {
-            printf("%f, ", X[i][j]);
-        }
-        printf("\n");
-        }
-        printf("\n");
-        printf("print X33 X44 before updating\n");
-        for (auto i : (r3|R4))
-        {
-            for (auto j : (r3|R4))
-        {
-            printf("%f, " , X[i][j]);
-        }
-            printf("\n");
-        }
+        // printf("T .......\n");
+        // for (auto i : (R2|r3))
+        // {
+        // for (auto j : (R2|r3))
+        // {
+        //     printf("%f, ", X[i][j]);
+        // }
+        // printf("\n");
+        // }
+        // printf("\n");
+        // printf("print X33 and X44 before updating\n");
+        // for (auto i : (r3|R4))
+        // {
+        //     for (auto j : (r3|R4))
+        // {
+        //     printf("%f, " , X[i][j]);
+        // }
+        //     printf("\n");
+        // }
 
         blas::skew_tridiag_rankk('L',
                                  -1.0,      temp[r3|R4][R2|r3],
                                        subdiag(X[R2|r3][R2|r3]),
                                   1.0,         X[r3|R4][r3|R4]);
 
-        printf("X after rankk\n");
-        for (auto i : (r3|R4))
+
+        printf("X after skew_tridiag_rankk and before the skr2\n");
+        for (auto i : range(n))
         {
-            for (auto j : (r3|R4))
+            for (auto j : range(n))
         {
             printf("%f, " , X[i][j]);
         }
             printf("\n");
         }
+        // printf("\n\nX33 and X44 after rankk\n");
+        // for (auto i : (r3|R4))
+        // {
+        //     for (auto j : (r3|R4))
+        // {
+        //     printf("%f, " , X[i][j]);
+        // }
+        //     printf("\n");
+        // }
         // X44 += l43 x43^T - x43 l43^T
         // print something to debug
-        // printf("print L43\n");
-        // printf("r3 : %d, R4: %d, %d\n", r3, R4[0], R4[1]);
-        for (auto i = R4.front(); i < R4.back(); i++)
-        {
-                printf("%f,", L[i][r3]);
-        }
-        printf("\n");
-        blas::skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
+        // printf("\n\nprint L43\n");
+        // // printf("r3 : %d, R4: %d, %d\n", r3, R4[0], R4[1]);
+        // for (auto i : R4)
+        // {
+        //         printf("%f,", L[i][r3]);
+        // }
+        // printf("\n");
+        // printf("\n\nprint X43\n");
+        // // printf("r3 : %d, R4: %d, %d\n", r3, R4[0], R4[1]);
+        // for (auto i : R4)
+        // {
+        //         printf("%f,", X[i][r3]);
+        // }
+        // printf("\n");
+        // blas::skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
+        blas::ger( 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
+        blas::ger(-1.0, X[R4][r3], L[R4][r3], 1.0, X[R4][R4]);
 
-        printf("X44 after updataing\n");
-        for (auto i : R4)
+        printf("X after skr2\n");
+        for (auto i : range(n))
         {
-            for (auto j : R4)
+            for (auto j : range(n))
         {
             printf("%f, " , X[i][j]);
         }
             printf("\n");
         }
+        // printf("\n\nX44 after updating\n");
+        // for (auto i : R4)
+        // {
+        //     for (auto j : R4)
+        // {
+        //     printf("%f, " , X[i][j]);
+        // }
+        //     printf("\n");
+        // }
         // ( R0 | r1 | R2 || r3 | R4 )
         // (      T       ||  m |  B )
         tie(T, m, B) = continue_with<2>(R0, r1, R2, r3, R4);

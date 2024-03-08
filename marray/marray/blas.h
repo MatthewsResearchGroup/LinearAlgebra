@@ -1232,7 +1232,7 @@ inline void her2k(const char uplo, const char trans, \
 
 MARRAY_FOR_EACH_COMPLEX_TYPE
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
 
 /******************************************************************************
  *
@@ -1962,7 +1962,7 @@ swapv(T&& x_, U&& y_)
     auto y = y_.view();
     MARRAY_ASSERT(x.length() == y.length());
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     bli_swapv(x.length(), x.data(), x.stride(), y.data(), y.stride());
 #else
     swap(x.length(), x.data(), x.stride(), y.data(), y.stride());
@@ -1975,7 +1975,7 @@ conj(T&& x_)
 {
     auto x = x_.view();
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     bli_scalv(BLIS_CONJUGATE, x.length(), detail::value_type<T>{1}, x.data(), x.stride());
 #else
     auto n = x.length();
@@ -1992,7 +1992,7 @@ scal(T alpha, U&& x_)
 {
     auto x = x_.view();
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     bli_scalv(BLIS_NO_CONJUGATE, x.length(), alpha, x.data(), x.stride());
 #else
     scal(x.length(), alpha, x.data(), x.stride());
@@ -2008,7 +2008,7 @@ copy(T&& x_, U&& y_)
     auto y = y_.view();
     MARRAY_ASSERT(x.length() == y.length());
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     bli_copyv(BLIS_NO_CONJUGATE, x.length(), x.data(), x.stride(), y.data(), y.stride());
 #else
     copy(x.length(), x.data(), x.stride(), y.data(), y.stride());
@@ -2024,7 +2024,7 @@ axpy(T alpha, U&& x_, V&& y_)
     auto y = y_.view();
     MARRAY_ASSERT(x.length() == y.length());
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     bli_axpyv(BLIS_NO_CONJUGATE, x.length(), alpha, x.data(), x.stride(), y.data(), y.stride());
 #else
     axpy(x.length(), alpha, x.data(), x.stride(), y.data(), y.stride());
@@ -2040,7 +2040,7 @@ auto dotu(T&& x_, U&& y_)
     auto y = y_.view();
     MARRAY_ASSERT(x.length() == y.length());
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     return bli_dotv(BLIS_NO_CONJUGATE, BLIS_NO_CONJUGATE, x.length(), x.data(), x.stride(), y.data(), y.stride());
 #else
     return dotu(x.length(), x.data(), x.stride(), y.data(), y.stride());
@@ -2056,7 +2056,7 @@ auto dotc(T&& x_, U&& y_)
     auto y = y_.view();
     MARRAY_ASSERT(x.length() == y.length());
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     return bli_dotv(BLIS_NO_CONJUGATE, BLIS_CONJUGATE, x.length(), x.data(), x.stride(), y.data(), y.stride());
 #else
     return dotc(x.length(), x.data(), x.stride(), y.data(), y.stride());
@@ -2072,7 +2072,7 @@ auto dot(T&& x_, U&& y_)
     auto y = y_.view();
     MARRAY_ASSERT(x.length() == y.length());
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     return bli_dotv(BLIS_NO_CONJUGATE, BLIS_CONJUGATE, x.length(), x.data(), x.stride(), y.data(), y.stride());
 #else
     return dot(x.length(), x.data(), x.stride(), y.data(), y.stride());
@@ -2085,7 +2085,7 @@ auto nrm2(T&& x_)
 {
     auto x = x_.view();
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     return bli_normfv(x.length(), x.data(), x.stride());
 #else
     return nrm2(x.length(), x.data(), x.stride());
@@ -2098,7 +2098,7 @@ auto asum(T&& x_)
 {
     auto x = x_.view();
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     return bli_norm1v(x.length(), x.data(), x.stride());
 #else
     return asum(x.length(), x.data(), x.stride());
@@ -2111,7 +2111,7 @@ auto iamax(T&& x_)
 {
     auto x = x_.view();
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     return bli_amaxv(x.length(), x.data(), x.stride());
 #else
     return iamax(x.length(), x.data(), x.stride());
@@ -2124,7 +2124,7 @@ auto amax(T&& x_)
 {
     auto x = x_.view();
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     return bli_normiv(x.length(), x.data(), x.stride());
 #else
     return amax(x.length(), x.data(), x.stride());
@@ -2170,7 +2170,7 @@ gemv(T alpha, U&& A, V&& x, W beta, X&& y)
     MARRAY_ASSERT(y_.length() == m);
     MARRAY_ASSERT(x_.length() == n);
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     bli_gemv(BLIS_NO_TRANSPOSE, BLIS_NO_CONJUGATE, m, n,
              alpha, A_.data(), A_.stride(0), A_.stride(1),
                     x_.data(), x_.stride(),
@@ -2293,7 +2293,7 @@ hemv(char uplo, T alpha, U&& A, V&& x, W beta, X&& y)
     MARRAY_ASSERT(x_.length() == m);
     MARRAY_ASSERT(A_.length(1) == m);
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     MARRAY_ASSERT(uplo == 'U' || uplo == 'L');
     bli_hemv(uplo == 'U' ? BLIS_UPPER : BLIS_LOWER, BLIS_NO_CONJUGATE, BLIS_NO_CONJUGATE, m,
              alpha, A_.data(), A_.stride(0), A_.stride(1),
@@ -2445,7 +2445,7 @@ trmv(char uplo, char diag, T alpha, U&& A, V&& x, W beta, X&& y)
 
     copy(x, y);
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     MARRAY_ASSERT(uplo == 'U' || uplo == 'L');
     MARRAY_ASSERT(diag == 'U' || diag == 'N');
     bli_trmv(uplo == 'U' ? BLIS_UPPER : BLIS_LOWER, BLIS_NO_TRANSPOSE,
@@ -2582,7 +2582,7 @@ trsv(char uplo, char diag, T&& A, U&& x)
     MARRAY_ASSERT(x_.length() == m);
     MARRAY_ASSERT(A_.length(1) == m);
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     MARRAY_ASSERT(uplo == 'U' || uplo == 'L');
     MARRAY_ASSERT(diag == 'U' || diag == 'N');
     bli_trsv(uplo == 'U' ? BLIS_UPPER : BLIS_LOWER, BLIS_NO_TRANSPOSE,
@@ -2639,7 +2639,7 @@ her(char uplo, T alpha, U&& x, V beta, W&& A)
     if (beta == 0.0) A_ = 0;
     else if (beta != 1.0) A_ *= beta;
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     MARRAY_ASSERT(uplo == 'U' || uplo == 'L');
     bli_her(uplo == 'U' ? BLIS_UPPER : BLIS_LOWER, BLIS_NO_CONJUGATE, m,
             alpha, x_.data(), x_.stride(),
@@ -2759,7 +2759,7 @@ her2(char uplo, T alpha, U&& x, V&& y, W beta, X&& A)
     if (beta == 0.0) A_ = 0;
     else if (beta != 1.0) A_ *= beta;
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     MARRAY_ASSERT(uplo == 'U' || uplo == 'L');
     bli_her2(uplo == 'U' ? BLIS_UPPER : BLIS_LOWER, BLIS_NO_CONJUGATE, BLIS_NO_CONJUGATE, m,
              alpha, x_.data(), x_.stride(),
@@ -2891,7 +2891,7 @@ ger(T alpha, U&& x, V&& y, W beta, X&& A)
     if (beta == 0.0) A_ = 0;
     else if (beta != 1.0) A_ *= beta;
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     bli_ger(BLIS_NO_CONJUGATE, BLIS_CONJUGATE, m, n,
             alpha, x_.data(), x_.stride(),
                    y_.data(), y_.stride(),
@@ -3017,7 +3017,7 @@ gerc(T alpha, U&& x, V&& y, W beta, X&& A)
     if (beta == 0.0) A_ = 0;
     else if (beta != 1.0) A_ *= beta;
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     bli_ger(BLIS_NO_CONJUGATE, BLIS_CONJUGATE, m, n,
             alpha, x_.data(), x_.stride(),
                    y_.data(), y_.stride(),
@@ -3143,7 +3143,7 @@ geru(T alpha, U&& x, V&& y, W beta, X&& A)
     if (beta == 0.0) A_ = 0;
     else if (beta != 1.0) A_ *= beta;
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     bli_ger(BLIS_NO_CONJUGATE, BLIS_NO_CONJUGATE, m, n,
             alpha, x_.data(), x_.stride(),
                    y_.data(), y_.stride(),
@@ -3221,7 +3221,7 @@ auto geru(T&& x, U&& y)
     return geru(1.0, x, y);
 }
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
 
 /**
  * Perform the skew-Hermitian matrix-vector multiplication \f$ y = \alpha Ax + \beta y \f$.
@@ -3655,8 +3655,8 @@ std::enable_if_t<detail::is_marray_like_v<U,2> &&
                  detail::is_marray_like_v<X,2>>
 gemm(T alpha, U&& A, V&& B, W beta, X&& C)
 {
-    auto A_ = A.view();
-    auto B_ = B.view();
+    auto A_ = A.cview();
+    auto B_ = B.cview();
     auto C_ = C.view();
 
     auto m = C_.length(0);
@@ -3667,11 +3667,67 @@ gemm(T alpha, U&& A, V&& B, W beta, X&& C)
     MARRAY_ASSERT(B_.length(1) == n);
     MARRAY_ASSERT(B_.length(0) == k);
 
-#ifdef BLIS_H
+    if (m == 1)
+    {
+        gemv(alpha, B_.T(), marray_view<const double,1>{{k}, A_.data(), {A_.stride(1)}}, beta, marray_view<double,1>{{n}, C_.data(), {C_.stride(1)}});
+        return;
+    }
+    else if (n == 1)
+    {
+        gemv(alpha, A_, marray_view<const double,1>{{k}, B_.data(), {B_.stride(0)}}, beta, marray_view<double,1>{{m}, C_.data(), {C_.stride(0)}});
+        return;
+    }
+    else if (k == 1)
+    {
+        ger(alpha, marray_view<const double,1>{{m}, A_.data(), {A_.stride(0)}}, marray_view<const double,1>{{n}, B_.data(), {B_.stride(1)}}, beta, C_);
+        return;
+    }
+
+#ifdef MARRAY_USE_BLIS
+    printf("Alpha = %f,Beta = %f, m = %d, n = %d, k = %d, stride A = %d, %d, stride B = %d, %d, stride C = %d, %d\n", alpha, beta, m, n, k, A_.stride(0), A_.stride(1), B_.stride(0), B_.stride(1), C_.stride(0), C_.stride(1));
+    printf("Printing matrix A\n");
+    for (auto i : range(m))
+    {    
+        for (auto j : range(k))
+        {
+            printf("%f, ", A_.data()[i*A_.stride(0)+j*A_.stride(1)]);
+        }
+        printf("\n");
+    }
+    printf("Printing matrix B\n");
+    for (auto i : range(k))
+    {    
+        for (auto j : range(n))
+        {
+            printf("%f, ", B_.data()[i*B_.stride(0)+j*B_.stride(1)]);
+        }
+        printf("\n");
+    }
+
+    printf("Printing matrix C\n");
+    for (auto i : range(m))
+    {    
+        for (auto j : range(n))
+        {
+            printf("%f, ", C_.data()[i*C_.stride(0)+j*C_.stride(1)]);
+        }
+        printf("\n");
+    }
+
     bli_gemm(BLIS_NO_TRANSPOSE, BLIS_NO_TRANSPOSE, m, n, k,
              alpha, A_.data(), A_.stride(0), A_.stride(1),
                     B_.data(), B_.stride(0), B_.stride(1),
               beta, C_.data(), C_.stride(0), C_.stride(1));
+    printf("Printing matrix C\n");
+    for (auto i : range(m))
+    {    
+        for (auto j : range(n))
+        {
+            printf("%f, ", C_.data()[i*C_.stride(0)+j*C_.stride(1)]);
+        }
+        printf("\n");
+    }
+
 #else
     if (C.stride(0) > 1)
     {
@@ -3801,7 +3857,7 @@ symm(char side, char uplo, T alpha, U&& A, V&& B, W beta, X&& C)
     MARRAY_ASSERT(A_.length(0) == side == 'L' ? m : n);
     MARRAY_ASSERT(A_.length(1) == side == 'L' ? m : n);
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     MARRAY_ASSERT(side == 'L' || side == 'R');
     MARRAY_ASSERT(uplo == 'L' || uplo == 'U');
     bli_symm(side == 'L' ? BLIS_LEFT : BLIS_RIGHT, uplo == 'U' ? BLIS_UPPER : BLIS_LOWER,
@@ -3946,7 +4002,7 @@ hemm(char side, char uplo, T alpha, U&& A, V&& B, W beta, X&& C)
     MARRAY_ASSERT(A_.length(0) == side == 'L' ? m : n);
     MARRAY_ASSERT(A_.length(1) == side == 'L' ? m : n);
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     MARRAY_ASSERT(side == 'L' || side == 'R');
     MARRAY_ASSERT(uplo == 'L' || uplo == 'U');
     bli_hemm(side == 'L' ? BLIS_LEFT : BLIS_RIGHT, uplo == 'U' ? BLIS_UPPER : BLIS_LOWER,
@@ -4084,7 +4140,7 @@ trmm(char side, char uplo, char diag, T alpha, U&& A, V&& B)
     MARRAY_ASSERT(A_.length(0) == side == 'L' ? m : n);
     MARRAY_ASSERT(A_.length(1) == side == 'L' ? m : n);
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     MARRAY_ASSERT(side == 'L' || side == 'R');
     MARRAY_ASSERT(uplo == 'L' || uplo == 'U');
     MARRAY_ASSERT(diag == 'N' || diag == 'U');
@@ -4149,7 +4205,7 @@ trsm(char side, char uplo, char diag, T alpha, U&& A, V&& B)
     MARRAY_ASSERT(A_.length(0) == side == 'L' ? m : n);
     MARRAY_ASSERT(A_.length(1) == side == 'L' ? m : n);
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     MARRAY_ASSERT(side == 'L' || side == 'R');
     MARRAY_ASSERT(uplo == 'L' || uplo == 'U');
     MARRAY_ASSERT(diag == 'N' || diag == 'U');
@@ -4211,7 +4267,7 @@ syrk(char uplo, T alpha, U&& A, V beta, W&& C)
     MARRAY_ASSERT(C_.length(0) == m);
     MARRAY_ASSERT(C_.length(1) == m);
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     MARRAY_ASSERT(uplo == 'L' || uplo == 'U');
     bli_syrk(uplo == 'U' ? BLIS_UPPER : BLIS_LOWER, BLIS_NO_TRANSPOSE, m, k,
              alpha, A_.data(), A_.stride(0), A_.stride(1),
@@ -4335,7 +4391,7 @@ syr2k(char uplo, T alpha, U&& A, V&& B, W beta, X&& C)
     MARRAY_ASSERT(B_.length(0) == m);
     MARRAY_ASSERT(B_.length(1) == k);
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     MARRAY_ASSERT(uplo == 'L' || uplo == 'U');
     bli_syr2k(uplo == 'U' ? BLIS_UPPER : BLIS_LOWER, BLIS_NO_TRANSPOSE, BLIS_NO_TRANSPOSE, m, k,
               alpha, A_.data(), A_.stride(0), A_.stride(1),
@@ -4470,7 +4526,7 @@ herk(char uplo, T alpha, U&& A, V beta, W&& C)
     MARRAY_ASSERT(C_.length(0) == m);
     MARRAY_ASSERT(C_.length(1) == m);
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     MARRAY_ASSERT(uplo == 'L' || uplo == 'U');
     bli_herk(uplo == 'U' ? BLIS_UPPER : BLIS_LOWER, BLIS_NO_TRANSPOSE, m, k,
              alpha, A_.data(), A_.stride(0), A_.stride(1),
@@ -4589,7 +4645,7 @@ her2k(char uplo, T alpha, U&& A, V&& B, W beta, X&& C)
     MARRAY_ASSERT(B_.length(0) == m);
     MARRAY_ASSERT(B_.length(1) == k);
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
     MARRAY_ASSERT(uplo == 'L' || uplo == 'U');
     bli_her2k(uplo == 'U' ? BLIS_UPPER : BLIS_LOWER, BLIS_NO_TRANSPOSE, BLIS_NO_TRANSPOSE, m, k,
               alpha, A_.data(), A_.stride(0), A_.stride(1),
@@ -4689,7 +4745,7 @@ auto her2k(char uplo, T&& A, U&& B)
     return her2k(uplo, 1.0, A, B);
 }
 
-#ifdef BLIS_H
+#ifdef MARRAY_USE_BLIS
 
 /**
  * Perform the matrix multiplication \f$ C = \alpha AB + \beta C \f$ or

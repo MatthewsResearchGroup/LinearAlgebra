@@ -5,9 +5,10 @@
 #include <utility>
 #include <tuple>
 #include <array>
-#include <complex> 
+#include <complex>
 
-#include "bli_type_defs.h"
+
+// #include "bli_type_defs.h"
 #include "marray_view.hpp"
 #include "expression.hpp"
 #include "blas.h"
@@ -136,32 +137,37 @@ auto repartition(len_type bs, direction dir,
                   "The first and last input ranges must be blocked");
 
     if (Blocked) MARRAY_ASSERT(bs >= NFixed);
-    bs -= NFixed;
 
     if (dir == FORWARD)
     {
         auto& last = detail::nth_arg<NOld-1>(args...);
-        MARRAY_ASSERT(last.size() >= bs + NFixed);
+        MARRAY_ASSERT(last.size() >= NFixed);
+        auto ndynamic = std::min(bs, last.size())-NFixed;
 
-        std::array<len_type,NNew+1> sizes{last.front(), (Sizes == DYNAMIC ? bs : Sizes)...};
+        std::array<len_type,NNew+2> sizes{last.front(), (Sizes == DYNAMIC ? ndynamic : Sizes)..., last.size()-NFixed-ndynamic};
         ((sizes[NewIdx+1] += sizes[NewIdx]), ...);
+        sizes[NNew+1] += sizes[NNew];
+        MARRAY_ASSERT(sizes[NNew+1] == last.back()+1);
 
         return std::make_tuple(convert(nth_arg<FirstIdx>(args...))...,
                                make_range<len_type,Sizes>(sizes[NewIdx], sizes[NewIdx+1])...,
-                               range_t<len_type>{last.front()+bs+NFixed, last.back()+1});
+                               range(sizes[NNew], sizes[NNew+1]));
     }
     else
     {
         auto& first = detail::nth_arg<NOld-1>(args...);
-        MARRAY_ASSERT(first.size() >= bs + NFixed);
+        MARRAY_ASSERT(first.size() >= NFixed);
+        auto ndynamic = std::min(bs, first.size())-NFixed;
 
         constexpr std::array rev{Sizes...};
 
-        std::array<len_type,NNew+1> sizes{(rev[NNew-1-NewIdx] == DYNAMIC ? bs : rev[NNew-1-NewIdx])..., first.back()+1};
-        (..., (sizes[NewIdx] = sizes[NewIdx+1]-sizes[NewIdx]));
+        std::array<len_type,NNew+2> sizes{first.size()-NFixed-ndynamic, (rev[NNew-1-NewIdx] == DYNAMIC ? ndynamic : rev[NNew-1-NewIdx])..., first.back()+1};
+        (..., (sizes[NewIdx+1] = sizes[NewIdx+2]-sizes[NewIdx+1]));
+        sizes[0] = sizes[1]-sizes[0];
+        MARRAY_ASSERT(sizes[0] == first.front());
 
-        return std::make_tuple(range_t<len_type>{first.front(), first.back()+1-bs-NFixed},
-                               make_range<len_type,rev[NNew-1-NewIdx]>(sizes[NewIdx], sizes[NewIdx+1])...,
+        return std::make_tuple(range(sizes[0], sizes[1]),
+                               make_range<len_type,rev[NNew-1-NewIdx]>(sizes[NewIdx+1], sizes[NewIdx+2])...,
                                convert(nth_arg<FirstIdx+1>(args...))...);
     }
 }
@@ -416,14 +422,14 @@ void pivot_both(const MArray& A, len_type pi, struc_t struc)
 {
     auto n = A.length(0);
     MARRAY_ASSERT(A.length(1) == n);
-    
+
     if (pi == 0)
         return;
 
     auto head = range(1,pi);
     auto tail = range(pi+1,n);
 
-    switch (struc) 
+    switch (struc)
     {
         case BLIS_GENERAL:
             pivot_rows(A, pi);
@@ -432,8 +438,8 @@ void pivot_both(const MArray& A, len_type pi, struc_t struc)
 
         case BLIS_SYMMETRIC:
             blas::swap(A[tail][0], A[tail][pi]);
-            
-            for  (auto i : head)
+
+            for (auto i : head)
             {
                 auto Ai0 = A[i][0];
                 auto Apii = A[pi][i];
@@ -444,13 +450,13 @@ void pivot_both(const MArray& A, len_type pi, struc_t struc)
             std::swap(A[0][0], A[pi][pi]);
 
             A[pi][0] = A[pi][0];
-            
+
             break;
 
         case BLIS_HERMITIAN:
             blas::swap(A[tail][0], A[tail][pi]);
-            
-            for  (auto i : head)
+
+            for (auto i : head)
             {
                 auto Ai0 = A[i][0];
                 auto Apii = A[pi][i];
@@ -461,13 +467,13 @@ void pivot_both(const MArray& A, len_type pi, struc_t struc)
             std::swap(A[0][0], A[pi][pi]);
 
             A[pi][0] = conj(A[pi][0]);
-            
+
             break;
 
         case BLIS_SKEW_SYMMETRIC:
             blas::swap(A[tail][0], A[tail][pi]);
-            
-            for  (auto i : head)
+
+            for (auto i : head)
             {
                 auto Ai0 = A[i][0];
                 auto Apii = A[pi][i];
@@ -478,7 +484,7 @@ void pivot_both(const MArray& A, len_type pi, struc_t struc)
             std::swap(A[0][0], A[pi][pi]);
 
             A[pi][0] = -A[pi][0];
-            
+
             break;
 
         case BLIS_SKEW_HERMITIAN:
@@ -495,10 +501,10 @@ void pivot_both(const MArray& A, len_type pi, struc_t struc)
             std::swap(A[0][0], A[pi][pi]);
 
             A[pi][0] = -conj(A[pi][0]);
-            
+
             break;
     }
-    
+
 
 }
 

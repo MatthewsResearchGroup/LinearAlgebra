@@ -22,8 +22,8 @@ typedef struct { double real, imag; } dcomplex_f;
 #define cimag imag
 #define cimagf imag
 
-typedef std::complex<float> scomplex;
-typedef std::complex<double> dcomplex;
+//typedef std::complex<float> scomplex;
+//typedef std::complex<double> dcomplex;
 
 #define MAKE_COMPLEX(type,r,c) std::complex<type>(r,c)
 
