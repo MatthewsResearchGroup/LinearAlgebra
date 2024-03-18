@@ -1,8 +1,7 @@
 #include <array>
 # include <cstdio>
 #include <algorithm>
-#include "../marray/marray/flame.hpp"
-#include "fwd/marray_fwd.hpp"
+#include "test.hpp"
 #include <random>
 
 using namespace MArray;

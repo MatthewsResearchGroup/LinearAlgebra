@@ -1,5 +1,3 @@
-#include "flame.hpp"
-#include "fwd/marray_fwd.hpp"
 #include "ltlt.hpp"
 
 void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type k, bool first_column, bool first_row)

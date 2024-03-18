@@ -7,7 +7,7 @@
 #include <array>
 #include <complex> 
 
-#include "bli_type_defs.h"
+//#include "bli_type_defs.h"
 #include "fwd/marray_fwd.hpp"
 #include "marray_view.hpp"
 #include "expression.hpp"
@@ -363,11 +363,11 @@ auto continue_with(const Args&... args)
 // Diagonal extraction
 
 template <typename MArray>
-auto diag(const MArray& A, len_type off=0)
+auto diag(MArray&& A, len_type off=0)
 {
     MARRAY_ASSERT(A.dimension() == 2);
 
-    using T = typename MArray::value_type;
+    using T = typename std::decay_t<MArray>::value_type;
 
     auto m = A.length(0);
     auto n = A.length(1);
@@ -384,13 +384,13 @@ auto diag(const MArray& A, len_type off=0)
 }
 
 template <typename MArray>
-auto subdiag(const MArray& A)
+auto subdiag(MArray&& A)
 {
     return diag(A, 1);
 }
 
 template <typename MArray>
-void pivot_rows(const MArray& A, len_type pi)
+void pivot_rows(MArray&& A, len_type pi)
 {
     MARRAY_ASSERT(A.dimension() == 2);
     MARRAY_ASSERT(pi >= 0 && pi < A.length(0));
@@ -402,7 +402,7 @@ void pivot_rows(const MArray& A, len_type pi)
 }
 
 template <typename MArray>
-void pivot_columns(const MArray& A, len_type pi)
+void pivot_columns(MArray&& A, len_type pi)
 {
     MARRAY_ASSERT(A.dimension() == 2);
     MARRAY_ASSERT(pi >= 0 && pi < A.length(1));
@@ -414,7 +414,7 @@ void pivot_columns(const MArray& A, len_type pi)
 }
 
 template <typename MArray>
-void pivot_both(const MArray& A, len_type pi, struc_t struc)
+void pivot_both(MArray&& A, len_type pi, struc_t struc)
 {
     auto n = A.length(0);
     MARRAY_ASSERT(A.length(1) == n);
@@ -429,11 +429,11 @@ void pivot_both(const MArray& A, len_type pi, struc_t struc)
     {
         case BLIS_GENERAL:
             pivot_rows(A, pi);
-            pivot_colums(A, pi);
+            pivot_columns(A, pi);
             break;
 
         case BLIS_SYMMETRIC:
-            blas::swap(A[tail][0], A[tail][pi]);
+            blas::swap(tail.size(), A[tail][0].data(),A.stride(0), A[tail][pi].data(), A.stride(0));
             
             for  (auto i : head)
             {
@@ -450,24 +450,24 @@ void pivot_both(const MArray& A, len_type pi, struc_t struc)
             break;
 
         case BLIS_HERMITIAN:
-            blas::swap(A[tail][0], A[tail][pi]);
+            blas::swap(tail.size(), A[tail][0].data(),A.stride(0), A[tail][pi].data(), A.stride(0));
             
             for  (auto i : head)
             {
                 auto Ai0 = A[i][0];
                 auto Apii = A[pi][i];
-                A[i][0] = conj(Apii);
-                A[pi][i] = conj(Ai0);
+                A[i][0] = blas::conj(Apii);
+                A[pi][i] = blas::conj(Ai0);
             }
 
             std::swap(A[0][0], A[pi][pi]);
 
-            A[pi][0] = conj(A[pi][0]);
+            A[pi][0] = blas::conj(A[pi][0]);
             
             break;
 
         case BLIS_SKEW_SYMMETRIC:
-            blas::swap(A[tail][0], A[tail][pi]);
+            blas::swap(tail.size(), A[tail][0].data(),A.stride(0), A[tail][pi].data(), A.stride(0));
             
             for  (auto i : head)
             {
@@ -484,19 +484,19 @@ void pivot_both(const MArray& A, len_type pi, struc_t struc)
             break;
 
         case BLIS_SKEW_HERMITIAN:
-            blas::swap(A[tail][0], A[tail][pi]);
+            blas::swap(tail.size(), A[tail][0].data(),A.stride(0), A[tail][pi].data(), A.stride(0));
             
             for (auto i : head)
             {
                 auto Ai0 = A[i][0];
                 auto Apii = A[pi][i];
-                A[i][0] = -conj(Apii);
-                A[pi][i] = -conj(Ai0);
+                A[i][0] = -blas::conj(Apii);
+                A[pi][i] = -blas::conj(Ai0);
             }
 
             std::swap(A[0][0], A[pi][pi]);
 
-            A[pi][0] = -conj(A[pi][0]);
+            A[pi][0] = -blas::conj(A[pi][0]);
             
             break;
     }
@@ -504,7 +504,7 @@ void pivot_both(const MArray& A, len_type pi, struc_t struc)
 
 template <typename MArray, typename Pivot>
 std::enable_if_t<!std::is_integral_v<Pivot>>
-pivot_both(const MArray& A, const Pivot& p, struc_t struc)
+pivot_both(MArray&& A, const Pivot& p, struc_t struc)
 {
     auto [T, B] = partition_rows(A);
 
@@ -529,10 +529,12 @@ pivot_both(const MArray& A, const Pivot& p, struc_t struc)
 
 template <typename MArray, typename Pivot>
 std::enable_if_t<!std::is_integral_v<Pivot>>
-pivot_rows(const MArray& A, const Pivot& p)
+pivot_rows(MArray&& A_, const Pivot& p_)
 {
-    auto [T, B] = partition_rows(A);
-
+    auto [T, B] = partition_rows(A_);
+    
+    auto A = A_.view();
+    auto p = p_.view();
     MARRAY_ASSERT(A.dimension() == 2);
     MARRAY_ASSERT(p.dimension() == 1);
     MARRAY_ASSERT(A.length(0) == p.length(0));
@@ -547,15 +549,18 @@ pivot_rows(const MArray& A, const Pivot& p)
 
         // ( R0 | r1 || R2 )
         // (    T    ||  B )
-        tie(T, B) = continue_with(R0, r1, R2);
+        std::tie(T, B) = continue_with(R0, r1, R2);
     }
 }
 
 template <typename MArray, typename Pivot>
 std::enable_if_t<!std::is_integral_v<Pivot>>
-pivot_columns(const MArray& A, const Pivot& p)
+pivot_columns(MArray&& A_, const Pivot& p_)
 {
-    auto [T, B] = partition_columns(A);
+    auto [T, B] = partition_columns(A_);
+
+    auto A = A_.view();
+    auto p = p_.view();
 
     MARRAY_ASSERT(A.dimension() == 2);
     MARRAY_ASSERT(p.dimension() == 1);
@@ -571,7 +576,7 @@ pivot_columns(const MArray& A, const Pivot& p)
 
         // ( R0 | r1 || R2 )
         // (    T    ||  B )
-        tie(T, B) = continue_with(R0, r1, R2);
+        std::tie(T, B) = continue_with(R0, r1, R2);
     }
 }
 

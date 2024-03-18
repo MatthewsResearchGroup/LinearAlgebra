@@ -15,12 +15,14 @@ endif
 LIBS=-lm -ldl
 
 exe=../bin/ltlt
+testexe=../bin/test
 objs=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
 deps:=$(join $(addsuffix .deps/,$(dir $(objs))),$(notdir $(objs:.o=.d)))
+objs:=$(filter-out ltlt.o test.o,$(objs))
 
 
 .PHONY: all
-all: $(exe)
+all: $(exe) $(testexe)
 
 -include $(deps)
 
@@ -29,9 +31,13 @@ all: $(exe)
 clean:
 	rm -f $(objs) $(exe)
 
-$(exe): $(objs)
+$(exe): $(objs) ltlt.o
 	@mkdir -p $(dir $(exe))
-	$(CXX) $(LDFLAGS) -o $(exe) $(objs) $(LIBS)
+	$(CXX) $(LDFLAGS) -o $(exe) $(objs) ltlt.o $(LIBS)
+
+$(testexe): $(objs) test.o
+	@mkdir -p $(dir $(testexe))
+	$(CXX) $(LDFLAGS) -o $(testexe) $(objs) test.o $(LIBS)
 
 %.o: %.cpp
 	@mkdir -p $(dir $@).deps
