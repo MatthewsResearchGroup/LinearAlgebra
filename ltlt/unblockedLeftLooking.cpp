@@ -20,23 +20,23 @@ void ltlt_unblockLL(const matrix_view<double>& X, len_type k, bool first_column)
 
         auto [R0, r1, r2, R3] = repartition(T, m, B);
         
-        printf("unblocked algotithm updating...\n");
-        for (auto i : range(n))
-        {
-            for (auto j : range(n))
-            {
-                printf("%f, " , X[i][j]);
-            }
-            printf("\n");
-        }
+        // printf("unblocked algotithm updating...\n");
+        // for (auto i : range(n))
+        // {
+        //     for (auto j : range(n))
+        //     {
+        //         printf("%f, " , X[i][j]);
+        //     }
+        //     printf("\n");
+        // }
         
         if (!R0.empty())
         {    
             auto R0p = first_column ? R0 : not_first(R0);
             temp[R0p] = L[r1][R0p];
             temp[r1] = 1; // L[r1][r1]
-            printf("printing X[r2|R3][r1]\n");
-            printf("-----------------------\n");
+            // printf("printing X[r2|R3][r1]\n");
+            // printf("-----------------------\n");
             for (auto i = r2; i < r2 + (r2|R3).size(); i++)
             {
                 printf("%f, ", X[i][r1]);

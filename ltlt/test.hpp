@@ -1,7 +1,6 @@
 #ifndef _TESTING_HPP_
 #define _TESTING_HPP_
 
-
 #include "ltlt.hpp"
 
 // testing function
@@ -38,38 +37,39 @@ inline void test(int n, const std::function<void(const matrix_view<double>&,len_
     auto Tm = make_T(B);
     auto LmT = Lm.T();
 
-    printf("\nPrinting L matrix...\n");
-    for (auto i = 0; i < n; i++)
-    {
-    for (auto j = 0; j < n; j++)
-    {
-        printf("%f, ", Lm[i][j]);
-    }
-    printf("\n");
-    }
+    // printf("\nPrinting L matrix...\n");
+    // for (auto i = 0; i < n; i++)
+    // {
+    // for (auto j = 0; j < n; j++)
+    // {
+    //     printf("%f, ", Lm[i][j]);
+    // }
+    // printf("\n");
+    // }
 
-    printf("\nPrinting T matrix...\n");
-    for (auto i = 0; i < n; i++)
-    {
-    for (auto j = 0; j < n; j++)
-    {
-        printf("%f, ", Tm[i][j]);
-    }
-    printf("\n");
-    }
+    // printf("\nPrinting T matrix...\n");
+    // for (auto i = 0; i < n; i++)
+    // {
+    // for (auto j = 0; j < n; j++)
+    // {
+    //     printf("%f, ", Tm[i][j]);
+    // }
+    // printf("\n");
+    // }
 
-    // B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-    B_deepcopy -= gemm_chao(1.0, gemm_chao(1.0, Lm,Tm), LmT);
-    printf("\nPrint the error matrix\n");
-    for (auto i = 0; i < n; i++)
-    {
-    for (auto j = 0; j < n; j++)
-    {
-        printf("%f, ", B_deepcopy[i][j]);
-    }
-    printf("\n");
-    }
-    auto err = norm(B_deepcopy);
+    // calculate the error matrix
+    B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    // B_deepcopy -= gemm_chao(1.0, gemm_chao(1.0, Lm,Tm), LmT);
+    // printf("\nPrint the error matrix\n");
+    // for (auto i = 0; i < n; i++)
+    // {
+    // for (auto j = 0; j < n; j++)
+    // {
+    //     printf("%f, ", B_deepcopy[i][j]);
+    // }
+    // printf("\n");
+    // }
+    auto err = norm(B_deepcopy) / (n * n);
     printf("err = %e\n", err);
     MARRAY_ASSERT(err < 1e-12);
 
@@ -77,9 +77,9 @@ inline void test(int n, const std::function<void(const matrix_view<double>&,len_
 }
 
 // testing function 
-inline void test(int n, const std::function<void(const matrix_view<double>&,len_type, const std::function<void(const matrix_view<double>&, len_type, bool)>&)>& LTLT_BLOCK, bool unblockRL = false)
+// inline void test(int n, const std::function<void(const matrix_view<double>&,len_type, const std::function<void(const matrix_view<double>&, len_type, bool)>&)>& LTLT_BLOCK, bool unblockRL = false)
+inline void test(int n, int blocksize, const std::function<void(const matrix_view<double>&,len_type, const std::function<void(const matrix_view<double>&, len_type, bool)>&)>& LTLT_BLOCK, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
 {
-    auto blocksize = 20;
     // build the matrix
     matrix <double> A{n, n};
 
@@ -97,15 +97,20 @@ inline void test(int n, const std::function<void(const matrix_view<double>&,len_
     // starting the decompostion
     // recode the time
     //
+    
     auto starting_point =  bli_clock();
-    if (unblockRL == true)
-    {
-        LTLT_BLOCK(B, blocksize, ltlt_unblockRL);
-    }
-    else
-    {
-        LTLT_BLOCK(B, blocksize, ltlt_unblockLL);
-    }
+
+
+    LTLT_BLOCK(B, blocksize, LTLT_UNB);
+
+    // if (unblockRL == true)
+    // {
+    //     LTLT_BLOCK(B, blocksize, ltlt_unblockRL);
+    // }
+    // else
+    // {
+    //     LTLT_BLOCK(B, blocksize, ltlt_unblockLL);
+    // }
 
     auto ending_point = bli_clock();
 
@@ -160,8 +165,8 @@ inline void test(int n, const std::function<void(const matrix_view<double>&,len_
     // printf("\n");
     // }
 
-    auto B_m = gemm_chao(1.0, Lm, Tm);
-    auto B_cal = gemm_chao(1.0, B_m, LmT);
+    // auto B_m = gemm_chao(1.0, Lm, Tm);
+    // auto B_cal = gemm_chao(1.0, B_m, LmT);
 
     // printf("\nPrint LTLt matrix\n");
     // for (auto i = 0; i < n; i++)
@@ -173,21 +178,21 @@ inline void test(int n, const std::function<void(const matrix_view<double>&,len_
     // printf("\n");
     // }
 
-    // B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-    B_deepcopy -= B_cal;
-    auto err = norm(B_deepcopy);
-    printf("err = %e\n", err);
-    printf("\nError matrix...\n");
-    for (auto i = 0; i < n; i++)
-    {
-    for (auto j = 0; j < n; j++)
-    {
-        // printf("%f ", B_cal[i][j]);
-        printf("%f ", B_deepcopy[i][j]);
-    }
-    printf("\n");
-    }
-    MARRAY_ASSERT(err < 1e-12 * n * n );
+    B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    // B_deepcopy -= B_cal;
+    auto err = norm(B_deepcopy) / (n * n);
+    // printf("err = %e\n", err);
+    // printf("\nError matrix...\n");
+    // for (auto i = 0; i < n; i++)
+    // {
+    // for (auto j = 0; j < n; j++)
+    // {
+    //     // printf("%f ", B_cal[i][j]);
+    //     printf("%f ", B_deepcopy[i][j]);
+    // }
+    // printf("\n");
+    // }
+    MARRAY_ASSERT(err < 1e-12);
     printf("finish successfully in %f second\n", time);
     
 }

@@ -279,7 +279,7 @@ auto repartition(const Args&... args)
     constexpr auto NArgs = sizeof...(args);
     constexpr auto NFixed = ((Sizes == DYNAMIC ? 0 : Sizes) + ... + 0);
 
-    auto bs = NFixed;
+    auto bs = NFixed + 1;
     auto dir = FORWARD;
 
     if constexpr (NArgs > 1 && std::is_same_v<detail::nth_type<NArgs-1, Args...>, direction> &&
@@ -327,7 +327,7 @@ auto repartition(const Args&... args)
         if constexpr (NNew == 0)
             return detail::repartition<NArgs, 1>(bs, dir, args...);
         else
-            return detail::repartition<NArgs, Sizes...>(bs, dir, args...);
+            return detail::repartition<NArgs, Sizes...>(bs-1, dir, args...);
     }
 }
 

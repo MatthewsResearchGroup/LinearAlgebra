@@ -4,8 +4,6 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
 {
     auto [T, m, B] = partition_rows<DYNAMIC, 1, DYNAMIC>(X);
     auto n = X.length(0);
-    if (k == -1)
-        k = n - 1;
 
     matrix_view<double> L = first_column ? X.shifted(1, -1) : X.rebased(1, 1);
     row<double> temp{X.length(0)};
@@ -14,8 +12,8 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
     {
         if (k == -1)
         {
-            printf("\n\nUpdating B part!!!!\n\n");
-            //blas::skr2('L', 1.0, L[B][m], X[B][m], 1.0, X[B][B]);
+            // printf("\n\nUpdating B part!!!!\n\n");
+            // blas::skr2('L', 1.0, L[B][m], X[B][m], 1.0, X[B][B]);
             blas::ger( 1.0, L[B][m], X[B][m], 1.0, X[B][B]);
             blas::ger(-1.0, X[B][m], L[B][m], 1.0, X[B][B]);
         }
@@ -26,7 +24,11 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
             blas::ger(-1.0, X[B][m], L[Btrunc][m], 1.0, X[B][Btrunc]);
         }
     }
-    printf("blocked matrix n, k: %d, %d \n", n, k);
+
+    if (k == -1)
+        k = n - 1;
+
+    // printf("blocked matrix n, k: %d, %d \n", n, k);
     while(B.size() > n - k - 1)
     {
         // (T  || m  |   B    )
