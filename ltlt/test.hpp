@@ -47,15 +47,6 @@ inline void test(int n, const std::function<void(const matrix_view<double>&,len_
     // printf("\n");
     // }
 
-    // printf("\nPrinting T matrix...\n");
-    // for (auto i = 0; i < n; i++)
-    // {
-    // for (auto j = 0; j < n; j++)
-    // {
-    //     printf("%f, ", Tm[i][j]);
-    // }
-    // printf("\n");
-    // }
 
     // calculate the error matrix
     B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
@@ -144,54 +135,12 @@ inline void test(int n, int blocksize, const std::function<void(const matrix_vie
     // }
     // printf("\n");
     // }
-    // printf("\nPrinting Lt matrix...\n");
-    // printf("Size of LT matrix: %d, %d\n", LmT.length(0), LmT.length(1));
-    // printf("Stride of LT matrix: %d, %d\n", LmT.stride(0), LmT.stride(1));
-    // for (auto i = 0; i < n; i++)
-    // {
-    // for (auto j = 0; j < n; j++)
-    // {
-    //     printf("%f ", LmT[i][j]);
-    // }
-    // printf("\n");
-    // }
-    // printf("\nPrint origial matrix\n");
-    // for (auto i = 0; i < n; i++)
-    // {
-    // for (auto j = 0; j < n; j++)
-    // {
-    //     printf("%f ", B_deepcopy[i][j]);
-    // }
-    // printf("\n");
-    // }
 
-    // auto B_m = gemm_chao(1.0, Lm, Tm);
-    // auto B_cal = gemm_chao(1.0, B_m, LmT);
-
-    // printf("\nPrint LTLt matrix\n");
-    // for (auto i = 0; i < n; i++)
-    // {
-    // for (auto j = 0; j < n; j++)
-    // {
-    //     printf("%f ", B_cal[i][j]);
-    // }
-    // printf("\n");
-    // }
 
     B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
     // B_deepcopy -= B_cal;
     auto err = norm(B_deepcopy) / (n * n);
-    // printf("err = %e\n", err);
-    // printf("\nError matrix...\n");
-    // for (auto i = 0; i < n; i++)
-    // {
-    // for (auto j = 0; j < n; j++)
-    // {
-    //     // printf("%f ", B_cal[i][j]);
-    //     printf("%f ", B_deepcopy[i][j]);
-    // }
-    // printf("\n");
-    // }
+    printf("err = %e\n", err);
     MARRAY_ASSERT(err < 1e-12);
     printf("finish successfully in %f second\n", time);
     
