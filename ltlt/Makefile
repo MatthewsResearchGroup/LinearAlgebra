@@ -2,23 +2,21 @@ CXX=g++
 CXXFLAGS+=-std=c++17 -O3 -Wno-unused-result -march=native
 CXXFLAGS+=-I../marray/marray 
 CXXFLAGS+=-I../blis/frame/base
-LDFLAGS=
+LDFLAGS=-Wl,-rpath,../build/blis/lib/zen3
 
 # add the bils.h with different machine
 ARCH=$(shell uname -m)
 ifeq ($(ARCH),arm64)
 	CXXFLAGS+=-I../build/blis/include/firestorm
-	LDFLAGS+=../build/blis/lib/firestorm/libblis.a
 else ifeq ($(ARCH),x86_64)
 	CXXFLAGS+=-I../build/blis/include/zen3
-	LDFLAGS+=../build/blis/lib/zen3/libblis.a
+	LDFLAGS+=-L../build/blis/lib/zen3
 else
 	CXXFLAGS+=-I../build/blis/include/haswell
-	LDFLAGS+=../build/blis/lib/haswell/libblis.a
 endif
 
 
-LIBS=-lm -ldl
+LIBS=-lm -ldl -lblis
 
 exe=../bin/ltlt
 test_exe=../bin/ltlt_test

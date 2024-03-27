@@ -14,22 +14,12 @@ int main()
     auto blocksize = 5;
                 //
     // test(n, ltlt_unblockLL);
-    // test(n, ltlt_unblockRL);
+    test(n, ltlt_unblockRL);
     // test(n, ltlt_unblockTSRL);
     // test(n, blocksize, ltlt_blockRL, ltlt_unblockLL);
     // test(n, blocksize, ltlt_blockRL, ltlt_unblockRL);
     // test(n, blocksize, ltlt_blockLL, ltlt_unblockLL);
     // test(n, blocksize, ltlt_blockLL, ltlt_unblockRL);
-    //
-    //
-    //
-    //
-    //
-    //
-    // test(n, ltlt_blockRL, false);
-    // test(n, ltlt_blockRL, true);
-    // test(n, ltlt_blockLL, false);
-    // test(n, ltlt_blockLL, true);
 
     return 0;
 

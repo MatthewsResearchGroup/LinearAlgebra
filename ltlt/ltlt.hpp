@@ -135,7 +135,7 @@ template <typename T> range_t<T> R3_trunc(const range_t<T>& R0, const range_t<T>
         return range(R3.from(), -1);
     }
     else
-        return range(R3.from(), R0.from() +k );
+        return range(R3.from(), R0.from() + k);
 }
 
 inline matrix<double> make_L(const matrix_view<const double>& X)
