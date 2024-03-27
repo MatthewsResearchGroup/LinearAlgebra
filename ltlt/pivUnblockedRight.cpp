@@ -3,7 +3,7 @@
 #include "fwd/marray_fwd.hpp"
 #include "ltlt.hpp"
 
-void ltlt_pivot_unblockRL(const matrix_view<double>& X, len_type k, bool first_column, bool first_row, const row_view<int>& pi)
+void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type k, bool first_column, bool first_row)
 {
     auto [T, m, B] = partition_rows<DYNAMIC, 1, DYNAMIC>(X);
     auto n = X.length(0);
