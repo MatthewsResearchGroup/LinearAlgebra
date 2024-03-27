@@ -1,23 +1,12 @@
-CXX=g++
-CXXFLAGS+=-std=c++17 -O3 -Wno-unused-result -march=native
+CXX=clang++
+CXXFLAGS+=-std=c++17 -g -O0 -DDEBUG -fsanitize=address -Wno-unused-result -DMARRAY_ENABLE_ASSERTS -DDEBUG -Wno-unused-result 
 CXXFLAGS+=-I../marray/marray 
+CXXFLAGS+=-I../build/blis/include/firestorm
 CXXFLAGS+=-I../blis/frame/base
-LDFLAGS=
-
-# add the bils.h with different machine
-ARCH=$(shell uname -m)
-ifeq ($(ARCH),arm64)
-	CXXFLAGS+=-I../build/blis/include/firestorm
-	LDFLAGS+=../build/blis/lib/firestorm/libblis.a
-else ifeq ($(ARCH),x86_64)
-	CXXFLAGS+=-I../build/blis/include/zen3
-	LDFLAGS+=../build/blis/lib/zen3/libblis.a
-else
-	CXXFLAGS+=-I../build/blis/include/haswell
-	LDFLAGS+=../build/blis/lib/haswell/libblis.a
-endif
-
-
+LDFLAGS=-g ../build/blis/lib/firestorm/libblis.a  -lblas -fsanitize=address
+#-fsanitize=address
+#-ld_classic
+#BLAS=-lblis
 LIBS=-lm -ldl
 
 exe=../bin/ltlt
