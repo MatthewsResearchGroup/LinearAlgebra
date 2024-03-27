@@ -278,7 +278,7 @@ auto repartition(const Args&... args)
     constexpr auto NArgs = sizeof...(args);
     constexpr auto NFixed = ((Sizes == DYNAMIC ? 0 : Sizes) + ... + 0);
 
-    auto bs = NFixed+1;
+    auto bs = std::max<size_t>(NFixed, 1);
     auto dir = FORWARD;
 
     if constexpr (NArgs > 1 && std::is_same_v<detail::nth_type<NArgs-1, Args...>, direction> &&
@@ -503,12 +503,7 @@ void pivot_both(const MArray& A, len_type pi, struc_t struc)
 
             break;
     }
-<<<<<<< HEAD
 
-
-=======
->>>>>>> ishna
-}
 
 template <typename MArray, typename Pivot>
 std::enable_if_t<!std::is_integral_v<Pivot>>
