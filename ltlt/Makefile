@@ -1,13 +1,25 @@
-CXX=clang++
-CXXFLAGS+=-std=c++17 -g -O0 -DDEBUG -fsanitize=address -Wno-unused-result -DMARRAY_ENABLE_ASSERTS -DDEBUG -Wno-unused-result 
-CXXFLAGS+=-I../marray/marray 
-CXXFLAGS+=-I../build/blis/include/firestorm
-CXXFLAGS+=-I../blis/frame/base
-LDFLAGS=-g ../build/blis/lib/firestorm/libblis.a  -lblas -fsanitize=address
-#-fsanitize=address
-#-ld_classic
-#BLAS=-lblis
-LIBS=-lm -ldl
+ARCH=$(shell uname -m)
+# determine the FLAGS for different arch we run
+ifeq ($(ARCH),arm64)
+	CXX=clang++
+	CXXFLAGS+=-std=c++17 -g -O0 -DDEBUG -fsanitize=address -Wno-unused-result -DMARRAY_ENABLE_ASSERTS -DDEBUG -Wno-unused-result 
+	CXXFLAGS+=-I../marray/marray 
+	CXXFLAGS+=-I../build/blis/include/firestorm
+	CXXFLAGS+=-I../blis/frame/base
+	CXXFLAGS+=-I../build/docopt.cpp/include/docopt/ 
+	LDFLAGS=-g ../build/blis/lib/firestorm/libblis.a ../build/docopt.cpp/lib/libdocopt.a -lblas -fsanitize=address
+	LIBS=-lm -ldl
+else ifeq ($(ARCH),x86_64)
+	CXX=g++
+	CXXFLAGS+=-std=c++17 -O3 -Wno-unused-result -march=native
+	CXXFLAGS+=-I../build/blis/include/zen3
+	CXXFLAGS+=-I../marray/marray 
+	CXXFLAGS+=-I../blis/frame/base
+	LDFLAGS+=-L../build/blis/lib/zen3
+	LDFLAGS=-Wl,-rpath,../build/blis/lib/zen3
+else
+	CXXFLAGS+=-I../build/blis/include/haswell
+endif
 
 exe=../bin/ltlt
 test_exe=../bin/ltlt_test

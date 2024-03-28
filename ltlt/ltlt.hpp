@@ -137,7 +137,7 @@ inline void skew_tridiag_rankk(char uplo,
 } //namespace blas
 } //namespace MArray
 
-template <typename T> range_t<T> not_first(const range_t<T>& x)
+template <typename T> inline range_t<T> not_first(const range_t<T>& x)
 {
     return range(x.from()+1, x.to());
 }
@@ -158,7 +158,7 @@ template <typename T> range_t<T> not_first(const range_t<T>& x)
 
 
 template <typename T> 
-auto R3_trunc(const range_t<T>& R0, const range_t<T>& R3, len_type k)
+inline auto R3_trunc(const range_t<T>& R0, const range_t<T>& R3, len_type k)
 {
     if ( R0.from() + k < R3.from())
     {
