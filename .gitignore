@@ -5,6 +5,7 @@ build
 .deps
 marray/.git
 blis/.git
+docopt.cpp/.git
 blis/lib
 bin
 .clangd
