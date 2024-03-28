@@ -105,6 +105,22 @@ inline void skew_tridiag_gemm(double alpha, const matrix_view<const double>& A,
     gemm(alpha, A, tempB, beta, C);
 }
 
+/**
+ * Perform the upper or lower triangular portion of the skew tridiag matrix multiplication \f$ C = \alpha ABA^T + \beta C \f$.
+ *
+ * @param uplo  'L' if C is lower-triangular or 'U' if C is upper-triangular.
+ *
+ * @param alpha Scalar factor for the product `ABA^T`.
+ *
+ * @param A     A `m`x`k`  matrix or matrix view. Must have either a row or
+ *              column stride of one.
+ *
+ * @param B     A `k`x`k` skew matrix or matrix view.
+ *
+ * @param beta  Scalar factor for the original matrix `C`.
+ *
+ * @param C     A `m`x`m` skew matrix or matrix view.
+ */
 inline void skew_tridiag_rankk(char uplo,
                                double alpha, const matrix_view<const double>& A,
                                              const row_view   <const double>& T,
@@ -116,27 +132,33 @@ inline void skew_tridiag_rankk(char uplo,
     matrix<double> tempB = A.T();
     sktrmm(1, T, tempB);
 // printf("%d, %d, %d\n", tempB.length(0), tempB.length(1), A.length(1));
-    //gemmt(uplo, alpha, A, tempB, beta, C);
-    gemm(alpha, A, tempB, beta, C);
+    gemmt(uplo, alpha, A, tempB, beta, C);
+    // gemm(alpha, A, tempB, beta, C);
 }
 
 } //namespace blas
 } //namespace MArray
 
-template <typename T> range_t<T> not_first(const range_t<T>& x)
+template <typename T> 
+inline range_t<T> not_first(const range_t<T>& x)
 {
     return range(x.from()+1, x.to());
 }
 
-template <typename T> range_t<T> R3_trunc(const range_t<T>& R0, const range_t<T>& R3, len_type k)
+
+template <typename T>
+inline auto R3_trunc(const range_t<T>& R0, const range_t<T>& R3, len_type k)
 {
     if ( R0.from() + k < R3.from())
     {
-        return range(R3.from(), -1);
+        return std::make_tuple(range(R3.from(), -1), range(R3.from(), -1));
     }
     else
-        return range(R3.from(), R0.from() + k);
+    {
+        return std::make_tuple(range(R3.from(), R0.from() + k), range(R0.from() + k, R3.to()));
+    }
 }
+
 
 inline matrix<double> make_L(const matrix_view<const double>& X)
 {
