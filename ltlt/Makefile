@@ -12,11 +12,12 @@ ifeq ($(ARCH),arm64)
 else ifeq ($(ARCH),x86_64)
 	CXX=g++
 	CXXFLAGS+=-std=c++17 -O3 -Wno-unused-result -march=native
-	CXXFLAGS+=-I../build/blis/include/zen3
 	CXXFLAGS+=-I../marray/marray 
 	CXXFLAGS+=-I../blis/frame/base
-	LDFLAGS+=-L../build/blis/lib/zen3
+	CXXFLAGS+=-I../build/docopt.cpp/include/docopt/ 
 	LDFLAGS=-Wl,-rpath,../build/blis/lib/zen3
+	CXXFLAGS+=-I../build/blis/include/zen3
+	LDFLAGS+=-L../build/blis/lib/zen3 -g ../build/docopt.cpp/lib/libdocopt.a
 else
 	CXXFLAGS+=-I../build/blis/include/haswell
 endif

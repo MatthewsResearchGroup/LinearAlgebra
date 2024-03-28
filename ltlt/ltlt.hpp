@@ -11,6 +11,7 @@
 //must come first
 #define MARRAY_USE_BLIS
 #define BLIS_ENABLE_STD_COMPLEX
+#define BLIS_DISABLE_BLAS_DEFS
 #include "blis.h"
 
 #include "marray_view.hpp"
