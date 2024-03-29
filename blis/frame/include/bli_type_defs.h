@@ -135,6 +135,8 @@ typedef uint32_t objbits_t;  // object information bit field
 
 #if defined(__cplusplus) && defined(BLIS_ENABLE_STD_COMPLEX)
 
+#warning "Using C++ complex"
+
 	} //extern "C"
 
 	#include <complex>
@@ -160,6 +162,8 @@ typedef uint32_t objbits_t;  // object information bit field
 
 #elif defined(BLIS_ENABLE_C99_COMPLEX)
 
+#warning "Using C99 complex"
+
 	#if __STDC_VERSION__ >= 199901L
 		#include <complex.h>
 
@@ -183,6 +187,8 @@ typedef uint32_t objbits_t;  // object information bit field
 	#endif
 
 #else // ifndef BLIS_ENABLE_C99_COMPLEX
+
+#warning "Using default complex (struct)"
 
 	// This cpp guard provides a temporary hack to allow libflame
 	// interoperability with BLIS.

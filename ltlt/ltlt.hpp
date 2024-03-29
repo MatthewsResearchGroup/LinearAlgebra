@@ -8,8 +8,16 @@
 #include <functional>
 #include <random>
 
-#define BLIS_ENABLE_STD_COMPLEX
+//must come first
 #define MARRAY_USE_BLIS
+#define BLIS_ENABLE_STD_COMPLEX
+#define BLIS_DISABLE_BLAS_DEFS
+#include "blis.h"
+
+template <typename T>
+bool foo() { static_assert(std::is_same_v<T,std::complex<double>>, ""); return true; }
+
+static auto check = foo<dcomplex>();
 
 #include "marray_view.hpp"
 #include "expression.hpp"
@@ -127,7 +135,7 @@ template <typename T> range_t<T> R3_trunc(const range_t<T>& R0, const range_t<T>
         return range(R3.from(), -1);
     }
     else
-        return range(R3.from(), R0.from() +k );
+        return range(R3.from(), R0.from() + k);
 }
 
 inline matrix<double> make_L(const matrix_view<const double>& X)
