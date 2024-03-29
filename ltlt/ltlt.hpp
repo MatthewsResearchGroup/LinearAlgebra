@@ -244,6 +244,12 @@ void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::
 
 void ltlt_blockLL(const matrix_view<double>& X, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB);
 
-void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<int>& pi, len_type k, bool first_column);
+void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<int>& pi, len_type k = -1, bool first_column = false);
+
+// void ltlt_pivot_blockLL(const matrix_view<double>& X, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB);
+
+void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&, const row_view<int>&,len_type,bool)>& LTLT_UNB);
+
+void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type k = -1, bool first_column = false);
 
 #endif

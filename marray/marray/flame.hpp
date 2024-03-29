@@ -10,6 +10,7 @@
 #include "marray_view.hpp"
 #include "expression.hpp"
 #include "blas.h"
+
 #include "types.hpp"
 
 namespace MArray
@@ -503,7 +504,7 @@ void pivot_both(const MArray& A, len_type pi, struc_t struc)
 
             break;
     }
-
+}
 
 template <typename MArray, typename Pivot>
 std::enable_if_t<!std::is_integral_v<Pivot>>

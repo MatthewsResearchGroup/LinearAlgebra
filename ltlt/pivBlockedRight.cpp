@@ -1,5 +1,3 @@
-#include "flame.hpp"
-#include "fwd/marray_fwd.hpp"
 #include "ltlt.hpp"
 
 void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&, const row_view<int>&,len_type,bool)>& LTLT_UNB)
