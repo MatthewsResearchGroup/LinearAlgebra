@@ -149,7 +149,7 @@ TEST_CASE("Piv_BRL_UBLL", "[RL], [B], [Piv]")
     printf("Matrix size is %d, blocksize is %d, and test has passed!\n", n, blocksize);
 }
 
-// PivUnBlockLeftLooking algorithm
+// PivUnBlockRightLooking algorithm
 TEST_CASE("Piv_UBRL", "[RL], [UB], [Piv]")
 {
     // unblockedrightlooking algorithm 
@@ -187,7 +187,6 @@ TEST_CASE("Piv_UBLL", "[LL], [UB], [Piv]")
 
 
 // Pivot Rows
-
 TEST_CASE("Piv_Row", "[Piv]")
 {
     int N = 10;
@@ -245,6 +244,7 @@ TEST_CASE("Piv_Row", "[Piv]")
         }
     } 
 }
+
 //pivot Col
 TEST_CASE("Piv_Col", "[Piv]")
 {
@@ -296,7 +296,7 @@ TEST_CASE("Piv_Col", "[Piv]")
     {
         for(auto j: range(N))
         {
-            if (std::abs(A[p[i]][j] - Ap[i][j]) > 1e-12)
+            if (std::abs(A[[i]]p[j] - Ap[i][j]) > 1e-12)
             {
                 printf("error");
             }
@@ -356,7 +356,7 @@ TEST_CASE("Piv_Both", "[Piv]")
     {
         for(auto j: range(N))
         {
-            if (std::abs(A[p[i]][j] - Ap[i][j]) > 1e-12)
+            if (std::abs(A[p[i]]p[j] - Ap[i][j]) > 1e-12)
             {
                 printf("error");
             }
