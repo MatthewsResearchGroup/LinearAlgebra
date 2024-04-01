@@ -1,38 +1,52 @@
-CXX=g++
-CXXFLAGS+=-std=c++17 -O3 -Wno-unused-result -march=native
-CXXFLAGS+=-I../marray/marray 
-CXXFLAGS+=-I../blis/frame/base
-LDFLAGS=-Wl,-rpath,../build/blis/lib/zen3
-
-# add the bils.h with different machine
 ARCH=$(shell uname -m)
+SYS=$(shell uname -s)
+# determine the FLAGS for different arch we run
 ifeq ($(ARCH),arm64)
+	CXX=clang++
+	CXXFLAGS+=-std=c++17 -g -O0 -DDEBUG -fsanitize=address -Wno-unused-result -DMARRAY_ENABLE_ASSERTS -DDEBUG -Wno-unused-result 
+	CXXFLAGS+=-I../marray/marray 
 	CXXFLAGS+=-I../build/blis/include/firestorm
+	CXXFLAGS+=-I../blis/frame/base
+	CXXFLAGS+=-I../build/docopt.cpp/include/docopt/ 
+	LDFLAGS=-g ../build/blis/lib/firestorm/libblis.a ../build/docopt.cpp/lib/libdocopt.a -lblas -fsanitize=address
+	LIBS=-lm -ldl
 else ifeq ($(ARCH),x86_64)
+	CXX=g++
+	BLISSOPATH:=$(strip $(shell pwd))$(strip /../build/blis/lib/zen3)
+	CXXFLAGS+=-std=c++17 -O3 -Wno-unused-result -march=native
+	CXXFLAGS+=-I../marray/marray 
+	CXXFLAGS+=-I../blis/frame/base
+	CXXFLAGS+=-I../build/docopt.cpp/include/docopt/ 
+ifeq ($(SYS),Darwin)
+	CXXFLAGS+=-I../build/blis/include/haswell
+	LDFLAGS=-L../build/blis/lib/haswell
+else
 	CXXFLAGS+=-I../build/blis/include/zen3
-	LDFLAGS+=-L../build/blis/lib/zen3
+	LDFLAGS=-L../build/blis/lib/zen3
+endif
+	LDFLAGS+=-Wl,-rpath,$(BLISSOPATH)
+	LDFLAGS+=-L../build/docopt.cpp/lib
+	LIBS=-lm -ldl -lblis -ldocopt
 else
 	CXXFLAGS+=-I../build/blis/include/haswell
 endif
 
-
-LIBS=-lm -ldl -lblis
-
 exe=../bin/ltlt
 test_exe=../bin/ltlt_test
+perf_exe=../bin/ltlt_perf
 objs=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
 deps:=$(join $(addsuffix .deps/,$(dir $(objs))),$(notdir $(objs:.o=.d)))
-objs:=$(filter-out ltlt.o ltlt_test.o,$(objs))
+objs:=$(filter-out ltlt.o ltlt_test.o ltlt_perf.o,$(objs))
 
 .PHONY: all
-all: $(exe) $(test_exe)
+all: $(exe) $(test_exe) $(perf_exe)
 
 -include $(deps)
 
 
 .PHONY: clean
 clean:
-	rm -f $(objs) $(exe) $(test_exe) ltlt.o ltlt_test.o 
+	rm -f $(objs) $(exe) $(test_exe) $(perf_exe) ltlt.o ltlt_test.o ltlt_perf.o
 
 $(exe): $(objs) ltlt.o
 	@mkdir -p $(dir $(exe))
@@ -41,6 +55,10 @@ $(exe): $(objs) ltlt.o
 $(test_exe): $(objs) ltlt_test.o
 	@mkdir -p $(dir $(test_exe))
 	$(CXX) $(LDFLAGS) -o $(test_exe) $(objs) ltlt_test.o $(LIBS)
+
+$(perf_exe): $(objs) ltlt_perf.o
+	@mkdir -p $(dir $(perf_exe))
+	$(CXX) $(LDFLAGS) -o $(perf_exe) $(objs) ltlt_perf.o $(LIBS)
 
 %.o: %.cpp
 	@mkdir -p $(dir $@).deps
