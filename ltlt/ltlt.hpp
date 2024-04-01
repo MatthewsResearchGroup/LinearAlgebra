@@ -7,6 +7,7 @@
 #include <array>
 #include <functional>
 #include <random>
+#include <vector>
 
 //must come first
 #define MARRAY_USE_BLIS

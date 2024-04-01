@@ -2,12 +2,13 @@
 #include "test.hpp"
 #include "docopt.h"
 #include "io.hpp"
-// #include <catch2/catch_test_macros.hpp>
+
 #include <cstdlib>
 #include <iostream>
 #include <string>
 #include <map>
-#include <type_traits>
+
+using namespace performance;
 
 int main(int argc, const char** argv)
 {
@@ -21,7 +22,7 @@ int main(int argc, const char** argv)
     static const char USAGE[] =
     R"(ltlt.
       Usage:
-        ltlt <majoralgo> <matrixsize> [--minoralgo=<minoralgo>]  [--bs=<blocksize>] 
+        ltlt <majoralgo> <matrixsize> <repitation> [--minoralgo=<minoralgo>]  [--bs=<blocksize>] 
         ltlt (-h | --help)
         ltlt --version
     
@@ -37,7 +38,9 @@ int main(int argc, const char** argv)
 
         <matrixsize>      The size of skew matirx we plan to decompose
 
-        [--minoralgo]   If the majoralgo is Block algorithms, then a minoralgo is needed. 
+        <repitation>       Times of repitation
+
+        [--minoralgo]     If the majoralgo is Block algorithms, then a minoralgo is needed. 
                           There are two options: 
                                                 UnBlock Right Loooking (ltlt_unblockRL),
                                                 Unblock Left Loooking (ltlt_unblockLL).
@@ -53,50 +56,72 @@ int main(int argc, const char** argv)
                                              true,
                                              "LTLT 1.0");
 
-    for(auto const& arg : args) 
-        std::cout << arg.first << ":" << arg.second << ":"<< std::endl;
-
     // int n {0}, blocksize {0};
     // std::string majoralgo {}, minoralgo {};
-    double error, time;
-
+    // double error, time;
+    // int repitation;
+    std::vector<double> error_vec {}, time_vec{};
 
     auto majoralgo = args["<majoralgo>"].asString();
     auto n = args["<matrixsize>"].asLong();
+    auto repitation = args["<repitation>"].asLong();
     auto minoralgo = args["--minoralgo"] ? args["--minoralgo"].asString() : std::string("");
     auto blocksize = args["--bs"] ? args["--bs"].asLong() : 0; 
+    
+    //std::cout << majoralgo << n << repitation << std::endl;
+    //for(auto const& arg : args) 
+    //    std::cout << arg.first << ":" << arg.second << std::endl;
+    // {
+    //     if (arg.first == "<majoralgo>")
+    //         majoralgo = arg.second.asString();
 
+    //     if (arg.first == "<matrixsize>")
+    //         n = arg.second.asLong();
+
+    //     if (arg.first == "--minoralgo" && arg.second)
+    //         minoralgo = arg.second.asString();
+    //     
+    //     if (arg.first == "--bs" && arg.second)
+    //         blocksize = arg.second.asLong();
+
+    //     if (arg.first == "-p")
+    //         repitation = arg.second.asLong();
+
+    // }
 
     if (majoralgo == "ltlt_unblockLL")
-        std::tie(error, time) = test(n, ltlt_unblockLL);
+        std::tie(error_vec, time_vec) = performance::test(n, ltlt_unblockLL, repitation);
 
     else if (majoralgo == "ltlt_unblockRL")
-        std::tie(error, time) = test(n, ltlt_unblockRL);
+        std::tie(error_vec, time_vec) = performance::test(n, ltlt_unblockRL, repitation);
 
     else if (majoralgo == "ltlt_unblockTSRL")
-        std::tie(error, time) = test(n, ltlt_unblockTSRL);
+        std::tie(error_vec, time_vec) = performance::test(n, ltlt_unblockTSRL, repitation);
 
     else if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockRL")
-        std::tie(error, time) = test(n, blocksize, ltlt_blockRL, ltlt_unblockRL);
+        std::tie(error_vec, time_vec) = performance::test(n, blocksize, ltlt_blockRL, ltlt_unblockRL, repitation);
 
     else if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockLL")
-        std::tie(error, time) = test(n, blocksize, ltlt_blockRL, ltlt_unblockLL);
+        std::tie(error_vec, time_vec) = performance::test(n, blocksize, ltlt_blockRL, ltlt_unblockLL, repitation);
 
     else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockRL")
-        std::tie(error, time) = test(n, blocksize, ltlt_blockLL, ltlt_unblockRL);
+        std::tie(error_vec, time_vec) = performance::test(n, blocksize, ltlt_blockLL, ltlt_unblockRL, repitation);
 
     else if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockLL")
-        std::tie(error, time) = test(n, blocksize, ltlt_blockRL, ltlt_unblockLL);
+        std::tie(error_vec, time_vec) = performance::test(n, blocksize, ltlt_blockRL, ltlt_unblockLL, repitation);
 
     else
     {
         std::cerr << "The Algorithms is not suppotted" << std::endl;
         exit(1);
     }
-
+    
+    for (auto i : range(repitation))
+        //std::cout << error_vec[i] << ", " <<  time_vec[i] << std::endl;
+        output_to_csv(n, majoralgo, minoralgo, blocksize, error_vec[i], time_vec[i]);
     // std::cout << n << blocksize << majoralgo << minoralgo << error <<  time << std::endl;
     // std::cout << n << blocksize << majoralgo << minoralgo <<  time << std::endl;
-    output_to_csv(n, majoralgo, minoralgo, blocksize, error, time);
+    // output_to_csv(n, majoralgo, minoralgo, blocksize, error, time);
 
     
     

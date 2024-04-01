@@ -11,12 +11,13 @@ ifeq ($(ARCH),arm64)
 	LIBS=-lm -ldl
 else ifeq ($(ARCH),x86_64)
 	CXX=g++
+	BLISSOPATH:=$(strip $(shell pwd))$(strip /../build/blis/lib/zen3)
 	CXXFLAGS+=-std=c++17 -O3 -Wno-unused-result -march=native
 	CXXFLAGS+=-I../marray/marray 
 	CXXFLAGS+=-I../blis/frame/base
 	CXXFLAGS+=-I../build/docopt.cpp/include/docopt/ 
 	CXXFLAGS+=-I../build/blis/include/zen3
-	LDFLAGS=-Wl,-rpath,../build/blis/lib/zen3
+	LDFLAGS=-Wl,-rpath,$(BLISSOPATH)
 	LDFLAGS+=-L../build/docopt.cpp/lib
 	LDFLAGS+=-L../build/blis/lib/zen3
 	LIBS=-lm -ldl -lblis -ldocopt
@@ -26,19 +27,20 @@ endif
 
 exe=../bin/ltlt
 test_exe=../bin/ltlt_test
+perf_exe=../bin/ltlt_perf
 objs=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
 deps:=$(join $(addsuffix .deps/,$(dir $(objs))),$(notdir $(objs:.o=.d)))
-objs:=$(filter-out ltlt.o ltlt_test.o,$(objs))
+objs:=$(filter-out ltlt.o ltlt_test.o ltlt_perf.o,$(objs))
 
 .PHONY: all
-all: $(exe) $(test_exe)
+all: $(exe) $(test_exe) $(perf_exe)
 
 -include $(deps)
 
 
 .PHONY: clean
 clean:
-	rm -f $(objs) $(exe) $(test_exe) ltlt.o ltlt_test.o 
+	rm -f $(objs) $(exe) $(test_exe) $(perf_exe) ltlt.o ltlt_test.o ltlt_perf.o
 
 $(exe): $(objs) ltlt.o
 	@mkdir -p $(dir $(exe))
@@ -47,6 +49,10 @@ $(exe): $(objs) ltlt.o
 $(test_exe): $(objs) ltlt_test.o
 	@mkdir -p $(dir $(test_exe))
 	$(CXX) $(LDFLAGS) -o $(test_exe) $(objs) ltlt_test.o $(LIBS)
+
+$(perf_exe): $(objs) ltlt_perf.o
+	@mkdir -p $(dir $(perf_exe))
+	$(CXX) $(LDFLAGS) -o $(perf_exe) $(objs) ltlt_perf.o $(LIBS)
 
 %.o: %.cpp
 	@mkdir -p $(dir $@).deps
