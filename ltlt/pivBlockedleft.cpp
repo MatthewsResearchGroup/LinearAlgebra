@@ -30,8 +30,6 @@ void ltlt_pivot_blockLL(const matrix_view<double>& X, const row_view<int>& pi, l
 
         LTLT_UNB(X[r1 | R2 | r3 | R4][r1 | R2 | r3 | R4],  (r1 | R2).size(), true);
 
-        pi[R2 | r3] = X[R2 | r3];
-
         pivot_rows(L[R2 | r3 | R4][R0 | r1], pi[R2 | r3]);
 
         // ( R0 | r1 | R2 || r3 | R4 )

@@ -1,8 +1,6 @@
 #ifndef _TESTING_HPP_
 #define _TESTING_HPP_
 
-#include "bli_type_defs.h"
-#include "flame.hpp"
 #include "ltlt.hpp"
 
 // testing function
@@ -146,7 +144,7 @@ inline void test(int n, const std::function<void(const matrix_view<double>&,cons
     auto LmT = Lm.T();
 
     // calculate the error matrix
-    pivot_both(B_deepcopy, p, BLIS_DENSE);
+    pivot_both(B_deepcopy, p, BLIS_GENERAL);
     B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
     auto err = norm(B_deepcopy) / (n * n);
     printf("err = %e\n", err);
@@ -158,7 +156,7 @@ inline void test(int n, const std::function<void(const matrix_view<double>&,cons
 // testing function 
 //Piv_Blocek
 // inline void test(int n, const std::function<void(const matrix_view<double>&,len_type, const std::function<void(const matrix_view<double>&, len_type, bool)>&)>& LTLT_BLOCK, bool unblockRL = false)
-inline void test(int n, int blocksize, const std::function<void(const matrix_view<double>&,const row_view<int>&,len_type, const std::function<void(const matrix_view<double>&, const row_view<int>&, len_type, bool)>&)>& LTLT_BLOCK, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
+inline void test(int n, int blocksize, const std::function<void(const matrix_view<double>&,const row_view<int>&,len_type, const std::function<void(const matrix_view<double>&, const row_view<int>&, len_type, bool)>&)>& LTLT_BLOCK, const std::function<void(const matrix_view<double>&, const row_view<int> &,len_type,bool)>& LTLT_UNB)
 {
     row<int> p{n};
     // build the matrix
@@ -205,7 +203,7 @@ inline void test(int n, int blocksize, const std::function<void(const matrix_vie
     auto Tm = make_T(B);
     auto LmT = Lm.T();
 
-    pivot_both(B_deepcopy, p, BLIS_DENSE);
+    pivot_both(B_deepcopy, p, BLIS_GENERAL);
     B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
     // B_deepcopy -= B_cal;
     auto err = norm(B_deepcopy) / (n * n);

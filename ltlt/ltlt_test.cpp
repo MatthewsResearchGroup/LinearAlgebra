@@ -209,8 +209,6 @@ TEST_CASE("Piv_Row", "[Piv]")
         }
     }
 
-
-
     row<int> p2({N});
     row<int> idx({N}); 
     for(auto i: range(N))

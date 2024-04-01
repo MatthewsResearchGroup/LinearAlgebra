@@ -1969,6 +1969,10 @@ swapv(T&& x_, U&& y_)
 #endif
 }
 
+inline float conj(float x) {return x;}
+inline double conj(double x) {return x;}
+inline long double conj(long double x) {return x;}
+
 template <typename T>
 std::enable_if_t<detail::is_marray_like_v<T,1>>
 conj(T&& x_)
