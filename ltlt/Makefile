@@ -1,4 +1,5 @@
 ARCH=$(shell uname -m)
+SYS=$(shell uname -s)
 # determine the FLAGS for different arch we run
 ifeq ($(ARCH),arm64)
 	CXX=clang++
@@ -16,10 +17,15 @@ else ifeq ($(ARCH),x86_64)
 	CXXFLAGS+=-I../marray/marray 
 	CXXFLAGS+=-I../blis/frame/base
 	CXXFLAGS+=-I../build/docopt.cpp/include/docopt/ 
+ifeq ($(SYS),Darwin)
+	CXXFLAGS+=-I../build/blis/include/haswell
+	LDFLAGS=-L../build/blis/lib/haswell
+else
 	CXXFLAGS+=-I../build/blis/include/zen3
-	LDFLAGS=-Wl,-rpath,$(BLISSOPATH)
+	LDFLAGS=-L../build/blis/lib/zen3
+endif
+	LDFLAGS+=-Wl,-rpath,$(BLISSOPATH)
 	LDFLAGS+=-L../build/docopt.cpp/lib
-	LDFLAGS+=-L../build/blis/lib/zen3
 	LIBS=-lm -ldl -lblis -ldocopt
 else
 	CXXFLAGS+=-I../build/blis/include/haswell
