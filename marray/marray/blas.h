@@ -1953,6 +1953,7 @@ MARRAY_FOR_EACH_TYPE
  * Level 1 BLAS, MArray wrappers
  *
  *****************************************************************************/
+
 template <typename T, typename U>
 std::enable_if_t<detail::is_marray_like_v<T,1> &&
                  detail::is_marray_like_v<U,1>>
@@ -1976,7 +1977,7 @@ conj(T&& x_)
     auto x = x_.view();
 
 #ifdef MARRAY_USE_BLIS
-    bli_scalv(BLIS_CONJUGATE, x.length(), detail::value_type<T>{1}, x.data(), x.stride());
+    bli_scal2v(BLIS_CONJUGATE, x.length(), detail::value_type<T>{1}, x.data(), x.stride(), x.data(), x.stride());
 #else
     auto n = x.length();
     auto ptr = x.data();
@@ -3687,7 +3688,7 @@ gemm(T alpha, U&& A, V&& B, W beta, X&& C)
     printf("Alpha = %f,Beta = %f, m = %d, n = %d, k = %d, stride A = %d, %d, stride B = %d, %d, stride C = %d, %d\n", alpha, beta, m, n, k, A_.stride(0), A_.stride(1), B_.stride(0), B_.stride(1), C_.stride(0), C_.stride(1));
     printf("Printing matrix A\n");
     for (auto i : range(m))
-    {    
+    {
         for (auto j : range(k))
         {
             printf("%f, ", A_.data()[i*A_.stride(0)+j*A_.stride(1)]);
@@ -3696,7 +3697,7 @@ gemm(T alpha, U&& A, V&& B, W beta, X&& C)
     }
     printf("Printing matrix B\n");
     for (auto i : range(k))
-    {    
+    {
         for (auto j : range(n))
         {
             printf("%f, ", B_.data()[i*B_.stride(0)+j*B_.stride(1)]);
@@ -3706,7 +3707,7 @@ gemm(T alpha, U&& A, V&& B, W beta, X&& C)
 
     printf("Printing matrix C\n");
     for (auto i : range(m))
-    {    
+    {
         for (auto j : range(n))
         {
             printf("%f, ", C_.data()[i*C_.stride(0)+j*C_.stride(1)]);
@@ -3720,7 +3721,7 @@ gemm(T alpha, U&& A, V&& B, W beta, X&& C)
               beta, C_.data(), C_.stride(0), C_.stride(1));
     printf("Printing matrix C\n");
     for (auto i : range(m))
-    {    
+    {
         for (auto j : range(n))
         {
             printf("%f, ", C_.data()[i*C_.stride(0)+j*C_.stride(1)]);
