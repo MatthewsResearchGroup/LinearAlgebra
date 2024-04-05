@@ -1,9 +1,6 @@
-#if 0
-#include "flame.hpp"
-#include "fwd/marray_fwd.hpp"
 #include "ltlt.hpp"
 
-void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type k, bool first_column, bool first_row)
+void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type k, bool first_column)
 {
     auto [T, m, B] = partition_rows<DYNAMIC, 1, DYNAMIC>(X);
     auto n = X.length(0);
@@ -41,4 +38,4 @@ void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<int>& pi,
         tie(T, m, B) = continue_with(R0, r1, r2, R3);
     }
 }
-#endif
+
