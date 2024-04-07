@@ -14,7 +14,8 @@ void output_to_csv(const int& MatrixSize,
                    const double& err,
                    const double& time)
 {
-    std::string filename = "./time_" + std::to_string(MatrixSize) + ".csv";
+    std::string filename = "./time.csv";
+    // std::string filename = "./time_" + std::to_string(MatrixSize) + ".csv";
 
     auto out_csv = fopen(filename.c_str(),"a+");
 

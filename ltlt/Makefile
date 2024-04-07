@@ -12,8 +12,8 @@ ifeq ($(ARCH),arm64)
 	LIBS=-lm -ldl
 else ifeq ($(ARCH),x86_64)
 	CXX=g++
-	BLISSOPATH:=$(strip $(shell pwd))$(strip /../build/blis/lib/zen3)
-	CXXFLAGS+=-std=c++17 -O3 -Wno-unused-result -march=native
+	BLISSOPATH:=$(strip $(shell pwd))$(strip /../build/blis/lib/generic)
+	CXXFLAGS+=-std=c++17 -fopenmp -O3 -Wno-unused-result -march=native
 	CXXFLAGS+=-I../marray/marray 
 	CXXFLAGS+=-I../blis/frame/base
 	CXXFLAGS+=-I../build/docopt.cpp/include/docopt/ 
@@ -21,8 +21,8 @@ ifeq ($(SYS),Darwin)
 	CXXFLAGS+=-I../build/blis/include/haswell
 	LDFLAGS=-L../build/blis/lib/haswell
 else
-	CXXFLAGS+=-I../build/blis/include/zen3
-	LDFLAGS=-L../build/blis/lib/zen3
+	CXXFLAGS+=-I../build/blis/include/generic
+	LDFLAGS=-L../build/blis/lib/generic
 endif
 	LDFLAGS+=-Wl,-rpath,$(BLISSOPATH)
 	LDFLAGS+=-L../build/docopt.cpp/lib
