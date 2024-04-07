@@ -74,13 +74,13 @@ auto blocked(const BL& block, const std::function<void(const matrix_view<double>
     return std::bind(block, std::placeholders::_1, std::placeholders::_2, blocksize, unblock);
 }
 
-void check_zero(const matrix<double>& X)
+inline void check_zero(const matrix<double>& X)
 {
     for (auto i : range(X.length(0)))
     for (auto j : range(X.length(1)))
     {
         INFO("i = " << i);
-        INFO("j = " << i);
+        INFO("j = " << j);
         INFO("E[i][j] = " << X[i][j]);
         REQUIRE_THAT(X[i][j], WithinAbs(0, 1e-12));
     }
@@ -104,15 +104,15 @@ inline void test(int n, const std::function<void(const matrix_view<double>&)>& L
     auto Lm = make_L(B);
     auto Tm = make_T(B);
 
-    //std::cout << "L:" << std::endl << Lm << std::endl;
-    //std::cout << "T:" << std::endl << Tm << std::endl;
-    //std::cout << "B:" << std::endl << B0 << std::endl;
-    //std::cout << "LTLT:" << std::endl << MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), Lm.T()) << std::endl;
+    std::cout << "L:" << std::endl << Lm << std::endl;
+    std::cout << "T:" << std::endl << Tm << std::endl;
+    std::cout << "B:" << std::endl << B0 << std::endl;
+    std::cout << "LTLT:" << std::endl << MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), Lm.T()) << std::endl;
 
     // calculate the error matrix
     B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), Lm.T());
 
-    //std::cout << "E:" << std::endl << B0 << std::endl;
+    std::cout << "E:" << std::endl << B0 << std::endl;
 
     check_zero(B0);
 }
