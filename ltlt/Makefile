@@ -1,37 +1,32 @@
-ARCH=$(shell uname -m)
-SYS=$(shell uname -s)
+ARCH = $(shell uname -m)
+SYS = $(shell uname -s)
+
 # determine the FLAGS for different arch we run
 ifeq ($(ARCH),arm64)
-	CXX=clang++
-	CXXFLAGS+=-std=c++17 -g -O0 -DDEBUG -fsanitize=address -Wno-unused-result -DMARRAY_ENABLE_ASSERTS -DDEBUG -Wno-unused-result 
-	CXXFLAGS+=-I../marray/marray 
-	CXXFLAGS+=-I../build/blis/include/firestorm
-	CXXFLAGS+=-I../blis/frame/base
-	CXXFLAGS+=-I../build/docopt.cpp/include/docopt/ 
-	LDFLAGS=-g ../build/blis/lib/firestorm/libblis.a ../build/docopt.cpp/lib/libdocopt.a -lblas -fsanitize=address
-	LIBS=-lm -ldl
+CONFIG=firestorm
 else ifeq ($(ARCH),x86_64)
-	CXX=g++
-	BLISSOPATH:=$(strip $(shell pwd))$(strip /../build/blis/lib/zen3)
-	CXXFLAGS+=-std=c++17 -O3 -Wno-unused-result -march=native
-	CXXFLAGS+=-I../marray/marray 
-	CXXFLAGS+=-I../blis/frame/base
-	CXXFLAGS+=-I../build/docopt.cpp/include/docopt/ 
 ifeq ($(SYS),Darwin)
-	CXXFLAGS+=-I../build/blis/include/haswell
-	LDFLAGS=-L../build/blis/lib/haswell
+CONFIG=haswell
 else
-	CXXFLAGS+=-I../build/blis/include/zen3
-	LDFLAGS=-L../build/blis/lib/zen3
+CONFIG=zen3
+M3=true
 endif
-	LDFLAGS+=-Wl,-rpath,$(BLISSOPATH)
-	LDFLAGS+=-L../build/docopt.cpp/lib
-	LIBS=-lm -ldl -lblis -ldocopt
-else
-	CXXFLAGS+=-I../build/blis/include/haswell
 endif
 
-exe=../bin/ltlt
+CXXFLAGS = -std=c++17 -Wno-unused-result -Wno-unused-result -I../marray/marray \
+           -I../build/blis/include/$(CONFIG) -I../blis/frame/base #-I../build/docopt.cpp/include/docopt/
+LDFLAGS = -L../build/blis/lib/$(CONFIG) -Wl,-rpath,$(shell pwd)/../build/blis/lib/$(CONFIG) #-L../build/docopt.cpp/lib
+LIBS = -lm -ldl -lblis #-ldocopt
+
+ifeq ($(M3),true)
+CXX = g++
+CXXFLAGS += -O3 -march=native -fopenmp
+else
+CXX = clang++
+CXXFLAGS += -g -O0 -DDEBUG -fsanitize=address -DMARRAY_ENABLE_ASSERTS
+LDFLAGS += -g -fsanitize=address
+endif
+
 test_exe=../bin/ltlt_test
 perf_exe=../bin/ltlt_perf
 objs=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
@@ -39,18 +34,13 @@ deps:=$(join $(addsuffix .deps/,$(dir $(objs))),$(notdir $(objs:.o=.d)))
 objs:=$(filter-out ltlt.o ltlt_test.o ltlt_perf.o,$(objs))
 
 .PHONY: all
-all: $(exe) $(test_exe) $(perf_exe)
+all: $(test_exe) $(perf_exe)
 
 -include $(deps)
-
 
 .PHONY: clean
 clean:
 	rm -f $(objs) $(exe) $(test_exe) $(perf_exe) ltlt.o ltlt_test.o ltlt_perf.o
-
-$(exe): $(objs) ltlt.o
-	@mkdir -p $(dir $(exe))
-	$(CXX) $(LDFLAGS) -o $(exe) $(objs) ltlt.o $(LIBS)
 
 $(test_exe): $(objs) ltlt_test.o
 	@mkdir -p $(dir $(test_exe))

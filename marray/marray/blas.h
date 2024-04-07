@@ -4,9 +4,8 @@
 #include "detail/fortran.h"
 
 #ifdef MARRAY_USE_BLIS
-#define BLIS_DISABLE_BLAS
-#define _DEFINED_SCOMPLEX
-#define _DEFINED_DCOMPLEX
+#define BLIS_DISABLE_BLAS_DEFS
+#define BLIS_ENABLE_STD_COMPLEX
 #include <blis.h>
 #endif
 
@@ -1954,6 +1953,13 @@ MARRAY_FOR_EACH_TYPE
  *
  *****************************************************************************/
 
+template <typename T>
+std::enable_if_t<std::is_arithmetic_v<T> || detail::is_complex_v<T>>
+swapv(T& x, T& y)
+{
+    std::swap(x, y);
+}
+
 template <typename T, typename U>
 std::enable_if_t<detail::is_marray_like_v<T,1> &&
                  detail::is_marray_like_v<U,1>>
@@ -1973,6 +1979,10 @@ swapv(T&& x_, U&& y_)
 inline float conj(float x) {return x;}
 inline double conj(double x) {return x;}
 inline long double conj(long double x) {return x;}
+
+inline auto conj(const std::complex<float>& x) {return std::conj(x);}
+inline auto conj(const std::complex<double>& x) {return std::conj(x);}
+inline auto conj(const std::complex<long double>& x) {return std::conj(x);}
 
 template <typename T>
 std::enable_if_t<detail::is_marray_like_v<T,1>>

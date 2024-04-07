@@ -2,34 +2,133 @@
 #define _TESTING_HPP_
 
 #include "ltlt.hpp"
+#include "../catch2/catch.hpp"
 
-// testing function
-// UnB
-inline void test(int n, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
+#include <iostream>
+
+using namespace Catch;
+
+extern std::mt19937_64 gen;
+static const auto MAX_MATRIX_SIZE = 500;
+
+inline auto rand_size(int max = MAX_MATRIX_SIZE)
 {
-    // build the matrix
-    matrix <double> A{n, n};
+    return std::uniform_int_distribution<>(1, max)(gen);
+}
 
-    // initialize matrix A
-    std::mt19937_64 rng;
-    std::uniform_real_distribution<> uniform;
-    A.for_each_element([&](auto& Aij){ Aij = uniform(rng); });
+inline auto random_permutation(int N)
+{
+    row<int> p = static_cast<std::vector<int>>(range(N));
+    std::shuffle(p.begin(), p.end(), gen);
 
+    row<int> p2{N};
+    row<int> idx = static_cast<std::vector<int>>(range(N));
+    for (auto i : range(N))
+    for (auto j : range(i, N))
+    {
+        if (idx[j] == p[i])
+        {
+            p2[i] = j;
+            std::swap(idx[i], idx[j]);
+        }
+    }
+
+    return std::make_pair(p, p2);
+}
+
+template <typename T=double>
+auto random_matrix(int m, int n)
+{
+    static std::uniform_real_distribution<> dist;
+    matrix<T> A{m, n};
+
+    for (auto i : range(m))
+    for (auto j : range(n))
+        if constexpr (MArray::detail::is_complex_v<T>)
+            A[i][j] = T{dist(gen), dist(gen)};
+        else
+            A[i][j] = dist(gen);
+
+    return A;
+}
+
+inline auto unblocked(const std::function<void(const matrix_view<double>&,len_type,bool)>& unblock)
+{
+    return std::bind(unblock, std::placeholders::_1, -1, false);
+}
+
+inline auto unblocked(const std::function<void(const matrix_view<double>&,const row_view<int>&,len_type,bool)>& unblock)
+{
+    return std::bind(unblock, std::placeholders::_1, std::placeholders::_2, -1, false);
+}
+
+template <typename BL>
+auto blocked(const BL& block, const std::function<void(const matrix_view<double>&,len_type,bool)>& unblock, int blocksize)
+{
+    return std::bind(block, std::placeholders::_1, blocksize, unblock);
+}
+
+template <typename BL>
+auto blocked(const BL& block, const std::function<void(const matrix_view<double>&,const row_view<int>&,len_type,bool)>& unblock, int blocksize)
+{
+    return std::bind(block, std::placeholders::_1, std::placeholders::_2, blocksize, unblock);
+}
+
+void check_zero(const matrix<double>& X)
+{
+    for (auto i : range(X.length(0)))
+    for (auto j : range(X.length(1)))
+    {
+        INFO("i = " << i);
+        INFO("j = " << i);
+        INFO("E[i][j] = " << X[i][j]);
+        REQUIRE_THAT(X[i][j], WithinAbs(0, 1e-12));
+    }
+}
+
+inline void test(int n, const std::function<void(const matrix_view<double>&)>& LTLT)
+{
     // make skew symmetric matrix
+    n = 5;
+    auto A = random_matrix(n, n);
     matrix<double> B = A - A.T();
-    
-    // make a copy of B since we need to overwrite part of B
-    matrix<double> B_deepcopy = B;
-    
-    // starting the decompostion
-    // recode the time
-    //
-    auto starting_point =  bli_clock();
-    LTLT_UNB(B, -1, false);
-    auto ending_point = bli_clock();
 
-    // calculate the time for decompostion
-    auto time = ending_point - starting_point;
+    // make a copy of B since we need to overwrite part of B
+    matrix<double> B0 = B;
+
+    LTLT(B);
+
+    // verify its correctness
+    // make L and T from B
+
+    auto Lm = make_L(B);
+    auto Tm = make_T(B);
+
+    //std::cout << "L:" << std::endl << Lm << std::endl;
+    //std::cout << "T:" << std::endl << Tm << std::endl;
+    //std::cout << "B:" << std::endl << B0 << std::endl;
+    //std::cout << "LTLT:" << std::endl << MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), Lm.T()) << std::endl;
+
+    // calculate the error matrix
+    B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), Lm.T());
+
+    //std::cout << "E:" << std::endl << B0 << std::endl;
+
+    check_zero(B0);
+}
+
+inline void test_piv(int n, const std::function<void(const matrix_view<double>&,const row_view<int>&)>& LTLT)
+{
+    // make skew symmetric matrix
+    auto A = random_matrix(n, n);
+    matrix<double> B = A - A.T();
+
+    // make a copy of B since we need to overwrite part of B
+    matrix<double> B0 = B;
+
+    row<int> p{n};
+    LTLT(B, p);
+    pivot_both(B0, p);
 
     // verify its correctness
     // make L and T from B
@@ -39,177 +138,8 @@ inline void test(int n, const std::function<void(const matrix_view<double>&,len_
     auto LmT = Lm.T();
 
     // calculate the error matrix
-    B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-    auto err = norm(B_deepcopy) / (n * n);
-    printf("err = %e\n", err);
-    MARRAY_ASSERT(err < 1e-12);
-
-    printf("finish successfully in %f second\n", time);
+    B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    check_zero(B0);
 }
 
-// testing function 
-//Blocked
-// inline void test(int n, const std::function<void(const matrix_view<double>&,len_type, const std::function<void(const matrix_view<double>&, len_type, bool)>&)>& LTLT_BLOCK, bool unblockRL = false)
-inline void test(int n, int blocksize, const std::function<void(const matrix_view<double>&,len_type, const std::function<void(const matrix_view<double>&, len_type, bool)>&)>& LTLT_BLOCK, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
-{
-    // build the matrix
-    matrix <double> A{n, n};
-
-    // initialize matrix A
-    std::mt19937_64 rng;
-    std::uniform_real_distribution<> uniform;
-    A.for_each_element([&](auto& Aij){ Aij = uniform(rng); });
-
-    // make skew symmetric matrix
-    matrix<double> B = A - A.T();
-    
-    // make a copy of B since we need to overwrite part of B
-    matrix<double> B_deepcopy = B;
-    
-    // starting the decompostion
-    // recode the time
-    //
-    
-    auto starting_point =  bli_clock();
-
-
-    LTLT_BLOCK(B, blocksize, LTLT_UNB);
-
-    // if (unblockRL == true)
-    // {
-    //     LTLT_BLOCK(B, blocksize, ltlt_unblockRL);
-    // }
-    // else
-    // {
-    //     LTLT_BLOCK(B, blocksize, ltlt_unblockLL);
-    // }
-
-    auto ending_point = bli_clock();
-
-    // calculate the time for decompostion
-    auto time = ending_point - starting_point;
-
-    // verify its correctness
-    // make L and T from B
-
-    auto Lm = make_L(B);
-    auto Tm = make_T(B);
-    auto LmT = Lm.T();
-
-    B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-    // B_deepcopy -= B_cal;
-    auto err = norm(B_deepcopy) / (n * n);
-    printf("err = %e\n", err);
-    MARRAY_ASSERT(err < 1e-12);
-    printf("finish successfully in %f second\n", time);
-    
-}
-
-
-
-// PivUnBlocked
-inline void test(int n, const std::function<void(const matrix_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB)
-{
-    //row of pivot
-    row<int> p{n};
-    // build the matrix
-    matrix <double> A{n, n};
-
-    // initialize matrix A
-    std::mt19937_64 rng;
-    std::uniform_real_distribution<> uniform;
-    A.for_each_element([&](auto& Aij){ Aij = uniform(rng); });
-
-    // make skew symmetric matrix
-    matrix<double> B = A - A.T();
-    
-    // make a copy of B since we need to overwrite part of B
-    matrix<double> B_deepcopy = B;
-    
-    // starting the decompostion
-    // recode the time
-    //
-    auto starting_point =  bli_clock();
-    LTLT_UNB(B, p, -1, false);
-    auto ending_point = bli_clock();
-
-    // calculate the time for decompostion
-    auto time = ending_point - starting_point;
-
-    // verify its correctness
-    // make L and T from B
-
-    auto Lm = make_L(B);
-    auto Tm = make_T(B);
-    auto LmT = Lm.T();
-
-    // calculate the error matrix
-    pivot_both(B_deepcopy, p, BLIS_GENERAL);
-    B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-    auto err = norm(B_deepcopy) / (n * n);
-    printf("err = %e\n", err);
-    MARRAY_ASSERT(err < 1e-12);
-
-    printf("finish successfully in %f second\n", time);
-}
-
-// testing function 
-//Piv_Blocek
-// inline void test(int n, const std::function<void(const matrix_view<double>&,len_type, const std::function<void(const matrix_view<double>&, len_type, bool)>&)>& LTLT_BLOCK, bool unblockRL = false)
-inline void test(int n, int blocksize, const std::function<void(const matrix_view<double>&,const row_view<int>&,len_type, const std::function<void(const matrix_view<double>&, const row_view<int>&, len_type, bool)>&)>& LTLT_BLOCK, const std::function<void(const matrix_view<double>&, const row_view<int> &,len_type,bool)>& LTLT_UNB)
-{
-    row<int> p{n};
-    // build the matrix
-    matrix <double> A{n, n};
-
-    // initialize matrix A
-    std::mt19937_64 rng;
-    std::uniform_real_distribution<> uniform;
-    A.for_each_element([&](auto& Aij){ Aij = uniform(rng); });
-
-    // make skew symmetric matrix
-    matrix<double> B = A - A.T();
-    
-    // make a copy of B since we need to overwrite part of B
-    matrix<double> B_deepcopy = B;
-    
-    // starting the decompostion
-    // recode the time
-    //
-    
-    auto starting_point =  bli_clock();
-
-
-    LTLT_BLOCK(B, p, blocksize, LTLT_UNB);
-
-    // if (unblockRL == true)
-    // {
-    //     LTLT_BLOCK(B, blocksize, ltlt_unblockRL);
-    // }
-    // else
-    // {
-    //     LTLT_BLOCK(B, blocksize, ltlt_unblockLL);
-    // }
-
-    auto ending_point = bli_clock();
-
-    // calculate the time for decompostion
-    auto time = ending_point - starting_point;
-
-    // verify its correctness
-    // make L and T from B
-
-    auto Lm = make_L(B);
-    auto Tm = make_T(B);
-    auto LmT = Lm.T();
-
-    pivot_both(B_deepcopy, p, BLIS_GENERAL);
-    B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-    // B_deepcopy -= B_cal;
-    auto err = norm(B_deepcopy) / (n * n);
-    printf("err = %e\n", err);
-    MARRAY_ASSERT(err < 1e-12);
-    printf("finish successfully in %f second\n", time);
-    
-}
 #endif

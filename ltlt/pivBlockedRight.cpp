@@ -2,57 +2,37 @@
 
 void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&, const row_view<int>&,len_type,bool)>& LTLT_UNB)
 {
-    auto n = X.length(0);
     auto [T, m, B] = partition_rows<DYNAMIC,1,DYNAMIC>(X);
 
-    matrix_view<double> L = false ? X.shifted(1, -1) : X.rebased(1, 1);
+    matrix_view<double> L = X.rebased(1, 1);
+    matrix<double> temp_{X.length(0), block_size};
 
-    matrix<double> temp{X.length(0), X.length(0)};
-
-    //if (first_column)
-    //    blas::skr2('L', 1.0, L[B, m], X[B, m], 1.0, X[B, B]);
-    int count  = 0;
     while (B)
     {
-        count += 1;
-        printf("interation: %d\n", count);
-        for (auto i : range(n))
-        {
-            for (auto j : range(n))
-        {
-            printf("%f, " , X[i][j]);
-        }
-            printf("\n");
-        }
         // (  T ||  m |       B      )
         // ( R0 || r1 | R2 | r3 | R4 )
         auto [R0, r1, R2, r3, R4] = repartition<DYNAMIC,1>(T, m, B, block_size);
+        auto R0p = tail(R0, -1);
 
-        /*right-looking*/
+        LTLT_UNB(X[r1|R2|r3|R4][r1|R2|r3|R4], pi[r1|R2], (r1|R2).size(), false);
 
-        LTLT_UNB(X[r1 | R2 | r3 | R4][r1 | R2 | r3 | R4], pi[R2 | r3], (r1 | R2 | r3 | R4).size() + 1, false);
+        pivot_rows(L[r1|R2|r3|R4][R0p|r1], pi[r1|R2]);
 
-        pivot_rows(L[R2 | r3 | R4][R0 | r1], pi[R2 | r3]);
-        
-
+        auto temp = temp_.rebased(1, R2.front());
         temp[r3][R2] = L[r3][R2];
-        temp[r3][r3] = 1;
+        temp[r3][r3] = 1; // L[r3][r3]
         temp[R4][R2] = L[R4][R2];
         temp[R4][r3] = L[R4][r3];
-
 
         blas::skew_tridiag_rankk('L',
                                  -1.0,      temp[r3|R4][R2|r3],
                                        subdiag(X[R2|r3][R2|r3]),
                                   1.0,         X[r3|R4][r3|R4]);
 
-
         blas::skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
-
 
         // ( R0 | r1 | R2 || r3 | R4 )
         // (      T       ||  m |  B )
         tie(T, m, B) = continue_with<2>(R0, r1, R2, r3, R4);
-        // printf("size of B: %d\n", B[1]);
     }
 }
