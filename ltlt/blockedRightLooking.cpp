@@ -13,7 +13,7 @@ void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::
         // ( R0 || r1 | R2 | r3 | R4 )
         auto [R0, r1, R2, r3, R4] = repartition<DYNAMIC,1>(T, m, B, block_size);
 
-        LTLT_UNB(X[r1|R2|r3|R4][r1|R2|r3|R4], (r1|R2).size(), false);
+        LTLT_UNB(X[r1|R2|r3|R4][r1|R2|r3|R4], (r1|R2|r3).size(), false);
 
         auto temp = temp_.rebased(1, R2.front());
         temp[r3][R2] = L[r3][R2];
