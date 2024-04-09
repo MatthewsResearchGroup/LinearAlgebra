@@ -397,7 +397,7 @@ template <typename MArray>
 void pivot_rows(MArray&& A_, len_type pi)
 {
     auto A = A_.view();
-    MARRAY_ASSERT(A.dimension() == 2);
+    MARRAY_ASSERT(A.dimension() == 2 || A.dimension() == 1);
     MARRAY_ASSERT(pi >= 0 && pi < A.length(0));
 
     if (pi == 0) return;
@@ -529,7 +529,7 @@ pivot_rows(MArray&& A_, const Pivot& p_)
         // ( R0 || r1 | R2 )
         auto [R0, r1, R2] = repartition(T, B);
 
-        pivot_rows(A[r1 | R2][slice::all], p[r1]);
+        pivot_rows(A[r1|R2][slice::all], p[r1]);
 
         // ( R0 | r1 || R2 )
         // (    T    ||  B )
@@ -555,7 +555,7 @@ pivot_columns(MArray&& A_, const Pivot& p_)
         // ( R0 || r1 | R2 )
         auto [R0, r1, R2] = repartition(T, B);
 
-        pivot_columns(A[slice::all][r1 | R2], p[r1]);
+        pivot_columns(A[slice::all][r1|R2], p[r1]);
 
         // ( R0 | r1 || R2 )
         // (    T    ||  B )
@@ -583,9 +583,15 @@ pivot_both(MArray&& A_, const Pivot& p_, uplo_t uplo = BLIS_LOWER, struc_t struc
         auto [R0, r1, R2] = repartition(T, B);
 
         if (struc == BLIS_GENERAL)
-            pivot_both(A[r1 | R2][r1 | R2], p[r1]);
+            pivot_both(A[r1|R2][r1|R2], p[r1]);
         else
-            pivot_both(A[r1 | R2][r1 | R2], p[r1], uplo, struc);
+            pivot_both(A[r1|R2][r1|R2], p[r1], uplo, struc);
+
+        if (struc == BLIS_GENERAL || uplo == BLIS_LOWER)
+            pivot_rows(A[r1|R2][R0], p[r1]);
+
+        if (struc == BLIS_GENERAL || uplo == BLIS_UPPER)
+            pivot_columns(A[R0][r1|R2], p[r1]);
 
         // ( R0 | r1 || R2 )
         // (    T    ||  B )

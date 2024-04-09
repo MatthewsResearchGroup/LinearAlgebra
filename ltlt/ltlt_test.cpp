@@ -31,6 +31,8 @@ TEST_CASE("BLL_UBLL", "[RL], [B]")
     auto n = rand_size();
     auto blocksize = rand_size(10) + 10;
 
+    INFO("blocksize = " << blocksize);
+
     test(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
 }
 
@@ -38,6 +40,8 @@ TEST_CASE("BLL_UBRL", "[LL], [B]")
 {
     auto n = rand_size();
     auto blocksize = rand_size(10) + 10;
+
+    INFO("blocksize = " << blocksize);
 
     test(n, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize));
 }
@@ -59,6 +63,8 @@ TEST_CASE("BRL_UBLL", "[RL], [B]")
     auto n = rand_size();
     auto blocksize = rand_size(10) + 10;
 
+    INFO("blocksize = " << blocksize);
+
     test(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
 }
 
@@ -66,6 +72,8 @@ TEST_CASE("BRL_UBRL", "[RL], [B]")
 {
     auto n = rand_size();
     auto blocksize = rand_size(10) + 10;
+
+    INFO("blocksize = " << blocksize);
 
     test(n, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize));
 }
@@ -97,6 +105,8 @@ TEST_CASE("Piv_BRL_UBLL", "[RL], [B], [Piv]")
     auto n = rand_size();
     auto blocksize = rand_size(10) + 10;
 
+    INFO("blocksize = " << blocksize);
+
     test_piv(n, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize));
 }
 
@@ -107,6 +117,9 @@ TEST_CASE("Piv_Row", "[Piv]")
     auto [p, p2] = random_permutation(N);
     auto A = random_matrix(N, N);
     auto Ap = A;
+
+    std::cout << p << std::endl;
+    std::cout << p2 << std::endl;
 
     pivot_rows(Ap, p2);
 
@@ -123,7 +136,7 @@ TEST_CASE("Piv_Col", "[Piv]")
     auto A = random_matrix(N, N);
     auto Ap = A;
 
-    pivot_rows(Ap, p2);
+    pivot_columns(Ap, p2);
 
     for(auto i : range(N))
     for(auto j : range(N))
@@ -132,13 +145,20 @@ TEST_CASE("Piv_Col", "[Piv]")
 
 TEST_CASE("Piv_Both", "[Piv]")
 {
-    const int N = 10;
+    const int N = 100;
 
     auto [p, p2] = random_permutation(N);
 
     for (auto struc : {BLIS_GENERAL, BLIS_SYMMETRIC, BLIS_SKEW_SYMMETRIC, BLIS_HERMITIAN, BLIS_SKEW_HERMITIAN})
     for (auto uplo : {BLIS_LOWER, BLIS_UPPER})
     {
+        INFO("struc = " << (struc == BLIS_GENERAL        ? "GENERAL" :
+                            struc == BLIS_SYMMETRIC      ? "SYMMETRIC" :
+                            struc == BLIS_SKEW_SYMMETRIC ? "SKEW_SYMMETRIC" :
+                            struc == BLIS_HERMITIAN      ? "HERMITIAN" :
+                                                           "SKEW_HERMITIAN"));
+        INFO("uplo = " << (uplo == BLIS_LOWER ? "LOWER" : "UPPER"));
+
         auto A = random_matrix<dcomplex>(N, N);
 
         switch (struc)
@@ -152,7 +172,7 @@ TEST_CASE("Piv_Both", "[Piv]")
                 for(auto i : range(N))
                 {
                     for(auto j : range(i+1,N))
-                        A[i][j] = A[j][i];
+                        A[i][j] = -A[j][i];
                     A[i][i] = 0;
                 }
                 break;
@@ -179,17 +199,15 @@ TEST_CASE("Piv_Both", "[Piv]")
 
         pivot_both(Ap, p2, uplo, struc);
 
-        if (uplo == BLIS_LOWER)
-        {
-            for(auto i : range(N))
-            for(auto j : range(i))
-                REQUIRE_THAT(std::abs(A[p[i]][p[j]] - Ap[i][j]),  WithinAbs(0, 1e-12));
-        }
-        else
-        {
-            for(auto i : range(N))
-            for(auto j : range(i+1,N))
-                REQUIRE_THAT(std::abs(A[p[i]][p[j]] - Ap[i][j]),  WithinAbs(0, 1e-12));
-        }
+        auto Ap2 = A;
+        for(auto i : range(N))
+        for(auto j : range(N))
+            Ap2[i][j] = A[p[i]][p[j]];
+
+        for(auto i : range(N))
+        for(auto j : range(N))
+            Ap[i][j] -= A[p[i]][p[j]];
+
+        check_zero(Ap, uplo, struc);
     }
 }

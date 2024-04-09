@@ -5,6 +5,7 @@
 #include "../catch2/catch.hpp"
 
 #include <iostream>
+#include <iomanip>
 
 using namespace Catch;
 
@@ -28,8 +29,9 @@ inline auto random_permutation(int N)
     {
         if (idx[j] == p[i])
         {
-            p2[i] = j;
+            p2[i] = j-i;
             std::swap(idx[i], idx[j]);
+            break;
         }
     }
 
@@ -74,15 +76,41 @@ auto blocked(const BL& block, const std::function<void(const matrix_view<double>
     return std::bind(block, std::placeholders::_1, std::placeholders::_2, blocksize, unblock);
 }
 
-inline void check_zero(const matrix<double>& X)
+template <typename MArray>
+void check_zero(const MArray& X, uplo_t uplo = BLIS_LOWER, struc_t struc = BLIS_GENERAL)
 {
-    for (auto i : range(X.length(0)))
-    for (auto j : range(X.length(1)))
+    if (struc == BLIS_GENERAL)
     {
-        INFO("i = " << i);
-        INFO("j = " << j);
-        INFO("E[i][j] = " << X[i][j]);
-        REQUIRE_THAT(X[i][j], WithinAbs(0, 1e-12));
+        for(auto i : range(X.length(0)))
+        for(auto j : range(X.length(1)))
+        {
+            INFO("i = " << i);
+            INFO("j = " << j);
+            INFO("E[i][j] = " << X[i][j]);
+            CHECK_THAT(std::abs(X[i][j]),  WithinAbs(0, 1e-12));
+        }
+    }
+    else if (uplo == BLIS_LOWER)
+    {
+        for(auto i : range(X.length(0)))
+        for(auto j : range(i))
+        {
+            INFO("i = " << i);
+            INFO("j = " << j);
+            INFO("E[i][j] = " << X[i][j]);
+            CHECK_THAT(std::abs(X[i][j]),  WithinAbs(0, 1e-12));
+        }
+    }
+    else
+    {
+        for(auto i : range(X.length(0)))
+        for(auto j : range(i+1,X.length(0)))
+        {
+            INFO("i = " << i);
+            INFO("j = " << j);
+            INFO("E[i][j] = " << X[i][j]);
+            CHECK_THAT(std::abs(X[i][j]),  WithinAbs(0, 1e-12));
+        }
     }
 }
 
@@ -90,6 +118,9 @@ inline void test(int n, const std::function<void(const matrix_view<double>&)>& L
 {
     // make skew symmetric matrix
     n = 5;
+
+    INFO("n = " << n);
+
     auto A = random_matrix(n, n);
     matrix<double> B = A - A.T();
 
@@ -98,16 +129,25 @@ inline void test(int n, const std::function<void(const matrix_view<double>&)>& L
 
     LTLT(B);
 
+    auto B1 = B0;
+    ltlt_unblockLL(B1);
+    auto L1 = make_L(B1);
+    auto T1 = make_T(B1);
+
     // verify its correctness
     // make L and T from B
 
     auto Lm = make_L(B);
     auto Tm = make_T(B);
 
-    std::cout << "L:" << std::endl << Lm << std::endl;
-    std::cout << "T:" << std::endl << Tm << std::endl;
-    std::cout << "B:" << std::endl << B0 << std::endl;
-    std::cout << "LTLT:" << std::endl << MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), Lm.T()) << std::endl;
+    std::cout << std::fixed << std::setprecision(10);
+
+    INFO("L:\n" << Lm);
+    INFO("L (exact):\n" << L1);
+    INFO("T:\n" << Tm);
+    INFO("T (exact):\n" << T1);
+    INFO("B:\n" << B0);
+    INFO("LTLT:\n" << MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), Lm.T()));
 
     // calculate the error matrix
     B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), Lm.T());
@@ -119,12 +159,20 @@ inline void test(int n, const std::function<void(const matrix_view<double>&)>& L
 
 inline void test_piv(int n, const std::function<void(const matrix_view<double>&,const row_view<int>&)>& LTLT)
 {
+    n = 5;
+
     // make skew symmetric matrix
     auto A = random_matrix(n, n);
     matrix<double> B = A - A.T();
 
     // make a copy of B since we need to overwrite part of B
     matrix<double> B0 = B;
+
+    auto B1 = B0;
+    row<int> p1{n};
+    ltlt_pivot_unblockLL(B1, p1);
+    auto L1 = make_L(B1);
+    auto T1 = make_T(B1);
 
     row<int> p{n};
     LTLT(B, p);
@@ -136,6 +184,17 @@ inline void test_piv(int n, const std::function<void(const matrix_view<double>&,
     auto Lm = make_L(B);
     auto Tm = make_T(B);
     auto LmT = Lm.T();
+
+    std::cout << std::fixed << std::setprecision(10);
+
+    INFO("L:\n" << Lm);
+    INFO("L (exact):\n" << L1);
+    INFO("T:\n" << Tm);
+    INFO("T (exact):\n" << T1);
+    INFO("p:\n" << p);
+    INFO("p (exact):\n" << p1);
+    INFO("B:\n" << B0);
+    INFO("LTLT:\n" << MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), Lm.T()));
 
     // calculate the error matrix
     B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
