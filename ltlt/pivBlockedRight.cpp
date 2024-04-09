@@ -1,6 +1,6 @@
 #include "ltlt.hpp"
 
-void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
+void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&, const row_view<int>&,len_type,bool)>& LTLT_UNB)
 {
     auto [T, m, B] = partition_rows<DYNAMIC,1,DYNAMIC>(X);
 
@@ -12,8 +12,11 @@ void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::
         // (  T ||  m |       B      )
         // ( R0 || r1 | R2 | r3 | R4 )
         auto [R0, r1, R2, r3, R4] = repartition<DYNAMIC,1>(T, m, B, block_size);
+        auto R0p = tail(R0, -1);
 
-        LTLT_UNB(X[r1|R2|r3|R4][r1|R2|r3|R4], (r1|R2).size(), false);
+        LTLT_UNB(X[r1|R2|r3|R4][r1|R2|r3|R4], pi[r1|R2], (r1|R2).size(), false);
+
+        pivot_rows(L[r1|R2|r3|R4][R0p|r1], pi[r1|R2]);
 
         auto temp = temp_.rebased(1, R2.front());
         temp[r3][R2] = L[r3][R2];

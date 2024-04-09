@@ -1,14 +1,12 @@
-#include "ltlt.hpp"
+#include <cstdlib>
+#include <string>
+#include <map>
+
 #include "test.hpp"
 #include "docopt.h"
 #include "io.hpp"
 
-#include <cstdlib>
-#include <iostream>
-#include <string>
-#include <map>
-
-using namespace performance;
+std::mt19937_64 gen(time(nullptr));
 
 int main(int argc, const char** argv)
 {
@@ -19,7 +17,7 @@ int main(int argc, const char** argv)
     static const char USAGE[] =
     R"(ltlt.
       Usage:
-        ltlt <majoralgo> <matrixsize_min> <matrixsize_max> <step> <repitation> [--minoralgo=<minoralgo>] 
+        ltlt <majoralgo> <matrixsize_min> <matrixsize_max> <step> <repitation> [--minoralgo=<minoralgo>] [--bs=<bs>]
         ltlt (-h | --help)
         ltlt --version
     
@@ -46,6 +44,8 @@ int main(int argc, const char** argv)
                                                 UnBlock Right Loooking (ltlt_unblockRL),
                                                 Unblock Left Loooking (ltlt_unblockLL).
 
+        [--bs]            The block size for block algorithm
+
         -h --help         Show this screen.
          --version        Show version.
     )";
@@ -66,103 +66,55 @@ int main(int argc, const char** argv)
     auto step = args["<step>"].asLong();
     auto repitation = args["<repitation>"].asLong();
     auto minoralgo = args["--minoralgo"] ? args["--minoralgo"].asString() : std::string("");
+    auto blocksize = args["--bs"] ? args["--bs"].asLong(): 0;
 
     for (auto matrixsize = matrixsize_min; matrixsize <=  matrixsize_max; matrixsize += step)
     {   
         std::vector<double> error_vec {}, time_vec{};
-        int blocksize {};
         if (minoralgo.empty())
         { 
             if (majoralgo == "ltlt_unblockLL")
-                std::tie(error_vec, time_vec) = performance::test(matrixsize, ltlt_unblockLL, repitation);
+                std::tie(error_vec, time_vec) = test_perf(matrixsize, unblocked(ltlt_unblockLL), repitation);
 
             else if (majoralgo == "ltlt_unblockRL")
-                std::tie(error_vec, time_vec) = performance::test(matrixsize, ltlt_unblockRL, repitation);
+                std::tie(error_vec, time_vec) = test_perf(matrixsize, unblocked(ltlt_unblockRL), repitation);
 
             else if (majoralgo == "ltlt_unblockTSRL")
-                std::tie(error_vec, time_vec) = performance::test(matrixsize, ltlt_unblockTSRL, repitation);
+                std::tie(error_vec, time_vec) = test_perf(matrixsize, unblocked(ltlt_unblockTSRL), repitation);
 
             else
             {
                 std::cerr << "The Algorithms is not suppotted" << std::endl;
                 exit(1);
             }
-
-            for (auto i : range(repitation))
-                output_to_csv(matrixsize, majoralgo, minoralgo, blocksize, error_vec[i], time_vec[i]);
         }
         else
         {
-            for (auto j = 1; j <= 40; j++)
+            if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockRL")
+                std::tie(error_vec, time_vec) = test_perf(matrixsize, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize), repitation);
+
+            else if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockLL")
+                std::tie(error_vec, time_vec) = test_perf(matrixsize, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize), repitation);
+
+            else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockRL")
+                std::tie(error_vec, time_vec) = test_perf(matrixsize, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize), repitation);
+
+            else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockLL")
+                std::tie(error_vec, time_vec) = test_perf(matrixsize, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize), repitation);
+
+            else
             {
-                std::vector<double> error_vec {}, time_vec{};
-                int blocksize;
-                if (j <= 20)
-                    blocksize = j;
-                else
-                    blocksize = 20 + (j-19) * (matrixsize/50);
-
-                if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockRL")
-                    std::tie(error_vec, time_vec) = performance::test(matrixsize, blocksize, ltlt_blockRL, ltlt_unblockRL, repitation);
-
-                else if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockLL")
-                    std::tie(error_vec, time_vec) = performance::test(matrixsize, blocksize, ltlt_blockRL, ltlt_unblockLL, repitation);
-
-                else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockRL")
-                    std::tie(error_vec, time_vec) = performance::test(matrixsize, blocksize, ltlt_blockLL, ltlt_unblockRL, repitation);
-
-                else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockLL")
-                    std::tie(error_vec, time_vec) = performance::test(matrixsize, blocksize, ltlt_blockLL, ltlt_unblockLL, repitation);
-
-                else
-                {
-                    std::cerr << "The Algorithms is not suppotted" << std::endl;
-                    exit(1);
-                }
-    
-                for (auto i : range(repitation))
-                    output_to_csv(matrixsize, majoralgo, minoralgo, blocksize, error_vec[i], time_vec[i]);
+                std::cerr << "The Algorithms is not suppotted" << std::endl;
+                exit(1);
             }
-
+    
         }
+
+        for (auto i : range(repitation))
+            output_to_csv(matrixsize, majoralgo, minoralgo, blocksize, error_vec[i], time_vec[i]);
     }
-    // for (auto i : range(repitation))
-        //std::cout << error_vec[i] << ", " <<  time_vec[i] << std::endl;
-    //    output_to_csv(n, majoralgo, minoralgo, blocksize, error_vec[i], time_vec[i]);
-    // std::cout << n << blocksize << majoralgo << minoralgo << error <<  time << std::endl;
-    // std::cout << n << blocksize << majoralgo << minoralgo <<  time << std::endl;
-    // output_to_csv(n, majoralgo, minoralgo, blocksize, error, time);
 
-    
-    
-    // auto n = (int) args[1].first.asLong();
-    // auto blocksize = (int)  args[1].second.asLong();
-
-
-    //
-    // test(n, ltlt_unblockLL);
-    // test(n, ltlt_unblockRL);
-    // test(n, ltlt_unblockTSRL);
-    // test(n, blocksize, ltlt_blockRL, ltlt_unblockLL);
-    // test(n, blocksize, ltlt_blockRL, ltlt_unblockRL);
-    // test(n, blocksize, ltlt_blockLL, ltlt_unblockLL);
-    // test(n, blocksize, ltlt_blockLL, ltlt_unblockRL);
-    //
-    //
-    //
-    //
-    //
-    //
-    // test(n, ltlt_blockRL, false);
-    // test(n, ltlt_blockRL, true);
-    // test(n, ltlt_blockLL, false);
-    // test(n, ltlt_blockLL, true);
 
     return 0;
-
-    //
-    // Poviting 
-    //
-    //
 
 }

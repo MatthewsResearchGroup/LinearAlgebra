@@ -309,16 +309,49 @@ class range_t
             return shifted;
         }
 
+        /**
+         * Shift a range to the right.
+         *
+         * @param shift     The amount to shift, in units of the range step size.
+         *
+         * @param other     The range to shift.
+         *
+         * @return          The shifted range. After shifting, `other[i]` becomes
+         *                  `other[i] + shift*other.step()`.
+         *
+         * @ingroup range
+         */
         friend range_t operator+(T shift, const range_t& other)
         {
             return other + shift;
         }
 
+        /**
+         * Shift a range to the left.
+         *
+         * @param shift     The amount to shift, in units of the range step size.
+         *
+         * @param other     The range to shift.
+         *
+         * @return          The shifted range. After shifting, `other[i]` becomes
+         *                  `other[i] - shift*other.step()`.
+         *
+         * @ingroup range
+         */
         friend range_t operator-(T shift, const range_t& other)
         {
             return range_t(shift - other.from_, shift - other.to_, -other.delta_);
         }
 
+        /**
+         * Concatenate two adjacent ranges.
+         *
+         * @param other     The range to concatenate with `this`. The ranges must be
+         *                  adjacent, meaning that `this.to() == other.from()`, and
+         *                  both ranges must have the same step.
+         *
+         * @return          The combined range.
+         */
         range_t operator|(const range_t& other) const
         {
             MARRAY_ASSERT(step() == other.step());
@@ -326,28 +359,68 @@ class range_t
             return range_t{from(), other.to(), step()};
         }
 
+        /**
+         * Append an element to a range.
+         *
+         * @param lhs   The range to which to append.
+         *
+         * @param rhs   A range element. Must be equal to `lhs.to()`, that is, the element
+         *              immediately following the last element of `lhs` during iteration.
+         *
+         * @return      The combined range.
+         *
+         * @ingroup range
+         */
         friend range_t operator|(const range_t& lhs, T rhs)
         {
             MARRAY_ASSERT(lhs.to() == rhs);
             return range_t{lhs.from(), lhs.to()+lhs.step(), lhs.step()};
         }
 
+        /**
+         * Prepend an element to a range.
+         *
+         * @param lhs   A range element. Must be equal to `rhs.from()-rhs.step()`, that is,
+         *              the element immediately preceding the first element of `rhs` during iteration.
+         *
+         * @param rhs   The range to which to prepend.
+         *
+         * @return      The combined range.
+         *
+         * @ingroup range
+         */
         friend range_t operator|(T lhs, const range_t& rhs)
         {
             MARRAY_ASSERT(lhs+rhs.step() == rhs.from());
             return range_t{lhs, rhs.to(), rhs.step()};
         }
 
+        /**
+         * Create a range with reversed iteration order.
+         *
+         * @return  A range which iterates over the same set of elements as `this`,
+         *          but in reverse order.
+         */
         range_t reverse()
         {
             return range_t(back(), front()-step(), -step());
         }
 
+        /**
+         * Test for emptiness.
+         *
+         * @return  `size() == 0`.
+         */
         bool empty() const
         {
             return size() == 0;
         }
 
+        /**
+         * Truth test for non-zero size.
+         *
+         * @return  `size() != 0`, or equivalently `!empty()`.
+         */
         explicit operator bool() const
         {
             return size();

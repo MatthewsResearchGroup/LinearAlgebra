@@ -4,9 +4,8 @@
 #include "detail/fortran.h"
 
 #ifdef MARRAY_USE_BLIS
-#define BLIS_DISABLE_BLAS
-#define _DEFINED_SCOMPLEX
-#define _DEFINED_DCOMPLEX
+#define BLIS_DISABLE_BLAS_DEFS
+#define BLIS_ENABLE_STD_COMPLEX
 #include <blis.h>
 #endif
 
@@ -1953,6 +1952,14 @@ MARRAY_FOR_EACH_TYPE
  * Level 1 BLAS, MArray wrappers
  *
  *****************************************************************************/
+
+template <typename T>
+std::enable_if_t<std::is_arithmetic_v<T> || detail::is_complex_v<T>>
+swapv(T& x, T& y)
+{
+    std::swap(x, y);
+}
+
 template <typename T, typename U>
 std::enable_if_t<detail::is_marray_like_v<T,1> &&
                  detail::is_marray_like_v<U,1>>
@@ -1969,6 +1976,14 @@ swapv(T&& x_, U&& y_)
 #endif
 }
 
+inline float conj(float x) {return x;}
+inline double conj(double x) {return x;}
+inline long double conj(long double x) {return x;}
+
+inline auto conj(const std::complex<float>& x) {return std::conj(x);}
+inline auto conj(const std::complex<double>& x) {return std::conj(x);}
+inline auto conj(const std::complex<long double>& x) {return std::conj(x);}
+
 template <typename T>
 std::enable_if_t<detail::is_marray_like_v<T,1>>
 conj(T&& x_)
@@ -1976,7 +1991,7 @@ conj(T&& x_)
     auto x = x_.view();
 
 #ifdef MARRAY_USE_BLIS
-    bli_scalv(BLIS_CONJUGATE, x.length(), detail::value_type<T>{1}, x.data(), x.stride());
+    bli_scal2v(BLIS_CONJUGATE, x.length(), detail::value_type<T>{1}, x.data(), x.stride(), x.data(), x.stride());
 #else
     auto n = x.length();
     auto ptr = x.data();
@@ -3684,50 +3699,10 @@ gemm(T alpha, U&& A, V&& B, W beta, X&& C)
     }
 
 #ifdef MARRAY_USE_BLIS
-    // printf("Alpha = %f,Beta = %f, m = %d, n = %d, k = %d, stride A = %d, %d, stride B = %d, %d, stride C = %d, %d\n", alpha, beta, m, n, k, A_.stride(0), A_.stride(1), B_.stride(0), B_.stride(1), C_.stride(0), C_.stride(1));
-    // printf("Printing matrix A\n");
-    // for (auto i : range(m))
-    // {    
-    //     for (auto j : range(k))
-    //     {
-    //         printf("%f, ", A_.data()[i*A_.stride(0)+j*A_.stride(1)]);
-    //     }
-    //     printf("\n");
-    // }
-    // printf("Printing matrix B\n");
-    // for (auto i : range(k))
-    // {    
-    //     for (auto j : range(n))
-    //     {
-    //         printf("%f, ", B_.data()[i*B_.stride(0)+j*B_.stride(1)]);
-    //     }
-    //     printf("\n");
-    // }
-
-    // printf("Printing matrix C\n");
-    // for (auto i : range(m))
-    // {    
-    //     for (auto j : range(n))
-    //     {
-    //         printf("%f, ", C_.data()[i*C_.stride(0)+j*C_.stride(1)]);
-    //     }
-    //     printf("\n");
-    // }
-
     bli_gemm(BLIS_NO_TRANSPOSE, BLIS_NO_TRANSPOSE, m, n, k,
              alpha, A_.data(), A_.stride(0), A_.stride(1),
                     B_.data(), B_.stride(0), B_.stride(1),
               beta, C_.data(), C_.stride(0), C_.stride(1));
-    // printf("Printing matrix C\n");
-    // for (auto i : range(m))
-    // {    
-    //     for (auto j : range(n))
-    //     {
-    //         printf("%f, ", C_.data()[i*C_.stride(0)+j*C_.stride(1)]);
-    //     }
-    //     printf("\n");
-    // }
-
 #else
     if (C.stride(0) > 1)
     {

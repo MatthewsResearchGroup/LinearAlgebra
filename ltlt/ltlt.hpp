@@ -96,9 +96,6 @@ inline void skew_tridiag_gemm(double alpha, const matrix_view<const double>& A,
                                             const matrix_view<const double>& B,
                               double beta,  const matrix_view<      double>& C)
 {
-    // B <- T B
-
-    // copy of B
     matrix<double> tempB = B;
     sktrmm(1, T, tempB);
     gemm(alpha, A, tempB, beta, C);
@@ -127,21 +124,33 @@ inline void skew_tridiag_rankk(char uplo,
                                              const row_view   <const double>& T,
                                double beta,  const matrix_view<      double>& C)
 {
-    // B <- T B
-    // copy of B
     matrix<double> tempB = A.T();
     sktrmm(1, T, tempB);
-// printf("%d, %d, %d\n", tempB.length(0), tempB.length(1), A.length(1));
     gemmt(uplo, alpha, A, tempB, beta, C);
-    // gemm(alpha, A, tempB, beta, C);
 }
 
 } //namespace blas
 } //namespace MArray
 
-template <typename T> inline range_t<T> not_first(const range_t<T>& x)
+template <typename T, typename U> range_t<T> head(const range_t<T>& x, U n)
 {
-    return range(x.from()+1, x.to());
+    if (n < 0)
+        return x.size() < -n ? range(x.from(), x.from()) : range(x.from(), x.to()+n);
+    else
+        return x.size() < n ? x : range(x.from(), x.from()+n);
+}
+
+template <typename T, typename U> range_t<T> tail(const range_t<T>& x, U n)
+{
+    if (n < 0)
+        return x.size() < -n ? range(x.to(), x.to()) : range(x.from()-n, x.to());
+    else
+        return x.size() < n ? x : range(x.to()-n, x.to());
+}
+
+template <typename T, typename U> std::pair<range_t<T>,range_t<T>> split(const range_t<T>& x, U n)
+{
+    return std::make_pair(head(x, n), tail(x, -n));
 }
 
 // template <typename T> range_t<T> R3_trunc(const range_t<T>& R0, const range_t<T>& R3, len_type k)
@@ -167,9 +176,7 @@ inline auto R3_trunc(const range_t<T>& R0, const range_t<T>& R3, len_type k)
         return std::make_tuple(range(R3.from(), -1), range(R3.from(), -1));
     }
     else
-    {
-        return std::make_tuple(range(R3.from(), R0.from() + k), range(R0.from() + k, R3.to()));
-    }
+        return range(R3.from(), R0.from() + k);
 }
 
 inline matrix<double> make_L(const matrix_view<const double>& X)
@@ -238,8 +245,8 @@ inline double norm(const Tensor& x)
     return sqrt(norm2(x));
 }
 
-inline matrix<double> gemm_chao(const double alpha, 
-               const matrix_view<double>& A, 
+inline matrix<double> gemm_chao(const double alpha,
+               const matrix_view<double>& A,
                const matrix_view<double>& B)
 {
     auto m = A.length(0);
@@ -278,5 +285,12 @@ void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::
 
 void ltlt_blockLL(const matrix_view<double>& X, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB);
 
+void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<int>& pi, len_type k = -1, bool first_column = false);
+
+// void ltlt_pivot_blockLL(const matrix_view<double>& X, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB);
+
+void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&, const row_view<int>&,len_type,bool)>& LTLT_UNB);
+
+void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type k = -1, bool first_column = false);
 
 #endif
