@@ -5,7 +5,8 @@ void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<int>& pi,
     auto n = X.length(0);
     if (k == -1) k = n-1;
 
-    auto [T, m, B] = partition_rows<DYNAMIC, 1, DYNAMIC>(X);
+    auto [f, T, m, B] = partition_rows<1, DYNAMIC,  1, DYNAMIC>(X);
+    //auto [T, m, B] = partition_rows<DYNAMIC, 1, DYNAMIC>(X);
     auto [B0, B1] = split(B, k);
     auto& R4 = B1;
 
@@ -13,10 +14,23 @@ void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<int>& pi,
 
     if (first_column)
     {
-        blas::skr2('L', 1.0, L[B0][m], X[B0][m], 1.0, X[B0][B0]);
-        blas::ger(      1.0, L[B1][m], X[B0][m], 1.0, X[B1][B0]);
-        blas::ger(     -1.0, X[B1][m], L[B0][m], 1.0, X[B1][B0]);
+        T = f|T;          
     }
+    else
+    {
+        auto pi2 = blas::iamax(X[m|B0|B1][f]);
+        pi[m] = pi2;
+
+        pivot_rows(X[m|B0|B1][m], pi2);
+
+        L[B0|B1][m] = X[B0|B1][f] / X[m][f];
+
+        pivot_both(X[m|B0|B1][m|B0|B1], pi2, BLIS_LOWER, BLIS_SKEW_SYMMETRIC);
+    }
+
+    blas::skr2('L', 1.0, L[B0][m], X[B0][m], 1.0, X[B0][B0]);
+    blas::ger(      1.0, L[B1][m], X[B0][m], 1.0, X[B1][B0]);
+    blas::ger(     -1.0, X[B1][m], L[B0][m], 1.0, X[B1][B0]);
 
     while (B0)
     {

@@ -397,7 +397,7 @@ template <typename MArray>
 void pivot_rows(MArray&& A_, len_type pi)
 {
     auto A = A_.view();
-    MARRAY_ASSERT(A.dimension() == 2);
+    MARRAY_ASSERT(A.dimension() == 2 || A.dimension() == 1);
     MARRAY_ASSERT(pi >= 0 && pi < A.length(0));
 
     if (pi == 0) return;
