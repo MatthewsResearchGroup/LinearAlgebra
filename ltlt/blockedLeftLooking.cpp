@@ -21,12 +21,19 @@ void ltlt_blockLL(const matrix_view<double>& X, len_type block_size, const std::
         temp[R2][R0] = L[R2][R0];
         temp[R2][r1] = L[R2][r1 ];
 
+        std::cout<< "X before skew_tridiag_gemm" << std::endl;
+        matrixprint(X);
+
         blas::skew_tridiag_gemm(-1.0,         L   [R2|r3|R4][R0|r1],
                                       subdiag(X   [R0|r1   ][R0|r1]),
                                               temp[r1|R2   ][R0|r1].T(),
                                  1.0,         X   [R2|r3|R4][r1|R2]);
 
-        LTLT_UNB(X[r1|R2|r3|R4][r1|R2|r3|R4], (r1|R2).size(), true);
+        std::cout<< "X before LTLT_UNB" << std::endl;
+        matrixprint(X);
+        LTLT_UNB(X[r1|R2|r3|R4][r1|R2|r3|R4], (r1|R2).size(), false);
+        std::cout<< "X after LTLT_UNB" << std::endl;
+        matrixprint(X);
 
         // ( R0 | r1 | R2 || r3 | R4 )
         // (      T       ||  m |  B )

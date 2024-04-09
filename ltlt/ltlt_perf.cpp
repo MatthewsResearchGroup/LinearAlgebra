@@ -110,8 +110,8 @@ int main(int argc, const char** argv)
     
         }
 
-        for (auto i : range(repitation))
-            output_to_csv(matrixsize, majoralgo, minoralgo, blocksize, error_vec[i], time_vec[i]);
+        // for (auto i : range(repitation))
+        //     output_to_csv(matrixsize, majoralgo, minoralgo, blocksize, error_vec[i], time_vec[i]);
     }
 
 

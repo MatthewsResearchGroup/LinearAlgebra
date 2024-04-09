@@ -8,6 +8,7 @@
 #include <functional>
 #include <random>
 #include <vector>
+#include <iostream>
 
 //must come first
 #define MARRAY_USE_BLIS
@@ -274,6 +275,21 @@ inline matrix<double> gemm_chao(const double alpha,
     }
     return C;
 }
+
+inline void matrixprint(const matrix_view<double>& B)
+{
+    auto m = B.length(0);
+    auto n = B.length(1);
+
+    for (auto i : range(m))
+    {
+        for (auto j : range(m))
+        {
+            printf("%f,", B[i][j]);
+        }
+        printf("\n");
+    }
+} 
 
 void ltlt_unblockRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false);
 

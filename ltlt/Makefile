@@ -27,20 +27,25 @@ CXXFLAGS += -g -O0 -DDEBUG -fsanitize=address -DMARRAY_ENABLE_ASSERTS
 LDFLAGS += -g -fsanitize=address
 endif
 
+debug_exe=../bin/ltlt_debug
 test_exe=../bin/ltlt_test
 perf_exe=../bin/ltlt_perf
 objs=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
 deps:=$(join $(addsuffix .deps/,$(dir $(objs))),$(notdir $(objs:.o=.d)))
-objs:=$(filter-out ltlt_test.o ltlt_perf.o,$(objs))
+objs:=$(filter-out ltlt_debug.o ltlt_test.o ltlt_perf.o,$(objs))
 
 .PHONY: all
-all: $(test_exe) $(perf_exe)
+all: $(test_exe) $(perf_exe) $(debug_exe)
 
 -include $(deps)
 
 .PHONY: clean
 clean:
 	rm -f $(objs) $(exe) $(test_exe) $(perf_exe) ltlt_test.o ltlt_perf.o
+
+$(debug_exe): $(objs) ltlt_debug.o
+	@mkdir -p $(dir $(debug_exe))
+	$(CXX) $(LDFLAGS) -o $(debug_exe) $(objs) ltlt_debug.o $(LIBS)
 
 $(test_exe): $(objs) ltlt_test.o
 	@mkdir -p $(dir $(test_exe))

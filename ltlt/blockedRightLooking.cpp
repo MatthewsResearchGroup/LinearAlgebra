@@ -5,16 +5,20 @@ void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::
     auto [T, m, B] = partition_rows<DYNAMIC,1,DYNAMIC>(X);
 
     matrix_view<double> L = X.rebased(1, 1);
-    matrix<double> temp_{X.length(0), block_size};
+    // matrix<double> temp_{X.length(0), block_size};
+    matrix<double> temp_{X.length(0), X.length(1)};
 
     while (B)
     {
         // (  T ||  m |       B      )
         // ( R0 || r1 | R2 | r3 | R4 )
         auto [R0, r1, R2, r3, R4] = repartition<DYNAMIC,1>(T, m, B, block_size);
-
+        std::cout<< "X before LTLT_UNB" << std::endl;
+        matrixprint(X);
         LTLT_UNB(X[r1|R2|r3|R4][r1|R2|r3|R4], (r1|R2).size(), false);
 
+        std::cout<< "X after LTLT_UNB" << std::endl;
+        matrixprint(X);
         auto temp = temp_.rebased(1, R2.front());
         temp[r3][R2] = L[r3][R2];
         temp[r3][r3] = 1; // L[r3][r3]
@@ -30,6 +34,8 @@ void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::
 
         // ( R0 | r1 | R2 || r3 | R4 )
         // (      T       ||  m |  B )
+        std::cout<< "X after skr2" << std::endl;
+        matrixprint(X);
         tie(T, m, B) = continue_with<2>(R0, r1, R2, r3, R4);
     }
 }

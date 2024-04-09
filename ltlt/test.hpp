@@ -185,5 +185,54 @@ inline std::tuple<std::vector<double>, std::vector<double>> test_perf(int n, con
     return std::make_tuple(error_vec, time_vec);
 }
 
+// The following code is designed for debug
+//
+//
+
+
+
+
+inline void test_bug(int n, const std::function<void(const matrix_view<double>&)>& LTLT)
+{
+    auto A = random_matrix(n, n);
+    matrix<double> B = A - A.T();
+
+    // make a copy of B since we need to overwrite part of B
+    matrix<double> B0 = B;
+
+    std::cout<< "Print Matrix B before LTLT" << std::endl;
+    matrixprint(B);
+
+    auto starting_point =  bli_clock();
+    LTLT(B);
+    auto ending_point = bli_clock();
+
+    auto time = ending_point - starting_point;
+
+    auto Lm = make_L(B);
+    auto Tm = make_T(B);
+    auto LmT = Lm.T();
+
+    std::cout<< "Print Matrix Lm " << std::endl;
+    matrixprint(Lm);
+    std::cout<< "Print Matrix Tm " << std::endl;
+    matrixprint(Tm);
+    std::cout<< "Print Matrix LmT " << std::endl;
+    matrixprint(LmT);
+    
+    std::cout<< "Print Matrix LTLT " << std::endl;
+    auto B_LTLT = MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    matrixprint(B_LTLT);
+
+    // calculate the error matrix
+    B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    double err = norm(B0) / (n * n);
+
+    
+    std::cout<< "Print Error Matrix " << std::endl;
+    matrixprint(B0);
+    
+}
+
 
 #endif
