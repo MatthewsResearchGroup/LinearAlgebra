@@ -8,10 +8,14 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
 
     auto [T, m, B] = partition_rows<DYNAMIC, 1, DYNAMIC>(X);
 
+    printf("T, m, B = %d-%d, %d, %d-%d\n", T.front(), T.end(), m, B.front(), B.end());
     if (k == -1) k = n;
+    // k = (k == -1)? n : k-1;
     auto [B0, B1] = split(B, k-B.front());
+    printf("k, B.fornt() = %d, %d\n", k, B.front());
     auto& R4 = B1;
 
+    printf("T, m, B, B0, B1 = %d-%d, %d, %d-%d, %d-%d, %d-%d\n", T.front(), T.end(), m, B.front(), B.end(), B0.front(), B0.end(), B1.front(), B1.end());
     if (first_column)
     {
         blas::skr2('L', 1.0, L[B0][m], X[B0][m], 1.0, X[B0][B0]);
@@ -19,18 +23,26 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
         blas::ger(     -1.0, X[B1][m], L[B0][m], 1.0, X[B1][B0]);
     }
 
+    //printf("Matrix x before the unblockRL loop\n");
+    //matrixprint(X);
     while (B0)
     {
         // ( T  || m  |    B0   | B1 )
         // ( R0 || r1 | r2 | R3 | R4 )
         auto [R0, r1, r2, R3] = repartition(T, m, B0);
 
+        printf("R0, r1, r2, R3, R4, R3|R4 = %d-%d, %d, %d, %d-%d, %d-%d, %d-%d\n", R0.front(), R0.end(), r1, r2, R3.front(), R3.end(), R4.front(), R4.end(), (R3|R4).front(), (R3|R4).end());
         L[R3|R4][r2] = X[R3|R4][r1] / X[r2][r1];
+
+        //printf("Matrix X after the X[R3|R4]/X[r2] \n");
+        //matrixprint(X);
 
         blas::skr2('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
         blas::ger(      1.0, L[R4][r2], X[R3][r2], 1.0, X[R4][R3]);
         blas::ger(     -1.0, X[R4][r2], L[R3][r2], 1.0, X[R4][R3]);
 
+        //printf("Matrix X after skr2 \n");
+        //matrixprint(X);
         // ( R0 | r1 || r2 | R3 | R4 )
         // (    T    || m  | B0 | B1 )
         tie(T, m, B0) = continue_with(R0, r1, r2, R3);

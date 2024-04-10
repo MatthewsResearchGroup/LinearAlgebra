@@ -1,5 +1,4 @@
 #include <cstdlib>
-#include <string>
 #include <map>
 
 #include "test.hpp"
@@ -70,17 +69,17 @@ int main(int argc, const char** argv)
 
     for (auto matrixsize = matrixsize_min; matrixsize <=  matrixsize_max; matrixsize += step)
     {   
-        std::vector<double> error_vec {}, time_vec{};
+        double time;
         if (minoralgo.empty())
         { 
             if (majoralgo == "ltlt_unblockLL")
-                std::tie(error_vec, time_vec) = test_perf(matrixsize, unblocked(ltlt_unblockLL), repitation);
+                time = performance(matrixsize, unblocked(ltlt_unblockLL), repitation);
 
             else if (majoralgo == "ltlt_unblockRL")
-                std::tie(error_vec, time_vec) = test_perf(matrixsize, unblocked(ltlt_unblockRL), repitation);
+                time = performance(matrixsize, unblocked(ltlt_unblockRL), repitation);
 
             else if (majoralgo == "ltlt_unblockTSRL")
-                std::tie(error_vec, time_vec) = test_perf(matrixsize, unblocked(ltlt_unblockTSRL), repitation);
+                time = performance(matrixsize, unblocked(ltlt_unblockTSRL), repitation);
 
             else
             {
@@ -91,16 +90,16 @@ int main(int argc, const char** argv)
         else
         {
             if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockRL")
-                std::tie(error_vec, time_vec) = test_perf(matrixsize, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize), repitation);
+                time = performance(matrixsize, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize), repitation);
 
             else if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockLL")
-                std::tie(error_vec, time_vec) = test_perf(matrixsize, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize), repitation);
+                time = performance(matrixsize, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize), repitation);
 
             else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockRL")
-                std::tie(error_vec, time_vec) = test_perf(matrixsize, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize), repitation);
+                time = performance(matrixsize, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize), repitation);
 
             else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockLL")
-                std::tie(error_vec, time_vec) = test_perf(matrixsize, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize), repitation);
+                time = performance(matrixsize, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize), repitation);
 
             else
             {
@@ -110,8 +109,8 @@ int main(int argc, const char** argv)
     
         }
 
-        // for (auto i : range(repitation))
-        //     output_to_csv(matrixsize, majoralgo, minoralgo, blocksize, error_vec[i], time_vec[i]);
+         // for (auto i : range(repitation))
+         //     output_to_csv(matrixsize, majoralgo, minoralgo, blocksize, error_vec[i], time_vec[i]);
     }
 
 

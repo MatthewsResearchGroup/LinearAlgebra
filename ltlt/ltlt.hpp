@@ -9,6 +9,7 @@
 #include <random>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 //must come first
 #define MARRAY_USE_BLIS

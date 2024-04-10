@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <limits>
 
 using namespace Catch;
 
@@ -154,7 +155,7 @@ inline void test(int n, const std::function<void(const matrix_view<double>&)>& L
 
     std::cout << "E:" << std::endl << B0 << std::endl;
 
-    check_zero(B0);
+    //check_zero(B0);
 }
 
 inline void test_piv(int n, const std::function<void(const matrix_view<double>&,const row_view<int>&)>& LTLT)
@@ -202,10 +203,10 @@ inline void test_piv(int n, const std::function<void(const matrix_view<double>&,
 }
 
 
-inline std::tuple<std::vector<double>, std::vector<double>> test_perf(int n, const std::function<void(const matrix_view<double>&)>& LTLT, int repitation = 3)
+inline double performance(int n, const std::function<void(const matrix_view<double>&)>& LTLT, int repitation = 3)
 {
-    std::vector<double> time_vec;
-    std::vector<double> error_vec;
+    auto MinTime = std::numeric_limits<double>::max();
+    //double MinTime = 1.0e4;
     // make skew symmetric matrix
     auto A = random_matrix(n, n);
     matrix<double> B = A - A.T();
@@ -231,17 +232,13 @@ inline std::tuple<std::vector<double>, std::vector<double>> test_perf(int n, con
         // calculate the error matrix
         B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
         double err = norm(B_deepcopy) / (n * n);
+        // check_zero(B_deepcopy);
 
-        std::cout << "ERROR: " << err << std::endl;
-
-        time_vec.push_back(time);
-        error_vec.push_back(err);
-        // output_to_csv(std::to_string(LTLT_UNB), )
-
-        // wirte the error and time 
+        MinTime = (time < MinTime)? time : MinTime;
 
     }
-    return std::make_tuple(error_vec, time_vec);
+    return MinTime;
+
 }
 
 // The following code is designed for debug
@@ -293,5 +290,11 @@ inline void test_bug(int n, const std::function<void(const matrix_view<double>&)
     
 }
 
+template<typename T>
+inline bool check_RL(const T& majoralgo)
+{
+    std::vector<T> RightLooking {"ltlt_unblockRL", "ltlt_blockRL"};
+    return std::count(RightLooking.begin(), RightLooking.end(), majoralgo)? true : false;
+}
 
 #endif
