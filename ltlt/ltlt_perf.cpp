@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <map>
+#include <math.h>
 
 #include "test.hpp"
 #include "docopt.h"
@@ -83,7 +84,7 @@ int main(int argc, const char** argv)
 
             else
             {
-                std::cerr << "The Algorithms is not suppotted" << std::endl;
+                std::cerr << "The Algorithm is not suppotted" << std::endl;
                 exit(1);
             }
         }
@@ -103,12 +104,13 @@ int main(int argc, const char** argv)
 
             else
             {
-                std::cerr << "The Algorithms is not suppotted" << std::endl;
+                std::cerr << "The Algorithm is not suppotted" << std::endl;
                 exit(1);
             }
     
         }
-
+        auto GFLOPS = check_RL(majoralgo)? 2*pow(matrixsize,3)/(time*3e9) : pow(matrixsize,3)/(time*3e9);
+        printf("matrixsize, GFLOPS = %ld, %f\n", matrixsize, GFLOPS);
          // for (auto i : range(repitation))
          //     output_to_csv(matrixsize, majoralgo, minoralgo, blocksize, error_vec[i], time_vec[i]);
     }

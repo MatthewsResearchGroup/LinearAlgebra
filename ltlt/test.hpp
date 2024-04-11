@@ -232,7 +232,7 @@ inline double performance(int n, const std::function<void(const matrix_view<doub
         // calculate the error matrix
         B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
         double err = norm(B_deepcopy) / (n * n);
-        // check_zero(B_deepcopy);
+        //check_zero(B0);
 
         MinTime = (time < MinTime)? time : MinTime;
 
@@ -269,16 +269,16 @@ inline void test_bug(int n, const std::function<void(const matrix_view<double>&)
     auto Tm = make_T(B);
     auto LmT = Lm.T();
 
-    std::cout<< "Print Matrix Lm " << std::endl;
-    matrixprint(Lm);
-    std::cout<< "Print Matrix Tm " << std::endl;
-    matrixprint(Tm);
-    std::cout<< "Print Matrix LmT " << std::endl;
-    matrixprint(LmT);
+    // std::cout<< "Print Matrix Lm " << std::endl;
+    // matrixprint(Lm);
+    // std::cout<< "Print Matrix Tm " << std::endl;
+    // matrixprint(Tm);
+    // std::cout<< "Print Matrix LmT " << std::endl;
+    // matrixprint(LmT);
     
-    std::cout<< "Print Matrix LTLT " << std::endl;
+    // std::cout<< "Print Matrix LTLT " << std::endl;
     auto B_LTLT = MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-    matrixprint(B_LTLT);
+    // matrixprint(B_LTLT);
 
     // calculate the error matrix
     B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);

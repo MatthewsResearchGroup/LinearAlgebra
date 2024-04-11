@@ -152,7 +152,7 @@ template <typename T, typename U> range_t<T> tail(const range_t<T>& x, U n)
 
 template <typename T, typename U> std::pair<range_t<T>,range_t<T>> split(const range_t<T>& x, U n)
 {
-    return std::make_pair(head(x, n), tail(x, -n));
+    return std::make_pair(head(x, n), tail(x, n == 0 ? x.size() : -n));
 }
 
 // template <typename T> range_t<T> R3_trunc(const range_t<T>& R0, const range_t<T>& R3, len_type k)
