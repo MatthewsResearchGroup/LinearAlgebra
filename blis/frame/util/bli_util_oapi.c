@@ -67,8 +67,8 @@ void PASTEMAC(opname,EX_SUF) \
 \
 	/* Query a type-specific function pointer, except one that uses
 	   void* for function arguments instead of typed pointers. */ \
-	PASTECH2(opname,BLIS_TAPI_EX_SUF,_vft) f = \
-	PASTEMAC2(opname,BLIS_TAPI_EX_SUF,_qfp)( dt ); \
+	PASTECH(opname,BLIS_TAPI_EX_SUF,_vft) f = \
+	PASTEMAC(opname,BLIS_TAPI_EX_SUF,_qfp)( dt ); \
 \
 	f \
 	( \
@@ -109,8 +109,8 @@ void PASTEMAC(opname,EX_SUF) \
 \
 	/* Query a type-specific function pointer, except one that uses
 	   void* for function arguments instead of typed pointers. */ \
-	PASTECH2(opname,BLIS_TAPI_EX_SUF,_vft) f = \
-	PASTEMAC2(opname,BLIS_TAPI_EX_SUF,_qfp)( dt ); \
+	PASTECH(opname,BLIS_TAPI_EX_SUF,_vft) f = \
+	PASTEMAC(opname,BLIS_TAPI_EX_SUF,_qfp)( dt ); \
 \
 	f \
 	( \
@@ -155,8 +155,8 @@ void PASTEMAC(opname,EX_SUF) \
 \
 	/* Query a type-specific function pointer, except one that uses
 	   void* for function arguments instead of typed pointers. */ \
-	PASTECH2(opname,BLIS_TAPI_EX_SUF,_vft) f = \
-	PASTEMAC2(opname,BLIS_TAPI_EX_SUF,_qfp)( dt ); \
+	PASTECH(opname,BLIS_TAPI_EX_SUF,_vft) f = \
+	PASTEMAC(opname,BLIS_TAPI_EX_SUF,_qfp)( dt ); \
 \
 	f \
 	( \
@@ -204,8 +204,8 @@ void PASTEMAC(opname,EX_SUF) \
 \
 	/* Query a type-specific function pointer, except one that uses
 	   void* for function arguments instead of typed pointers. */ \
-	PASTECH2(opname,BLIS_TAPI_EX_SUF,_vft) f = \
-	PASTEMAC2(opname,BLIS_TAPI_EX_SUF,_qfp)( dt ); \
+	PASTECH(opname,BLIS_TAPI_EX_SUF,_vft) f = \
+	PASTEMAC(opname,BLIS_TAPI_EX_SUF,_qfp)( dt ); \
 \
 	f \
 	( \
@@ -250,8 +250,8 @@ void PASTEMAC(opname,EX_SUF) \
 \
 	/* Query a type-specific function pointer, except one that uses
 	   void* for function arguments instead of typed pointers. */ \
-	PASTECH2(opname,BLIS_TAPI_EX_SUF,_vft) f = \
-	PASTEMAC2(opname,BLIS_TAPI_EX_SUF,_qfp)( dt ); \
+	PASTECH(opname,BLIS_TAPI_EX_SUF,_vft) f = \
+	PASTEMAC(opname,BLIS_TAPI_EX_SUF,_qfp)( dt ); \
 \
 	f \
 	( \
@@ -294,8 +294,8 @@ void PASTEMAC(opname,EX_SUF) \
 \
 	/* Query a type-specific function pointer, except one that uses
 	   void* for function arguments instead of typed pointers. */ \
-	PASTECH2(opname,BLIS_TAPI_EX_SUF,_vft) f = \
-	PASTEMAC2(opname,BLIS_TAPI_EX_SUF,_qfp)( dt ); \
+	PASTECH(opname,BLIS_TAPI_EX_SUF,_vft) f = \
+	PASTEMAC(opname,BLIS_TAPI_EX_SUF,_qfp)( dt ); \
 \
 	f \
 	( \
@@ -341,8 +341,8 @@ void PASTEMAC(opname,EX_SUF) \
 \
 	/* Query a type-specific function pointer, except one that uses
 	   void* for function arguments instead of typed pointers. */ \
-	PASTECH2(opname,BLIS_TAPI_EX_SUF,_vft) f = \
-	PASTEMAC2(opname,BLIS_TAPI_EX_SUF,_qfp)( dt ); \
+	PASTECH(opname,BLIS_TAPI_EX_SUF,_vft) f = \
+	PASTEMAC(opname,BLIS_TAPI_EX_SUF,_qfp)( dt ); \
 \
 	f \
 	( \
@@ -366,7 +366,7 @@ GENFRONT( sumsqv )
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
        const obj_t* chi, \
        const obj_t* psi, \
@@ -427,7 +427,7 @@ GENFRONT( eqsc )
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
        const obj_t* x, \
        const obj_t* y, \
@@ -474,7 +474,7 @@ GENFRONT( eqv )
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
        const obj_t* x, \
        const obj_t* y, \
@@ -531,7 +531,7 @@ GENFRONT( eqm )
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
        const obj_t* chi, \
        const obj_t* psi, \
@@ -581,7 +581,7 @@ GENFRONT( gtesc )
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
              FILE*  file, \
        const char*  s1, \
@@ -629,7 +629,7 @@ GENFRONT( fprintv )
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
              FILE*  file, \
        const char*  s1, \
@@ -695,7 +695,7 @@ GENFRONT( fprintm )
 #undef  GENFRONT
 #define GENFRONT( opname, varname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
        const char*  s1, \
        const obj_t* x, \
@@ -706,7 +706,7 @@ void PASTEMAC0(opname) \
 	bli_init_once(); \
 \
 	/* Invoke the typed function. */ \
-	PASTEMAC0(varname) \
+	PASTEMAC(varname) \
 	( \
 	  stdout, \
 	  s1, \

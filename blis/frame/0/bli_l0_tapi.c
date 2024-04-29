@@ -152,7 +152,7 @@ void PASTEMAC(ch,opname) \
 \
 	( void )absq_i; \
 \
-	PASTEMAC2(ch,chr,gets)( *chi, chi_r, chi_i ); \
+	PASTEMAC(ch,chr,gets)( *chi, chi_r, chi_i ); \
 \
 	/* absq   = chi_r * chi_r + chi_i * chi_i; \
 	   absq_r = 0.0; (thrown away) */ \
@@ -176,7 +176,7 @@ void PASTEMAC(ch,opname) \
 	bli_init_once(); \
 \
 	/* norm = sqrt( chi_r * chi_r + chi_i * chi_i ); */ \
-	PASTEMAC2(ch,chr,abval2s)( *chi, *norm ); \
+	PASTEMAC(ch,chr,abval2s)( *chi, *norm ); \
 }
 
 INSERT_GENTFUNCR_BASIC( normfsc )
@@ -213,7 +213,7 @@ void PASTEMAC(ch,opname) \
 \
 	const ctype_r chi_r = PASTEMAC(ch,real)( *chi ); \
 \
-	PASTEMAC2(chr,ch,sqrt2s)( chi_r, *psi ); \
+	PASTEMAC(chr,ch,sqrt2s)( chi_r, *psi ); \
 }
 
 INSERT_GENTFUNCR_BASIC( sqrtrsc )
@@ -231,7 +231,7 @@ void PASTEMAC(ch,opname) \
 { \
 	bli_init_once(); \
 \
-	PASTEMAC2(ch,d,gets)( *chi, *zeta_r, *zeta_i ); \
+	PASTEMAC(ch,d,gets)( *chi, *zeta_r, *zeta_i ); \
 }
 
 INSERT_GENTFUNC_BASIC( getsc )
@@ -249,7 +249,7 @@ void PASTEMAC(ch,opname) \
 { \
 	bli_init_once(); \
 \
-	PASTEMAC2(d,ch,sets)( zeta_r, zeta_i, *chi ); \
+	PASTEMAC(d,ch,sets)( zeta_r, zeta_i, *chi ); \
 }
 
 INSERT_GENTFUNC_BASIC( setsc )
@@ -267,7 +267,7 @@ void PASTEMAC(ch,opname) \
 { \
 	bli_init_once(); \
 \
-	PASTEMAC2(ch,chr,gets)( *chi, *zeta_r, *zeta_i ); \
+	PASTEMAC(ch,chr,gets)( *chi, *zeta_r, *zeta_i ); \
 }
 
 INSERT_GENTFUNCR_BASIC( unzipsc )
@@ -285,7 +285,7 @@ void PASTEMAC(ch,opname) \
 { \
 	bli_init_once(); \
 \
-	PASTEMAC2(chr,ch,sets)( *zeta_r, *zeta_i, *chi ); \
+	PASTEMAC(chr,ch,sets)( *zeta_r, *zeta_i, *chi ); \
 }
 
 INSERT_GENTFUNCR_BASIC( zipsc )
@@ -301,7 +301,7 @@ void bli_igetsc
 {
 	bli_init_once();
 
-	PASTEMAC2(i,d,gets)( *chi, *zeta_r, *zeta_i );
+	PASTEMAC(i,d,gets)( *chi, *zeta_r, *zeta_i );
 }
 
 void bli_isetsc
@@ -313,6 +313,6 @@ void bli_isetsc
 {
 	bli_init_once();
 
-	PASTEMAC2(d,i,sets)( zeta_r, zeta_i, *chi );
+	PASTEMAC(d,i,sets)( zeta_r, zeta_i, *chi );
 }
 

@@ -10,7 +10,6 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
     auto [T, m, B] = partition_rows<DYNAMIC, 1, DYNAMIC>(X);
 
     if (k == -1) k = n;
-    // k = (k == -1)? n : k-1;
     auto [B0, B1] = split(B, k-B.front()-1);
     auto& R4 = B1;
 
@@ -36,10 +35,12 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
         // ( R0 | r1 || r2 | R3 | R4 )
         // (    T    || m  | B0 | B1 )
         tie(T, m, B0) = continue_with(R0, r1, r2, R3);
-
     }
-    // we need update the last columns when we use the block algorithms
+
+    // ( T  || m  |    B    )
+    // ( R0 || r1 | r2 | R3 )
     B = B0|B1;
     auto [R0, r1, r2, R3] = repartition(T, m, B);
+
     L[R3][r2] = X[R3][r1] / X[r2][r1];
 }

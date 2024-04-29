@@ -41,7 +41,7 @@
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
        const obj_t* chi, \
        const obj_t* absq  \
@@ -81,7 +81,7 @@ GENFRONT( normfsc )
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
        const obj_t* chi, \
        const obj_t* psi  \
@@ -122,7 +122,7 @@ GENFRONT( negsc )
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
        const obj_t* chi, \
        const obj_t* psi  \
@@ -156,7 +156,7 @@ GENFRONT( sqrtrsc )
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
        const obj_t*  chi, \
              double* zeta_r, \
@@ -200,7 +200,7 @@ GENFRONT( getsc )
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
              double zeta_r, \
              double zeta_i, \
@@ -234,7 +234,7 @@ GENFRONT( setsc )
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
        const obj_t* chi, \
        const obj_t* zeta_r, \
@@ -277,7 +277,7 @@ GENFRONT( unzipsc )
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
        const obj_t* zeta_r, \
        const obj_t* zeta_i, \

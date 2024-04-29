@@ -57,7 +57,7 @@ void PASTEMAC(ch,opname) \
 { \
 	/* Invoke the expert interface and request default cntx_t and rntm_t
 	   objects. */ \
-	PASTEMAC2(ch,opname,BLIS_TAPI_EX_SUF) \
+	PASTEMAC(ch,opname,BLIS_TAPI_EX_SUF) \
 	( \
 	  transa, \
 	  transb, \
@@ -94,7 +94,7 @@ void PASTEMAC(ch,opname) \
 { \
 	/* Invoke the expert interface and request default cntx_t and rntm_t
 	   objects. */ \
-	PASTEMAC2(ch,opname,BLIS_TAPI_EX_SUF) \
+	PASTEMAC(ch,opname,BLIS_TAPI_EX_SUF) \
 	( \
 	  uploc, \
 	  transa, \
@@ -133,7 +133,7 @@ void PASTEMAC(ch,opname) \
 { \
 	/* Invoke the expert interface and request default cntx_t and rntm_t
 	   objects. */ \
-	PASTEMAC2(ch,opname,BLIS_TAPI_EX_SUF) \
+	PASTEMAC(ch,opname,BLIS_TAPI_EX_SUF) \
 	( \
 	  side, \
 	  uploa, \
@@ -173,7 +173,7 @@ void PASTEMAC(ch,opname) \
 { \
 	/* Invoke the expert interface and request default cntx_t and rntm_t
 	   objects. */ \
-	PASTEMAC2(ch,opname,BLIS_TAPI_EX_SUF) \
+	PASTEMAC(ch,opname,BLIS_TAPI_EX_SUF) \
 	( \
 	  uploc, \
 	  transa, \
@@ -209,7 +209,7 @@ void PASTEMAC(ch,opname) \
 { \
 	/* Invoke the expert interface and request default cntx_t and rntm_t
 	   objects. */ \
-	PASTEMAC2(ch,opname,BLIS_TAPI_EX_SUF) \
+	PASTEMAC(ch,opname,BLIS_TAPI_EX_SUF) \
 	( \
 	  uploc, \
 	  transa, \
@@ -246,7 +246,7 @@ void PASTEMAC(ch,opname) \
 { \
 	/* Invoke the expert interface and request default cntx_t and rntm_t
 	   objects. */ \
-	PASTEMAC2(ch,opname,BLIS_TAPI_EX_SUF) \
+	PASTEMAC(ch,opname,BLIS_TAPI_EX_SUF) \
 	( \
 	  uploc, \
 	  transa, \
@@ -282,7 +282,7 @@ void PASTEMAC(ch,opname) \
 { \
 	/* Invoke the expert interface and request default cntx_t and rntm_t
 	   objects. */ \
-	PASTEMAC2(ch,opname,BLIS_TAPI_EX_SUF) \
+	PASTEMAC(ch,opname,BLIS_TAPI_EX_SUF) \
 	( \
 	  uploc, \
 	  transa, \
@@ -323,7 +323,7 @@ void PASTEMAC(ch,opname) \
 { \
 	/* Invoke the expert interface and request default cntx_t and rntm_t
 	   objects. */ \
-	PASTEMAC2(ch,opname,BLIS_TAPI_EX_SUF) \
+	PASTEMAC(ch,opname,BLIS_TAPI_EX_SUF) \
 	( \
 	  side, \
 	  uploa, \
@@ -362,7 +362,7 @@ void PASTEMAC(ch,opname) \
 { \
 	/* Invoke the expert interface and request default cntx_t and rntm_t
 	   objects. */ \
-	PASTEMAC2(ch,opname,BLIS_TAPI_EX_SUF) \
+	PASTEMAC(ch,opname,BLIS_TAPI_EX_SUF) \
 	( \
 	  side, \
 	  uploa, \
