@@ -2,6 +2,7 @@
 
 void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
 {
+    PROFILE_FUNCTION
     auto n = X.length(0);
 
     matrix_view<double> L = first_column ? X.shifted(1, -1) : X.rebased(1, 1);

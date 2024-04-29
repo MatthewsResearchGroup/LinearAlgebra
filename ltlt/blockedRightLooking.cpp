@@ -2,6 +2,7 @@
 
 void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
 {
+    PROFILE_FUNCTION
     auto [T, m, B] = partition_rows<DYNAMIC,1,DYNAMIC>(X);
 
     matrix_view<double> L = X.rebased(1, 1);
@@ -27,7 +28,10 @@ void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::
                                        subdiag(X[R2|r3][R2|r3]),
                                   1.0,         X[r3|R4][r3|R4]);
 
+        PROFILE_SECTION("skr2")
         blas::skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
+        PROFILE_FLOPS(2*(r3|R4).size()*(r3|R4).size());
+        PROFILE_STOP
 
         // ( R0 | r1 | R2 || r3 | R4 )
         // (      T       ||  m |  B )

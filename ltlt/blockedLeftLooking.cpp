@@ -2,6 +2,7 @@
 
 void ltlt_blockLL(const matrix_view<double>& X, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
 {
+    PROFILE_FUNCTION
     auto [f, T, m, B] = partition_rows<1, DYNAMIC, 1, DYNAMIC>(X);
 
     matrix_view<double> L = X.rebased(1, 1);

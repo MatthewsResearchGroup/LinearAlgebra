@@ -224,6 +224,7 @@ inline double performance(int n, const std::function<void(const matrix_view<doub
         auto ending_point = bli_clock();
 
         auto time = ending_point - starting_point;
+        printf("Rep and time: %d, %f\n", i, time);
 
         auto Lm = make_L(B);
         auto Tm = make_T(B);

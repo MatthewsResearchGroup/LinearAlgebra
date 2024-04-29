@@ -11,10 +11,14 @@ void output_to_csv(const int& MatrixSize,
                    const std::string& MajorAlgo,
                    const std::string& MinorAlgo,
                    const int& BlockSize,
-                   const double& err,
-                   const double& time)
+                   const double& time,
+                   const double& GFLOPS)
 {
-    std::string filename = "./time.csv";
+    std::string filename;
+    if (MinorAlgo.empty() )
+        filename = "./time.csv";
+    else
+        filename = "./time_" + std::to_string(BlockSize) + ".csv";   
     // std::string filename = "./time_" + std::to_string(MatrixSize) + ".csv";
 
     auto out_csv = fopen(filename.c_str(),"a+");
@@ -25,7 +29,7 @@ void output_to_csv(const int& MatrixSize,
         exit(1);
     }
     //Generate formatting for output
-    std::string header = "MatrixSize, MajorAlgo, MinorAlgo, BlockSize, err, time";
+    std::string header = "MatrixSize, MajorAlgo, MinorAlgo, BlockSize, time, GFLOPS";
     std::string values_f = "%6d, %s, %s, %6d, %E, %E\n";
 
 
@@ -35,7 +39,7 @@ void output_to_csv(const int& MatrixSize,
     fprintf(out_csv, values_f.c_str(),
             MatrixSize,         MajorAlgo.c_str(),
             MinorAlgo.c_str(),  BlockSize,
-            err,                time);
+            time,               GFLOPS);
 
     // close the file if it's the last element in the points set vector.
     fclose(out_csv);

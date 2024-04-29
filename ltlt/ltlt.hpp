@@ -22,6 +22,7 @@
 #include "blas.h"
 #include "flame.hpp"
 #include "bli_clock.h"
+#include "timer.h"
 
 template <typename T>                                                                                                                                    
 bool foo() { static_assert(std::is_same_v<T,int>, ""); return true; }
@@ -41,6 +42,7 @@ namespace blas
  */
 inline void sktrmv(double alpha, const row_view<const double>& T, const row_view<double>& x)
 {
+    PROFILE_FUNCTION
     auto n = x.length();
     MARRAY_ASSERT(T.length(0) == n-1);
 
@@ -64,6 +66,7 @@ inline void sktrmv(double alpha, const row_view<const double>& T, const row_view
     }
 
     x[n-1] = alpha * (T[n-2] * ximinus1);
+    PROFILE_FLOPS(3*n);
 }
 
 /*
@@ -77,17 +80,21 @@ inline void skewtrigemv(double alpha, const matrix_view<const double>& A,
     /*
      * x <- T x
      */
+    PROFILE_FUNCTION
     row<double> tempx = x;
     sktrmv(1.0, T, tempx);
     gemv(alpha, A, tempx, beta, y);
+    PROFILE_FLOPS(2*A.length(0)*A.length(1));
 }
 
 inline void sktrmm(double alpha, const row_view<const double>& T, const matrix_view<double>& A)
 {
+    PROFILE_FUNCTION
     for (auto i : columns(A))
     {
         sktrmv(alpha, T, A[all][i]);
     }
+    PROFILE_FLOPS(3*A.length(0)*A.length(1));
 }
 
 /*
@@ -98,9 +105,13 @@ inline void skew_tridiag_gemm(double alpha, const matrix_view<const double>& A,
                                             const matrix_view<const double>& B,
                               double beta,  const matrix_view<      double>& C)
 {
+    PROFILE_FUNCTION
     matrix<double> tempB = B;
     sktrmm(1, T, tempB);
+    PROFILE_SECTION("gemm")
     gemm(alpha, A, tempB, beta, C);
+    PROFILE_STOP
+    PROFILE_FLOPS(2*A.length(0)*A.length(1)*tempB.length(1));
 }
 
 
@@ -126,9 +137,13 @@ inline void skew_tridiag_rankk(char uplo,
                                              const row_view   <const double>& T,
                                double beta,  const matrix_view<      double>& C)
 {
+    PROFILE_FUNCTION
     matrix<double> tempB = A.T();
     sktrmm(1, T, tempB);
+    PROFILE_SECTION("gemmt")
     gemmt(uplo, alpha, A, tempB, beta, C);
+    PROFILE_FLOPS(A.length(0)*A.length(1)*tempB.length(1));
+    PROFILE_STOP
 }
 
 } //namespace blas
