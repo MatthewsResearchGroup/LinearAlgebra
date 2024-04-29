@@ -5,7 +5,8 @@ void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::
     auto [T, m, B] = partition_rows<DYNAMIC,1,DYNAMIC>(X);
 
     matrix_view<double> L = X.rebased(1, 1);
-    matrix<double> temp_{X.length(0), block_size};
+    // matrix<double> temp_{X.length(0), block_size};
+    matrix<double> temp_{X.length(0), X.length(1)};
 
     while (B)
     {

@@ -34,6 +34,7 @@ void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<int>& pi,
     }
 
     if (k == -1) k = n;
+    MARRAY_ASSERT(pi.length() == k);
     auto [B0, B1] = split(B, k-B.front());
     auto& R4 = B1;
 

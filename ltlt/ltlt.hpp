@@ -7,6 +7,9 @@
 #include <array>
 #include <functional>
 #include <random>
+#include <vector>
+#include <iostream>
+#include <algorithm>
 
 //must come first
 #define MARRAY_USE_BLIS
@@ -14,16 +17,14 @@
 #define BLIS_DISABLE_BLAS_DEFS
 #include "blis.h"
 
-template <typename T>
-bool foo() { static_assert(std::is_same_v<T,std::complex<double>>, ""); return true; }
-
-static auto check = foo<dcomplex>();
-
 #include "marray_view.hpp"
 #include "expression.hpp"
 #include "blas.h"
 #include "flame.hpp"
 #include "bli_clock.h"
+
+template <typename T>                                                                                                                                    
+bool foo() { static_assert(std::is_same_v<T,int>, ""); return true; }
 
 using namespace MArray;
 using MArray::slice::all;
@@ -102,6 +103,24 @@ inline void skew_tridiag_gemm(double alpha, const matrix_view<const double>& A,
     gemm(alpha, A, tempB, beta, C);
 }
 
+
+/**
+ * Perform the upper or lower triangular portion of the skew tridiag matrix multiplication \f$ C = \alpha ABA^T + \beta C \f$.
+ *
+ * @param uplo  'L' if C is lower-triangular or 'U' if C is upper-triangular.
+ *
+ * @param alpha Scalar factor for the product `ABA^T`.
+ *
+ * @param A     A `m`x`k`  matrix or matrix view. Must have either a row or
+ *              column stride of one.
+ *
+ * @param B     A `k`x`k` skew matrix or matrix view.
+ *
+ * @param beta  Scalar factor for the original matrix `C`.
+ *
+ * @param C     A `m`x`m` skew matrix or matrix view.
+ */
+
 inline void skew_tridiag_rankk(char uplo,
                                double alpha, const matrix_view<const double>& A,
                                              const row_view   <const double>& T,
@@ -136,11 +155,27 @@ template <typename T, typename U> std::pair<range_t<T>,range_t<T>> split(const r
     return std::make_pair(head(x, n), tail(x, n == 0 ? x.size() : -n));
 }
 
-template <typename T> range_t<T> R3_trunc(const range_t<T>& R0, const range_t<T>& R3, len_type k)
+// template <typename T> range_t<T> R3_trunc(const range_t<T>& R0, const range_t<T>& R3, len_type k)
+// {
+//     if ( R0.from() + k < R3.from())
+//     {
+//         return range(R3.from(), -1);
+//     }
+//     else
+//     {
+//         return range(R3.from(), R0.from() + k);
+//     }
+// }
+
+
+
+
+template <typename T> 
+inline auto R3_trunc(const range_t<T>& R0, const range_t<T>& R3, len_type k)
 {
     if ( R0.from() + k < R3.from())
     {
-        return range(R3.from(), -1);
+        return std::make_tuple(range(R3.from(), -1), range(R3.from(), -1));
     }
     else
         return range(R3.from(), R0.from() + k);
@@ -241,6 +276,21 @@ inline matrix<double> gemm_chao(const double alpha,
     }
     return C;
 }
+
+inline void matrixprint(const matrix_view<double>& B)
+{
+    auto m = B.length(0);
+    auto n = B.length(1);
+
+    for (auto i : range(m))
+    {
+        for (auto j : range(m))
+        {
+            printf("%f,", B[i][j]);
+        }
+        printf("\n");
+    }
+} 
 
 void ltlt_unblockRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false);
 

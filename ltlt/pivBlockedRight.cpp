@@ -16,7 +16,7 @@ void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<int>& pi, l
         auto [R0, r1, R2, r3, R4] = repartition<DYNAMIC,1>(T, m, B, block_size);
         auto R0p = tail(R0, -1);
 
-        LTLT_UNB(X[r1|R2|r3|R4][r1|R2|r3|R4], pi[r1|R2], (r1|R2|r3).size(), false);
+        LTLT_UNB(X[r1|R2|r3|R4][r1|R2|r3|R4], pi[r1|R2|r3], (r1|R2|r3).size(), false);
 
         pivot_rows(L[r1|R2|r3|R4][R0p|r1], pi[r1|R2]);
 
