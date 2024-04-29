@@ -202,6 +202,8 @@
 #include "bli_set0s_edge.h"
 #include "bli_copys_mxn.h"
 #include "bli_scal2s_mxn.h"
+
+#include "bli_axpbys_mxn.h"
 #include "bli_xpbys_mxn.h"
 #include "bli_xpbys_mxn_uplo.h"
 

@@ -40,7 +40,7 @@
 #undef  GENPROT
 #define GENPROT( opname ) \
 \
-BLIS_EXPORT_BLIS void PASTEMAC0(opname) \
+BLIS_EXPORT_BLIS void PASTEMAC(opname) \
      ( \
        const obj_t* chi, \
        const obj_t* absq  \
@@ -53,7 +53,7 @@ GENPROT( normfsc )
 #undef  GENPROT
 #define GENPROT( opname ) \
 \
-BLIS_EXPORT_BLIS void PASTEMAC0(opname) \
+BLIS_EXPORT_BLIS void PASTEMAC(opname) \
      ( \
        const obj_t* chi, \
        const obj_t* psi  \
@@ -72,7 +72,7 @@ GENPROT( negsc )
 #undef  GENPROT
 #define GENPROT( opname ) \
 \
-BLIS_EXPORT_BLIS void PASTEMAC0(opname) \
+BLIS_EXPORT_BLIS void PASTEMAC(opname) \
      ( \
        const obj_t*  chi, \
              double* zeta_r, \
@@ -85,7 +85,7 @@ GENPROT( getsc )
 #undef  GENPROT
 #define GENPROT( opname ) \
 \
-BLIS_EXPORT_BLIS void PASTEMAC0(opname) \
+BLIS_EXPORT_BLIS void PASTEMAC(opname) \
      ( \
              double zeta_r, \
              double zeta_i, \
@@ -98,7 +98,7 @@ GENPROT( setsc )
 #undef  GENPROT
 #define GENPROT( opname ) \
 \
-BLIS_EXPORT_BLIS void PASTEMAC0(opname) \
+BLIS_EXPORT_BLIS void PASTEMAC(opname) \
      ( \
        const obj_t* chi, \
        const obj_t* zeta_r, \
@@ -111,7 +111,7 @@ GENPROT( unzipsc )
 #undef  GENPROT
 #define GENPROT( opname ) \
 \
-BLIS_EXPORT_BLIS void PASTEMAC0(opname) \
+BLIS_EXPORT_BLIS void PASTEMAC(opname) \
      ( \
        const obj_t* zeta_r, \
        const obj_t* zeta_i, \

@@ -41,7 +41,7 @@
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
        const obj_t* alpha, \
        const obj_t* a, \
@@ -66,7 +66,7 @@ GENFRONT( skr2k )
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
              side_t side, \
        const obj_t* alpha, \
@@ -91,7 +91,7 @@ GENFRONT( trmm3 )
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
        const obj_t* alpha, \
        const obj_t* a, \
@@ -111,7 +111,7 @@ GENFRONT( syrk )
 #undef  GENFRONT
 #define GENFRONT( opname ) \
 \
-void PASTEMAC0(opname) \
+void PASTEMAC(opname) \
      ( \
              side_t side, \
        const obj_t* alpha, \

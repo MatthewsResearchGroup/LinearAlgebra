@@ -58,6 +58,9 @@ GENPROT( her2k )
 GENPROT( syr2k )
 GENPROT( shr2k )
 GENPROT( skr2k )
+#ifdef BLIS_ENABLE_SANDBOX
+GENPROT( gemm_def )
+#endif
 
 
 #undef  GENPROT
