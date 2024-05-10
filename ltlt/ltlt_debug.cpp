@@ -1,20 +1,21 @@
 #include "test.hpp"
 #include <cstdlib>
 
-std::mt19937_64 gen(time(nullptr));
+//std::mt19937_64 gen(time(nullptr));
+std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
 
-    auto n = 10000;
-    auto blocksize = 1000;
+    auto n = 6;
+    auto blocksize = 2;
 
 
     // test_bug(n, unblocked(ltlt_unblockRL));
     // test_bug(n, unblocked(ltlt_unblockLL));
     test_bug(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
-    //test_bug(n, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize));
-    // test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
-    // test_bug(n, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize));
+    // test_bug(n, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize));
+    //test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
+    //test_bug(n, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize));
     timer::print_timers();
 
     // testing the multiple cores

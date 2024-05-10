@@ -277,9 +277,9 @@ inline void test_bug(int n, const std::function<void(const matrix_view<double>&)
     // std::cout<< "Print Matrix LmT " << std::endl;
     // matrixprint(LmT);
     
-    // std::cout<< "Print Matrix LTLT " << std::endl;
+    std::cout<< "Print Matrix LTLT " << std::endl;
     auto B_LTLT = MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-    // matrixprint(B_LTLT);
+    matrixprint(B_LTLT);
 
     // calculate the error matrix
     B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);

@@ -89,6 +89,9 @@ inline void skewtrigemv(double alpha, const matrix_view<const double>& A,
 
 inline void sktrmm(double alpha, const row_view<const double>& T, const matrix_view<double>& A)
 {
+    /*
+     * A =alpha T A
+     */
     PROFILE_FUNCTION
     for (auto i : columns(A))
     {
@@ -142,8 +145,8 @@ inline void skew_tridiag_rankk(char uplo,
     sktrmm(1, T, tempB);
     PROFILE_SECTION("gemmt")
     gemmt(uplo, alpha, A, tempB, beta, C);
-    PROFILE_FLOPS(A.length(0)*A.length(1)*tempB.length(1));
     PROFILE_STOP
+    PROFILE_FLOPS(A.length(0)*A.length(1)*tempB.length(1));
 }
 
 } //namespace blas
@@ -299,7 +302,7 @@ inline void matrixprint(const matrix_view<double>& B)
 
     for (auto i : range(m))
     {
-        for (auto j : range(m))
+        for (auto j : range(n))
         {
             printf("%f,", B[i][j]);
         }
@@ -324,5 +327,26 @@ void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<int>& pi,
 void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&, const row_view<int>&,len_type,bool)>& LTLT_UNB);
 
 void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type k = -1, bool first_column = false);
+
+void gemm_sktri
+     (
+       double  alpha, \
+       const matrix_view<double>&  a, \
+       const row_view<double>& d,  \
+       const matrix_view<double>&  b, \
+       double  beta, \
+       const matrix_view<double>&  c 
+     );
+
+void gemmt_sktri
+     ( 
+       char    uploc, \  
+       double  alpha, \
+       const matrix_view<double>&  a, \
+       const row_view<double>& d,  \
+       const matrix_view<double>&  b, \
+       double  beta, \
+       const matrix_view<double>&  c  
+     );
 
 #endif

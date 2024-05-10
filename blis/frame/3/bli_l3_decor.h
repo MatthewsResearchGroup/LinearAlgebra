@@ -37,6 +37,7 @@
 #define BLIS_L3_DECOR_H
 
 // Level-3 thread decorator prototype.
+BLIS_EXPORT_BLIS
 void bli_l3_thread_decorator
      (
        const obj_t*   a,
