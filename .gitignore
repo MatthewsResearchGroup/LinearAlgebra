@@ -1,7 +1,7 @@
 *.swp
 .vscode
 .DS_Store
-build
+/build
 .deps
 marray/.git
 blis/.git
@@ -10,7 +10,6 @@ blis/lib
 bin
 .clangd
 .project
-build/*
+/build/*
 .deps
 *.o
-build
