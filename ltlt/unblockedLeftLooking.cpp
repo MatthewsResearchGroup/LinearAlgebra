@@ -2,6 +2,7 @@
 
 void ltlt_unblockLL(const matrix_view<double>& X, len_type k, bool first_column)
 {
+    PROFILE_FUNCTION
     auto n = X.length(0);
     matrix<double> temp_{n, 1};
 

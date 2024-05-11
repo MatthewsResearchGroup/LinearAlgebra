@@ -630,6 +630,7 @@ bli_iprintm
 bli_iprintv
 bli_isetsc
 bli_l3_thrinfo_create
+bli_l3_thread_decorator
 bli_ltesc
 bli_ltsc
 bli_machval

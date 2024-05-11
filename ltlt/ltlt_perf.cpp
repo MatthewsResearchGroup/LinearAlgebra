@@ -67,7 +67,8 @@ int main(int argc, const char** argv)
     auto repitation = args["<repitation>"].asLong();
     auto minoralgo = args["--minoralgo"] ? args["--minoralgo"].asString() : std::string("");
     auto blocksize = args["--bs"] ? args["--bs"].asLong(): 0;
-
+    PROFILE_SECTION("main function")
+        
     for (auto matrixsize = matrixsize_min; matrixsize <=  matrixsize_max; matrixsize += step)
     {   
         double time;
@@ -109,12 +110,15 @@ int main(int argc, const char** argv)
             }
     
         }
-        auto GFLOPS = check_RL(majoralgo)? 2*pow(matrixsize,3)/(time*3e9) : pow(matrixsize,3)/(time*3e9);
-        printf("matrixsize, GFLOPS = %ld, %f\n", matrixsize, GFLOPS);
+        // auto GFLOPS = check_RL(majoralgo)? 3*pow(matrixsize,3)/(time*3e9) : pow(matrixsize,3)/(time*3e9);
+        auto GFLOPS = pow(matrixsize,3)/(time*3e9);
+        printf("matrixsize, blocksize, GFLOPS = %ld, %ld, %f\n", matrixsize, blocksize, GFLOPS);
          // for (auto i : range(repitation))
-         //     output_to_csv(matrixsize, majoralgo, minoralgo, blocksize, error_vec[i], time_vec[i]);
+        output_to_csv(matrixsize, majoralgo, minoralgo, blocksize, time, GFLOPS);
     }
+    PROFILE_STOP
 
+    timer::print_timers();
 
     return 0;
 

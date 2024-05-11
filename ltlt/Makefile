@@ -14,17 +14,19 @@ endif
 endif
 
 CXXFLAGS = -std=c++17 -Wno-unused-result -Wno-unused-result -I../marray/marray \
-           -I../build/blis/include/$(CONFIG) -I../blis/frame/base -I../build/docopt.cpp/include/docopt/
-LDFLAGS = -L../build/blis/lib/$(CONFIG) -Wl,-rpath,$(shell pwd)/../build/blis/lib/$(CONFIG) -L../build/docopt.cpp/lib
-LIBS = -lm -ldl -lblis -ldocopt
+           -I../build/blis/include/$(CONFIG) -I../blis/frame/base -I../build/docopt.cpp/include/docopt/ -DPROFILE
+LDFLAGS = -L../build/blis/lib/$(CONFIG) -Wl,-rpath,$(shell pwd)/../build/blis/lib/$(CONFIG) -L../build/docopt.cpp/lib 
+LIBS = -lm -ldl -lblis -ldocopt 
+#/usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0
 
 ifeq ($(M3),true)
 CXX = g++
 CXXFLAGS += -O3 -march=native -fopenmp
+LDFLAGS += -fopenmp
 else
 CXX = clang++
 CXXFLAGS += -g -O0 -DDEBUG -fsanitize=address -DMARRAY_ENABLE_ASSERTS
-LDFLAGS += -g -fsanitize=address
+LDFLAGS += -g -fsanitize=address 
 endif
 
 debug_exe=../bin/ltlt_debug
@@ -45,15 +47,15 @@ clean:
 
 $(debug_exe): $(objs) ltlt_debug.o
 	@mkdir -p $(dir $(debug_exe))
-	$(CXX) $(LDFLAGS) -o $(debug_exe) $(objs) ltlt_debug.o $(LIBS)
+	$(CXX) -o $(debug_exe) $(objs) ltlt_debug.o $(LDFLAGS) $(LIBS)
 
 $(test_exe): $(objs) ltlt_test.o
 	@mkdir -p $(dir $(test_exe))
-	$(CXX) $(LDFLAGS) -o $(test_exe) $(objs) ltlt_test.o $(LIBS)
+	$(CXX) -o $(test_exe) $(objs) ltlt_test.o $(LDFLAGS) $(LIBS)
 
 $(perf_exe): $(objs) ltlt_perf.o
 	@mkdir -p $(dir $(perf_exe))
-	$(CXX) $(LDFLAGS) -o $(perf_exe) $(objs) ltlt_perf.o $(LIBS)
+	$(CXX) -o $(perf_exe) $(objs) ltlt_perf.o $(LDFLAGS) $(LIBS)
 
 %.o: %.cpp
 	@mkdir -p $(dir $@).deps
