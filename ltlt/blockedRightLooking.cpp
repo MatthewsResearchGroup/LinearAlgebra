@@ -26,20 +26,22 @@ void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::
         temp[R4][r3] = L[R4][r3];
 
         auto temp_T = temp.T();
-
-        // blas::skew_tridiag_rankk('L',
-        //                          -1.0,      temp[r3|R4][R2|r3],
-        //                                subdiag(X[R2|r3][R2|r3]),
-        //                           1.0,         X[r3|R4][r3|R4]);
+    
+        //blas::skew_tridiag_rankk('L',
+        //                         -1.0,      temp[r3|R4][R2|r3],
+        //                               subdiag(X[R2|r3][R2|r3]),
+        //                          1.0,         X[r3|R4][r3|R4]);
         
         gemmt_sktri('L',
                     -1.0,      temp[r3|R4][R2|r3],
                           subdiag(X[R2|r3][R2|r3]),
                              temp_T[R2|r3][r3|R4],
                       1.0,        X[r3|R4][r3|R4]);
-        printf("Print A\n");
+        printf("Print temp[r3|R4][R2|r3]\n");
         matrixprint(temp[r3|R4][R2|r3]);
-        printf("Print A.T\n");
+        printf("subdiag X[R2|r3][R2|r3]\n");
+        matrixprint(X[R2|r3][R2|r3]);
+        printf("Print temp.T[R2|r3][r3|R4]\n");
         matrixprint(temp_T[R2|r3][r3|R4]);
         printf("\nPrint X after gemmt_sktri\n");
         matrixprint(X);

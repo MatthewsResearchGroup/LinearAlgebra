@@ -5,21 +5,25 @@
 void gemm_sktri
      (
        double  alpha, \
-       const matrix_view<double>&  a, \
-       const row_view<double>& d,  \
-       const matrix_view<double>&  b, \
+       const matrix_view<const double>&  a, \
+       const row_view<const double>& d,  \
+       const matrix_view<const double>&  b, \
        double  beta, \
        const matrix_view<double>&  c \
      )
 {
     PROFILE_FUNCTION
+    PROFILE_FLOPS(2*a.length(0)*a.length(1)*b.length(1));
+    if (a.length(0) == 1)
+        return;
+
 	bli_init();
 
     obj_t alpha_local, beta_local, a_local, b_local, c_local;
     bli_obj_create_1x1_with_attached_buffer(BLIS_DOUBLE, &alpha, &alpha_local);
     bli_obj_create_1x1_with_attached_buffer(BLIS_DOUBLE, &beta, &beta_local);
-    bli_obj_create_with_attached_buffer(BLIS_DOUBLE, a.length(0), a.length(1), a.data(), a.stride(0), a.stride(1), &a_local);
-    bli_obj_create_with_attached_buffer(BLIS_DOUBLE, b.length(0), b.length(1), b.data(), b.stride(0), b.stride(1), &b_local);
+    bli_obj_create_with_attached_buffer(BLIS_DOUBLE, a.length(0), a.length(1), (void*)a.data(), a.stride(0), a.stride(1), &a_local);
+    bli_obj_create_with_attached_buffer(BLIS_DOUBLE, b.length(0), b.length(1), (void*)b.data(), b.stride(0), b.stride(1), &b_local);
     bli_obj_create_with_attached_buffer(BLIS_DOUBLE, c.length(0), c.length(1), c.data(), c.stride(0), c.stride(1), &c_local);
 
 	// // Check the operands.
@@ -55,6 +59,7 @@ void gemm_sktri
 	// method id determined above
 	auto cntx = bli_gks_query_cntx();
 
+    bli_negsc( &alpha_local, &alpha_local );
 	gemm_cntl_t cntl;
 
 	bli_gemm_cntl_init
@@ -74,6 +79,7 @@ void gemm_sktri
     bli_func_set_dt((void*)&packing, BLIS_DOUBLE, &pack);
     bli_gemm_cntl_set_packb_ukr_simple(&pack, &cntl);
     skparams params;
+    //params.t = static_cast<const void*>(d.data());   
     params.t = static_cast<const void*>(d.data());   
     params.inct = d.stride();   
     params.n = a.length(1);
@@ -90,7 +96,6 @@ void gemm_sktri
 	  ( cntl_t* )&cntl,
 	  nullptr 
 	);
-    PROFILE_FLOPS(2*a.length(0)*a.length(1)*b.length(1));
 }
 
 
@@ -99,13 +104,17 @@ void gemmt_sktri
      (
        char  uploc, \
        double  alpha, \
-       const matrix_view<double>&  a, \
-       const row_view<double>& d,  \
-       const matrix_view<double>&  b, \
+       const matrix_view<const double>&  a, \
+       const row_view<const double>& d,  \
+       const matrix_view<const double>&  b, \
        double  beta, \
        const matrix_view<double>&  c \
      )
 {
+    PROFILE_FUNCTION
+    PROFILE_FLOPS(2*a.length(0)*a.length(1)*b.length(1));
+    if (a.length(0) == 1)
+        return;
 	bli_init();
 
     uplo_t uploc_local;
@@ -113,8 +122,8 @@ void gemmt_sktri
     obj_t alpha_local, beta_local, a_local, b_local, c_local;
     bli_obj_create_1x1_with_attached_buffer(BLIS_DOUBLE, &alpha, &alpha_local);
     bli_obj_create_1x1_with_attached_buffer(BLIS_DOUBLE, &beta, &beta_local);
-    bli_obj_create_with_attached_buffer(BLIS_DOUBLE, a.length(0), a.length(1), a.data(), a.stride(0), a.stride(1), &a_local);
-    bli_obj_create_with_attached_buffer(BLIS_DOUBLE, b.length(0), b.length(1), b.data(), b.stride(0), b.stride(1), &b_local);
+    bli_obj_create_with_attached_buffer(BLIS_DOUBLE, a.length(0), a.length(1), (void*)a.data(), a.stride(0), a.stride(1), &a_local);
+    bli_obj_create_with_attached_buffer(BLIS_DOUBLE, b.length(0), b.length(1), (void*)b.data(), b.stride(0), b.stride(1), &b_local);
     bli_obj_create_with_attached_buffer(BLIS_DOUBLE, c.length(0), c.length(1), c.data(), c.stride(0), c.stride(1), &c_local);
 
     if (uploc == 'L')
@@ -156,6 +165,7 @@ void gemmt_sktri
 	// method id determined above.
 	auto cntx = bli_gks_query_cntx();
 
+    bli_negsc( &alpha_local, &alpha_local );
 	// Alias A, B, and C in case we need to apply transformations.
 	gemm_cntl_t cntl;
 	bli_gemm_cntl_init

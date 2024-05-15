@@ -109,6 +109,10 @@ inline void skew_tridiag_gemm(double alpha, const matrix_view<const double>& A,
                               double beta,  const matrix_view<      double>& C)
 {
     PROFILE_FUNCTION
+    printf("print T\n");
+    for (auto i : range(T.length()))
+        printf("%f, ", T[i]);
+    printf("\n");
     matrix<double> tempB = B;
     sktrmm(1, T, tempB);
     PROFILE_SECTION("gemm")
@@ -299,12 +303,14 @@ inline void matrixprint(const matrix_view<double>& B)
 {
     auto m = B.length(0);
     auto n = B.length(1);
+    auto baserow = B.base(0);
+    auto basecol = B.base(1);
 
     for (auto i : range(m))
     {
         for (auto j : range(n))
         {
-            printf("%f,", B[i][j]);
+            printf("%f ", B[i+baserow][j+basecol]);
         }
         printf("\n");
     }
@@ -331,9 +337,9 @@ void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<int>& pi,
 void gemm_sktri
      (
        double  alpha, \
-       const matrix_view<double>&  a, \
-       const row_view<double>& d,  \
-       const matrix_view<double>&  b, \
+       const matrix_view<const double>&  a, \
+       const row_view<const double>& d,  \
+       const matrix_view<const double>&  b, \
        double  beta, \
        const matrix_view<double>&  c 
      );
@@ -342,9 +348,9 @@ void gemmt_sktri
      ( 
        char    uploc, \  
        double  alpha, \
-       const matrix_view<double>&  a, \
-       const row_view<double>& d,  \
-       const matrix_view<double>&  b, \
+       const matrix_view<const double>&  a, \
+       const row_view<const double>& d,  \
+       const matrix_view<const double>&  b, \
        double  beta, \
        const matrix_view<double>&  c  
      );

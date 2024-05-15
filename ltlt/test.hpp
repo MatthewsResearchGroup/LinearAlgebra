@@ -55,6 +55,22 @@ auto random_matrix(int m, int n)
     return A;
 }
 
+/* 
+ * This function is for debugging
+*/
+template <typename T=double>
+auto full_matrix_same_num(int m, int n, T k)
+{
+    static std::uniform_real_distribution<> dist;
+    matrix<T> A{m, n};
+
+    for (auto i : range(m))
+    for (auto j : range(n))
+        A[i][j] =  k; 
+
+    return A;
+}
+
 inline auto unblocked(const std::function<void(const matrix_view<double>&,len_type,bool)>& unblock)
 {
     return std::bind(unblock, std::placeholders::_1, -1, false);
@@ -288,6 +304,7 @@ inline void test_bug(int n, const std::function<void(const matrix_view<double>&)
     
     std::cout<< "Print Error Matrix " << std::endl;
     matrixprint(B0);
+    std::cout << "Norm of Error Matrix : " << err << std::endl;
     
 }
 
