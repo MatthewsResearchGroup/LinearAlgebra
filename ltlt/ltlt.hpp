@@ -109,10 +109,6 @@ inline void skew_tridiag_gemm(double alpha, const matrix_view<const double>& A,
                               double beta,  const matrix_view<      double>& C)
 {
     PROFILE_FUNCTION
-    printf("print T\n");
-    for (auto i : range(T.length()))
-        printf("%f, ", T[i]);
-    printf("\n");
     matrix<double> tempB = B;
     sktrmm(1, T, tempB);
     PROFILE_SECTION("gemm")
@@ -355,4 +351,9 @@ void gemmt_sktri
        const matrix_view<double>&  c  
      );
 
+
+void gemv_sktri(double alpha, const matrix_view<const double>& A,\
+                                      const row_view   <const double>& T, \
+                                      const row_view   <const double>& x,\
+                        double beta,  const row_view   <      double>& y);
 #endif

@@ -1,18 +1,19 @@
 #include "test.hpp"
 #include <cstdlib>
 
+
 //std::mt19937_64 gen(time(nullptr));
 std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
 
     auto n = 10;
-    auto blocksize = 3;
+    // auto blocksize = 3;
 
 
     // test_bug(n, unblocked(ltlt_unblockRL));
-    // test_bug(n, unblocked(ltlt_unblockLL));
-    test_bug(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
+    test_bug(n, unblocked(ltlt_unblockLL));
+    // test_bug(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
     //test_bug(n, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize));
     // test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
     //test_bug(n, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize));
@@ -21,11 +22,64 @@ int main(int argc, char* argv[])
     // testing the multiple cores
    
 
-    // auto m = 1;
-    // auto n = 1;
+    // auto m = 10;
+    // auto n = 10;
     // auto A = random_matrix(m, n);
-    // auto B = random_matrix(m, n);
+    // //auto A = full_matrix_same_num(m,n,1.0);
+    // //auto B = full_matrix_same_num(n,n,1.0);
+    // auto B = random_matrix(n, n);
+    // matrixprint(A);
     // auto T = make_T(B);
+    // matrixprint(T);
+    // auto x = random_row(n);
+    // auto x_temp = x;
+    // auto y = random_row(m);
+    // auto y_temp = y;
+    // std::cout << "Print x"<< std::endl;
+    // for (auto i : range(x.length()))
+    //     std::cout << x[i] << ", ";
+    // std::cout << std::endl;
+    // std::cout << "Print X-temp"<< std::endl;
+    // for (auto i : range(x.length()))
+    //     std::cout << x_temp[i] << ", ";
+    // std::cout << std::endl;
+    // // std::cout << "Print y"<< std::endl;
+    // // for (auto i : range(y.length()))
+    // //     std::cout << y[i] << ", ";
+    // // std::cout << std::endl;
+    // gemv_sktri(-1.0, A,
+    //                  subdiag(T),
+    //                  x,
+    //             1.0, y);
+    // blas::skewtrigemv(-1.0, A,
+    //                  subdiag(T),
+    //                  x_temp,
+    //             1.0, y_temp);
+    // std::cout << "Print x"<< std::endl;
+    // for (auto i : range(x.length()))
+    //     std::cout << x[i] << ", ";
+    // std::cout << std::endl;
+    // std::cout << "Print X-temp"<< std::endl;
+    // for (auto i : range(x_temp.length()))
+    //     std::cout << x_temp[i] << ", ";
+    // std::cout << std::endl;
+    // std::cout << "Print y"<< std::endl;
+    // for (auto i : range(y.length()))
+    //     std::cout << y[i] << ", ";
+    // std::cout << std::endl;
+    // std::cout << "Print y-temp"<< std::endl;
+    // for (auto i : range(y_temp.length()))
+    //     std::cout << y_temp[i] << ", ";
+    // std::cout << std::endl;
+
+    // std::cout << "Print x"<< std::endl;
+    // for (auto i : range(x.length()))
+    //     std::cout << x[i] << ", ";
+    // std::cout << std::endl;
+    // std::cout << "Print y"<< std::endl;
+    // for (auto i : range(y.length()))
+    //     std::cout << y[i] << ", ";
+    // std::cout << std::endl;
     // auto A_T = A.T();
     // // auto A_T = random_matrix(m, n);
     // auto C = full_matrix_same_num(m,n,0.0);

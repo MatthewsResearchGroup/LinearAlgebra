@@ -112,7 +112,7 @@ void gemmt_sktri
      )
 {
     PROFILE_FUNCTION
-    PROFILE_FLOPS(2*a.length(0)*a.length(1)*b.length(1));
+    PROFILE_FLOPS(a.length(0)*a.length(1)*b.length(1));
     if (a.length(0) == 1)
         return;
 	bli_init();
@@ -205,3 +205,96 @@ void gemmt_sktri
 }
 
 
+void gemv_sktri(double alpha,         const matrix_view<const double>& A,
+                                      const row_view   <const double>& T,
+                                      const row_view   <const double>& x,
+                        double beta,  const row_view   <      double>& y)
+{
+    PROFILE_FUNCTION
+    PROFILE_FLOPS(2*A.length(0)*A.length(1));
+    auto n = A.length(1);
+    auto m = A.length(0);
+
+    MARRAY_ASSERT(T.length() == n - 1);
+
+    if ( n == 0)
+        return;
+
+    if (n == 1)
+    {
+        y[0] *= beta;
+        return;
+    }
+    // to get the normal base (0), we create a new matrix A_temp with base as 0,
+    // otherwise we will use A element wrong when we call it by index. 
+    // Question, I don't know how native gemv impletation solves this issue.
+    // matrix<double> A_temp = A; 
+    auto restrict Ap =  A.data();
+    auto rsa = A.stride(0);
+    auto csa = A.stride(1);
+    auto restrict xp = x.data();
+    auto incx = x.stride(); 
+    auto incy = y.stride(); 
+
+    // printf("rsa, csa, xp, incx, incy = %d, %d, %d, %d, %d\n", rsa, csa, xp, incx, incy);
+
+    #pragma omp paralell for private(i) shared(Ap, xp, T, y) reduction(+:temp)
+    for (auto i : range(m))
+    {
+        auto temp = 0.0;
+        for (auto k : range(n))
+        {
+            if (k == 0)
+            {
+                temp += (Ap[i*rsa+1*csa] * T[0]) * xp[k*incx];
+            }
+            else if (k == n-1)
+            {
+                temp += (-Ap[i*rsa+(n-2)*csa] * T[n-2]) * xp[k*incx];
+            }
+            else
+            {
+                temp+= (- Ap[i*rsa+(k-1)*csa] * T[k-1] + Ap[i*rsa+(k+1)*csa] * T[k]) * xp[k*incx] ;
+            }
+        }
+        y[i*incy] = alpha * temp + beta * y[i*incy]; 
+    }
+
+
+    // row<double> tempx = x; 
+
+    // MARRAY_ASSERT(T.length() == n - 1);
+
+    // if ( n == 0)
+    //     return;
+
+    // if (n == 1)
+    // {
+    //     y[0] *= beta;
+    //     return;
+    // }
+    // 
+    // auto ximinus1 = tempx[0];
+    // tempx[0] = (-T[0] * tempx[1]);
+    // for (auto i : range(1,n-1))
+    // {
+    //     auto xi = (T[i-1] * ximinus1 - T[i] * tempx[i+1]);
+    //     ximinus1 = tempx[i];
+    //     tempx[i] = xi;
+    // }
+
+    // tempx[n-1] =  (T[n-2] * ximinus1);
+
+    // for (auto i : range(m))
+    // {
+    //     double temp  = 0.0;
+    //     for (auto j : range(n))
+    //     {
+    //         temp += alpha * Ap[i*rsa+j*csa] * tempx[j*incx];
+    //         // printf("%f = %f * %f * %f\n", temp, alpha, A[i][j], tempx[j]);
+    //     }
+    //     y[i] = temp + beta * y[i];
+
+    // }
+
+}

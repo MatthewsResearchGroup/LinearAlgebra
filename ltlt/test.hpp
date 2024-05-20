@@ -71,6 +71,21 @@ auto full_matrix_same_num(int m, int n, T k)
     return A;
 }
 
+template <typename T=double>
+auto random_row(int n)
+{
+    static std::uniform_real_distribution<> dist;
+    row<T> A{n};
+
+    for (auto i : range(n))
+        if constexpr (MArray::detail::is_complex_v<T>)
+            A[i] = T{dist(gen), dist(gen)};
+        else
+            A[i] = dist(gen);
+    return A;
+}
+
+
 inline auto unblocked(const std::function<void(const matrix_view<double>&,len_type,bool)>& unblock)
 {
     return std::bind(unblock, std::placeholders::_1, -1, false);
