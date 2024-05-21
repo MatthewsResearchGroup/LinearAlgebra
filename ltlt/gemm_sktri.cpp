@@ -263,9 +263,11 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     // printf("\n");
     // printf("rsa, csa, xp, incx, incy = %d, %d, %d, %d, %d\n", rsa, csa, xp, incx, incy);
 
-    //#pragma omp paralell for private(i) shared(Ap, xp, T, y) reduction(+:temp)
+    #pragma omp parallel for 
     for (auto i : range(m))
     {
+        // auto id = omp_get_thread_num();
+        // printf("Gemv_sktri at thread : %d\n", id);
         auto temp = 0.0;
         for (auto k : range(n))
         {
@@ -284,6 +286,11 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
         }
         yp[i*incy] = alpha * temp + beta * yp[i*incy]; 
     }
+    // #pragma omp parallel for
+    // for (auto i : range(m))
+    // {   auto id = omp_get_thread_num();
+    //     printf("thread: %d\n", id);
+    // }
 
 
     // row<double> tempx = x; 

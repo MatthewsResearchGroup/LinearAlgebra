@@ -23,6 +23,7 @@
 #include "flame.hpp"
 #include "bli_clock.h"
 #include "timer.h"
+#include "omp.h"
 
 template <typename T>                                                                                                                                    
 bool foo() { static_assert(std::is_same_v<T,int>, ""); return true; }
