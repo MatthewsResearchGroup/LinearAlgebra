@@ -82,6 +82,27 @@ inline void skewtrigemv(double alpha, const matrix_view<const double>& A,
      */
     PROFILE_FUNCTION
     row<double> tempx = x;
+    // printf("print A inside of skewtrigemv\n\n");
+    // for (auto i : range(A.length(0)))
+    // {
+    // for (auto j : range(A.length(1)))
+    // {
+    //     printf("%f, ", A[i][j]);
+    // }
+    // printf("\n");
+    // }
+    // printf("Print T\n");
+    // for (auto i : range(T.length()))
+    //     printf("%f, ", T[i]);
+    // printf("\n");
+    // printf("Print x\n");
+    // for (auto i : range(x.length()))
+    //     printf("%f, ", x[i]);
+    // printf("\n");
+    // printf("Print y\n");
+    // for (auto i : range(y.length()))
+    //     printf("%f, ", y[i]);
+    // printf("\n");
     sktrmv(1.0, T, tempx);
     gemv(alpha, A, tempx, beta, y);
     PROFILE_FLOPS(2*A.length(0)*A.length(1));

@@ -215,6 +215,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     auto n = A.length(1);
     auto m = A.length(0);
 
+
     MARRAY_ASSERT(T.length() == n - 1);
 
     if ( n == 0)
@@ -228,17 +229,41 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     // to get the normal base (0), we create a new matrix A_temp with base as 0,
     // otherwise we will use A element wrong when we call it by index. 
     // Question, I don't know how native gemv impletation solves this issue.
-    // matrix<double> A_temp = A; 
     auto restrict Ap =  A.data();
     auto rsa = A.stride(0);
     auto csa = A.stride(1);
     auto restrict xp = x.data();
+    auto restrict yp = y.data();
     auto incx = x.stride(); 
     auto incy = y.stride(); 
+    
+    // printf("Print Ap---\n\n");
+    // for (auto i : range(m))
+    // {
+    //     for (auto j : range(n))
+    //     {
+    //         printf("%f, ", Ap[i*rsa+j*csa]);
+    //     }
+    //     printf("\n");
+    // }
 
+
+    // printf("\n\n********  T   **********\n");
+    // for (auto i : range(n-1))
+    //     printf("%f, ", T[i]);
+    // printf("\n");
+
+    // printf("\n\n********  xp   **********\n");
+    // for (auto i : range(n))
+    //     printf("%f, ", xp[i*incx]);
+    // printf("\n");
+    // printf("\n\n********  yp   **********\n");
+    // for (auto i : range(n))
+    //     printf("%f, ", y[i*incy]);
+    // printf("\n");
     // printf("rsa, csa, xp, incx, incy = %d, %d, %d, %d, %d\n", rsa, csa, xp, incx, incy);
 
-    #pragma omp paralell for private(i) shared(Ap, xp, T, y) reduction(+:temp)
+    //#pragma omp paralell for private(i) shared(Ap, xp, T, y) reduction(+:temp)
     for (auto i : range(m))
     {
         auto temp = 0.0;
@@ -257,11 +282,12 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                 temp+= (- Ap[i*rsa+(k-1)*csa] * T[k-1] + Ap[i*rsa+(k+1)*csa] * T[k]) * xp[k*incx] ;
             }
         }
-        y[i*incy] = alpha * temp + beta * y[i*incy]; 
+        yp[i*incy] = alpha * temp + beta * yp[i*incy]; 
     }
 
 
     // row<double> tempx = x; 
+    // matrix<double> Ap = A; 
 
     // MARRAY_ASSERT(T.length() == n - 1);
 

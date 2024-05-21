@@ -7,7 +7,7 @@ std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
 
-    auto n = 10;
+    auto n = 20;
     // auto blocksize = 3;
 
 
