@@ -204,12 +204,13 @@ void gemmt_sktri
 	);
 }
 
-
 void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                                       const row_view   <const double>& T,
                                       const row_view   <const double>& x,
                         double beta,  const row_view   <      double>& y)
 {
+    constexpr auto BS = 5;
+
     PROFILE_FUNCTION
     PROFILE_FLOPS(2*A.length(0)*A.length(1));
     auto n = A.length(1);
@@ -234,8 +235,10 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     auto csa = A.stride(1);
     auto restrict xp = x.data();
     auto restrict yp = y.data();
+    auto restrict Tp = T.data();
     auto incx = x.stride(); 
     auto incy = y.stride(); 
+    auto inct = 1;
     
     // printf("Print Ap---\n\n");
     // for (auto i : range(m))
@@ -262,29 +265,123 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     //     printf("%f, ", y[i*incy]);
     // printf("\n");
     // printf("rsa, csa, xp, incx, incy = %d, %d, %d, %d, %d\n", rsa, csa, xp, incx, incy);
-
-    #pragma omp parallel for 
-    for (auto i : range(m))
+    //
+    //
+    //
+    auto Tx = [&](int j, int n, int incx)
     {
-        // auto id = omp_get_thread_num();
-        // printf("Gemv_sktri at thread : %d\n", id);
-        auto temp = 0.0;
-        for (auto k : range(n))
+        if (j == 0)
         {
-            if (k == 0)
-            {
-                temp += (Ap[i*rsa+1*csa] * T[0]) * xp[k*incx];
-            }
-            else if (k == n-1)
-            {
-                temp += (-Ap[i*rsa+(n-2)*csa] * T[n-2]) * xp[k*incx];
-            }
-            else
-            {
-                temp+= (- Ap[i*rsa+(k-1)*csa] * T[k-1] + Ap[i*rsa+(k+1)*csa] * T[k]) * xp[k*incx] ;
-            }
+            return - Tp[j*inct] * xp[(j+1)*incx];
         }
-        yp[i*incy] = alpha * temp + beta * yp[i*incy]; 
+        else if (j == n-1)
+        {
+            return Tp[(j-1)*inct] * xp[(j-1)*incx];
+        }
+        else
+        {
+            return Tp[(j-1)*inct] * xp[(j-1)*incx] - Tp[j*inct] * xp[(j+1)*incx];
+        }
+    };
+    
+
+    //
+    // A as the column major, rsa = 1 and incx = 1
+    //
+    //
+    if ((rsa == 1) && (incy == 1))
+    {
+        #pragma omp parallel
+        {
+            auto [start, end] = partition(n, BS, omp_get_num_threads(), omp_get_thread_num());
+            double Txj[BS];
+
+            auto body = [&](int& start, int BS)
+            {
+                auto j0 = start;
+                for (;j0+BS <= end;j0 += BS)
+                {
+                    for (auto j = j0;j < j0+BS;j++)
+                        Txj[j-j0] = Tx(j, n, incx);
+
+                    for (auto i = 0;i < m;i++)
+                    for (auto j = j0;j < j0+BS;j++)
+                    {
+                        yp[i] += Ap[i + j*csa] * Txj[j-j0];
+                    }
+                }
+                start =  j0;
+            };
+
+            body(start, BS);
+            body(start, 1);
+        }
+    }
+    else if ((csa == 1) && (incx == 1))
+    {
+        #pragma omp parallel
+        {
+            auto [start, end] = partition(m, BS, omp_get_num_threads(), omp_get_thread_num());
+            double yi[BS];
+
+            auto body = [&](int& start, int BS)
+            {
+                auto i0 = start;
+                for (;i0+BS <= end;i0 += BS)
+                {
+                    for (auto i = i0;i < i0+BS;i++)
+                        yi[i-i0] += Ap[i*rsa + 0] * Tx(0, n, 1);
+                    
+                    for (auto j = 1;j < n-1;j++)
+                    for (auto i = i0;i < i0+BS;i++)
+                        yi[i-i0] += Ap[i*rsa + j] * Tx(j, n, 1);
+                    
+                    for (auto i = i0;i < i0+BS;i++)
+                        yi[i-i0] += Ap[i*rsa + n-1] * Tx(n-1, n, 1);
+
+                    if (beta != 0.0)
+                    {
+                        for (auto i = i0;i < i0+BS;i++)
+                            yp[i*incy] = alpha*yi[i-i0] + beta*yp[i*incy];
+                    }
+                    else
+                    {
+                        for (auto i = i0;i < i0+BS;i++)
+                            yp[i*incy] = alpha*yi[i-i0];
+                    }
+                }
+
+                start = i0;
+            };
+
+            body(start, BS);
+            body(start, 1);
+        }
+    }
+    else
+    {
+        #pragma omp parallel for 
+        for (auto i : range(m))
+        {
+            // auto id = omp_get_thread_num();
+            auto temp = 0.0;
+            for (auto j : range(n))
+            {
+                if (j == 0)
+                {
+                    temp += (Ap[i*rsa+1*csa] * T[0]) * xp[j*incx];
+                }
+                else if (j == n-1)
+                {
+                    temp += (-Ap[i*rsa+(n-2)*csa] * T[n-2]) * xp[j*incx];
+                }
+                else
+                {
+                    temp+= (- Ap[i*rsa+(j-1)*csa] * T[j-1] + Ap[i*rsa+(j+1)*csa] * T[j]) * xp[j*incx] ;
+                }
+            }
+            yp[i*incy] = alpha * temp + beta * yp[i*incy]; 
+        }
     }
     // #pragma omp parallel for
     // for (auto i : range(m))

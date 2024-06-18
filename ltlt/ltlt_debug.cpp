@@ -7,12 +7,12 @@ std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
 
-    auto n = 20;
+    //auto n = 20;
     // auto blocksize = 3;
 
 
     // test_bug(n, unblocked(ltlt_unblockRL));
-    test_bug(n, unblocked(ltlt_unblockLL));
+    // test_bug(n, unblocked(ltlt_unblockLL));
     // test_bug(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
     //test_bug(n, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize));
     // test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
@@ -20,7 +20,26 @@ int main(int argc, char* argv[])
     //timer::print_timers();
 
     // testing the multiple cores
-   
+ 
+
+    /*
+     *
+     * Gemv_sktri function testing
+     *
+     */
+
+    // Matrix size 
+    auto n = 10;
+    
+    // Generate a raomdom square matrix A
+    auto A = random_matrix(n,n);
+    auto T = random_row(n-1);
+    auto x = random_row(n);
+    auto y = random_row(n);
+    //auto y = full_matrix_same_num(n,1,0.0);
+
+    gemv_sktri(1.0, A,T,x, 1.0, y);
+
 
     // auto m = 10;
     // auto n = 10;
