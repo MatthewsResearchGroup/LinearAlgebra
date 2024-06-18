@@ -10,6 +10,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <tuple>
 
 //must come first
 #define MARRAY_USE_BLIS
@@ -333,6 +334,19 @@ inline void matrixprint(const matrix_view<double>& B)
         printf("\n");
     }
 } 
+
+inline std::tuple<int, int> partition(int64_t n, int64_t bs, unsigned idx, unsigned nthreads)
+{
+    if (nthreads == 1)
+        return std::tuple(0, n);
+
+    int start = (idx * n) / nthreads;
+    int end = ((idx + 1) * n) / nthreads;
+
+    return std::tuple(start, end);
+
+}
+
 
 void ltlt_unblockRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false);
 
