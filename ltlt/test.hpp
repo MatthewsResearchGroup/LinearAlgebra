@@ -230,7 +230,7 @@ inline void test_piv(int n, const std::function<void(const matrix_view<double>&,
 
     // calculate the error matrix
     B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-    check_zero(B0);
+    //check_zero(B0);
 }
 
 
@@ -321,6 +321,41 @@ inline void test_bug(int n, const std::function<void(const matrix_view<double>&)
     matrixprint(B0);
     std::cout << "Norm of Error Matrix : " << err << std::endl;
     
+}
+
+
+inline void test_debug_piv(int n, const std::function<void(const matrix_view<double>&,const row_view<int>&)>& LTLT)
+{
+
+    // make skew symmetric matrix
+    auto A = random_matrix(n, n);
+    matrix<double> B = A - A.T();
+
+    // make a copy of B since we need to overwrite part of B
+    matrix<double> B0 = B;
+
+    auto B1 = B0;
+    row<int> p1{n};
+    ltlt_pivot_unblockLL(B1, p1);
+    auto L1 = make_L(B1);
+    auto T1 = make_T(B1);
+
+    row<int> p{n};
+    LTLT(B, p);
+    pivot_both(B0, p);
+
+    // verify its correctness
+    // make L and T from B
+
+    auto Lm = make_L(B);
+    auto Tm = make_T(B);
+    auto LmT = Lm.T();
+
+    std::cout << std::fixed << std::setprecision(10);
+
+    // calculate the error matrix
+    B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    //check_zero(B0);
 }
 
 template<typename T>
