@@ -30,6 +30,8 @@ void ltlt_unblockLL(const matrix_view<double>& X, len_type k, bool first_column)
     auto [B0, B1] = split(B, k-B.front());
     auto& R4 = B1;
 
+    int count = 2;
+
     while (B0)
     {
         // ( T  || m  |   B0    | B1 )
@@ -39,16 +41,49 @@ void ltlt_unblockLL(const matrix_view<double>& X, len_type k, bool first_column)
         auto temp = temp_.rebased(1, r1).T();
         temp[r1][R0] = L[r1][R0];
         temp[r1][r1] = 1; // L[r1][r1]
+ 
+        // printf("Print X before sktri_gemv\n");
+        // matrixprint(X);
 
-        blas::skewtrigemv(-1.0,         L       [     r2|R3|R4][R0|r1],
+        // printf("\n\n");
+        // printf("r2|R3: %d, %d\n", (r2|R3).from(), (r2|R3).to() );
+        // printf("R0|r1: %d, %d\n", (R0).from(), (R0).to() );
+        // printf("r1: %d\n", r1 );
+        // printf("L.base: %d, %d\n", L.base(0), L.base(1));
+        // printf("Print L [     r2|R3|R4][R0|r1]\n");
+        // matrixprint(L[     r2|R3|R4][R0|r1]);
+        // auto t = subdiag(X       [R0|r1        ][R0|r1]);
+        // printf("************ sundiag(X [R0|r1        ][R0|r1])*************\n");
+        // for (auto i : R0|r1)
+        // {
+        //     for (auto j : R0|r1)
+        //     {
+        //         printf("%f, ", X[i][j]);
+        //     }
+        //     printf("\n");
+        // }
+        // printf("\n");
+
+
+        // blas::skewtrigemv(-1.0,         L       [     r2|R3|R4][R0|r1],
+        //                         subdiag(X       [R0|r1        ][R0|r1]),
+        //                                 temp.T()[R0|r1        ][   r1],
+        //                    1.0,         X       [     r2|R3|R4][   r1]);
+
+
+
+        gemv_sktri(-1.0,         L       [     r2|R3|R4][R0|r1],
                                 subdiag(X       [R0|r1        ][R0|r1]),
                                         temp.T()[R0|r1        ][   r1],
                            1.0,         X       [     r2|R3|R4][   r1]);
 
+        // printf("Print X After sktri_gemv\n");
+        // matrixprint(X);
         L[R3|R4][r2] = X[R3|R4][r1] / X[r2][r1];
 
         // ( R0 | r1 || r2 | R3 | R4 )
         // (    T    || m  | B0 | B1 )
         tie(T, m, B0) = continue_with(R0, r1, r2, R3);
+        count += 1;
     }
 }

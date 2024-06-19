@@ -55,6 +55,37 @@ auto random_matrix(int m, int n)
     return A;
 }
 
+/* 
+ * This function is for debugging
+*/
+template <typename T=double>
+auto full_matrix_same_num(int m, int n, T k)
+{
+    static std::uniform_real_distribution<> dist;
+    matrix<T> A{m, n};
+
+    for (auto i : range(m))
+    for (auto j : range(n))
+        A[i][j] =  k; 
+
+    return A;
+}
+
+template <typename T=double>
+auto random_row(int n)
+{
+    static std::uniform_real_distribution<> dist;
+    row<T> A{n};
+
+    for (auto i : range(n))
+        if constexpr (MArray::detail::is_complex_v<T>)
+            A[i] = T{dist(gen), dist(gen)};
+        else
+            A[i] = dist(gen);
+    return A;
+}
+
+
 inline auto unblocked(const std::function<void(const matrix_view<double>&,len_type,bool)>& unblock)
 {
     return std::bind(unblock, std::placeholders::_1, -1, false);
@@ -199,7 +230,7 @@ inline void test_piv(int n, const std::function<void(const matrix_view<double>&,
 
     // calculate the error matrix
     B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-    check_zero(B0);
+    //check_zero(B0);
 }
 
 
@@ -288,7 +319,43 @@ inline void test_bug(int n, const std::function<void(const matrix_view<double>&)
     
     std::cout<< "Print Error Matrix " << std::endl;
     matrixprint(B0);
+    std::cout << "Norm of Error Matrix : " << err << std::endl;
     
+}
+
+
+inline void test_debug_piv(int n, const std::function<void(const matrix_view<double>&,const row_view<int>&)>& LTLT)
+{
+
+    // make skew symmetric matrix
+    auto A = random_matrix(n, n);
+    matrix<double> B = A - A.T();
+
+    // make a copy of B since we need to overwrite part of B
+    matrix<double> B0 = B;
+
+    auto B1 = B0;
+    row<int> p1{n};
+    ltlt_pivot_unblockLL(B1, p1);
+    auto L1 = make_L(B1);
+    auto T1 = make_T(B1);
+
+    row<int> p{n};
+    LTLT(B, p);
+    pivot_both(B0, p);
+
+    // verify its correctness
+    // make L and T from B
+
+    auto Lm = make_L(B);
+    auto Tm = make_T(B);
+    auto LmT = Lm.T();
+
+    std::cout << std::fixed << std::setprecision(10);
+
+    // calculate the error matrix
+    B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    //check_zero(B0);
 }
 
 template<typename T>

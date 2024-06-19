@@ -1,6 +1,8 @@
 #ifndef LTLT_HPP
 #define LTLT_HPP
 
+#define MARRAY_DEFAULT_LAYOUT ROW_MAJOR 
+
 #include <type_traits>
 #include <utility>
 #include <tuple>
@@ -10,6 +12,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <tuple>
 
 //must come first
 #define MARRAY_USE_BLIS
@@ -23,6 +26,7 @@
 #include "flame.hpp"
 #include "bli_clock.h"
 #include "timer.h"
+#include "omp.h"
 
 template <typename T>                                                                                                                                    
 bool foo() { static_assert(std::is_same_v<T,int>, ""); return true; }
@@ -82,6 +86,27 @@ inline void skewtrigemv(double alpha, const matrix_view<const double>& A,
      */
     PROFILE_FUNCTION
     row<double> tempx = x;
+    // printf("print A inside of skewtrigemv\n\n");
+    // for (auto i : range(A.length(0)))
+    // {
+    // for (auto j : range(A.length(1)))
+    // {
+    //     printf("%f, ", A[i][j]);
+    // }
+    // printf("\n");
+    // }
+    // printf("Print T\n");
+    // for (auto i : range(T.length()))
+    //     printf("%f, ", T[i]);
+    // printf("\n");
+    // printf("Print x\n");
+    // for (auto i : range(x.length()))
+    //     printf("%f, ", x[i]);
+    // printf("\n");
+    // printf("Print y\n");
+    // for (auto i : range(y.length()))
+    //     printf("%f, ", y[i]);
+    // printf("\n");
     sktrmv(1.0, T, tempx);
     gemv(alpha, A, tempx, beta, y);
     PROFILE_FLOPS(2*A.length(0)*A.length(1));
@@ -299,16 +324,31 @@ inline void matrixprint(const matrix_view<double>& B)
 {
     auto m = B.length(0);
     auto n = B.length(1);
+    auto baserow = B.base(0);
+    auto basecol = B.base(1);
 
     for (auto i : range(m))
     {
         for (auto j : range(n))
         {
-            printf("%f,", B[i][j]);
+            printf("%f ", B[i+baserow][j+basecol]);
         }
         printf("\n");
     }
 } 
+
+inline std::tuple<int, int> partition(int64_t n, int64_t bs, unsigned nthreads, unsigned idx)
+{
+    if (nthreads == 1)
+        return std::tuple(0, n);
+
+    int start = (idx * n) / nthreads;
+    int end = ((idx + 1) * n) / nthreads;
+
+    return std::tie(start, end);
+
+}
+
 
 void ltlt_unblockRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false);
 
@@ -331,9 +371,9 @@ void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<int>& pi,
 void gemm_sktri
      (
        double  alpha, \
-       const matrix_view<double>&  a, \
-       const row_view<double>& d,  \
-       const matrix_view<double>&  b, \
+       const matrix_view<const double>&  a, \
+       const row_view<const double>& d,  \
+       const matrix_view<const double>&  b, \
        double  beta, \
        const matrix_view<double>&  c 
      );
@@ -342,11 +382,16 @@ void gemmt_sktri
      ( 
        char    uploc, \  
        double  alpha, \
-       const matrix_view<double>&  a, \
-       const row_view<double>& d,  \
-       const matrix_view<double>&  b, \
+       const matrix_view<const double>&  a, \
+       const row_view<const double>& d,  \
+       const matrix_view<const double>&  b, \
        double  beta, \
        const matrix_view<double>&  c  
      );
 
+
+void gemv_sktri(double alpha, const matrix_view<const double>& A,\
+                                      const row_view   <const double>& T, \
+                                      const row_view   <const double>& x,\
+                        double beta,  const row_view   <      double>& y);
 #endif

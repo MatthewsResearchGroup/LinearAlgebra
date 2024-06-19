@@ -15,6 +15,7 @@ void ltlt_blockLL(const matrix_view<double>& X, len_type block_size, const std::
         // (  T ||  m |       B      )
         // ( R0 || r1 | R2 | r3 | R4 )
         auto [R0, r1, R2, r3, R4] = repartition<DYNAMIC,1>(T, m, B, block_size);
+        printf("r1 = %d, \n", r1);
 
         auto temp = temp_.rebased(0, r1);
         temp[r1][R0] = L[r1][R0];
@@ -22,15 +23,15 @@ void ltlt_blockLL(const matrix_view<double>& X, len_type block_size, const std::
         temp[R2][R0] = L[R2][R0];
         temp[R2][r1] = L[R2][r1];
 
-        blas::skew_tridiag_gemm(-1.0,         L       [     R2|r3|R4][R0|r1   ],
-                                      subdiag(X       [R0|r1        ][R0|r1   ]),
-                                              temp.T()[R0|r1        ][   r1|R2],
-                               1.0,         X       [     R2|r3|R4][   r1|R2]);
+        //blas::skew_tridiag_gemm(-1.0,         L       [     R2|r3|R4][R0|r1   ],
+        //                              subdiag(X       [R0|r1        ][R0|r1   ]),
+        //                                      temp.T()[R0|r1        ][   r1|R2],
+        //                       1.0,         X       [     R2|r3|R4][   r1|R2]);
 
-        //gemm_sktri(-1.0,   L        [     R2|r3|R4][R0|r1   ],
-        //            subdiag(X       [R0|r1        ][R0|r1   ]),
-        //                    temp.T()[R0|r1        ][   r1|R2], 
-        //            1.0,   X        [     R2|r3|R4][   r1|R2]);
+        gemm_sktri(-1.0,   L        [     R2|r3|R4][R0|r1   ],
+                    subdiag(X       [R0|r1        ][R0|r1   ]),
+                            temp.T()[R0|r1        ][   r1|R2], 
+                    1.0,   X        [     R2|r3|R4][   r1|R2]);
                 
 
         LTLT_UNB(X[r1|R2|r3|R4][r1|R2|r3|R4], (r1|R2|r3).size(), true);
