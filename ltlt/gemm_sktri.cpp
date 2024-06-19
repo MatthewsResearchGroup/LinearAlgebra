@@ -209,7 +209,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                                       const row_view   <const double>& x,
                         double beta,  const row_view   <      double>& y)
 {
-    constexpr auto BS = 5;
+    constexpr auto BS = 3;
 
     PROFILE_FUNCTION
     PROFILE_FLOPS(2*A.length(0)*A.length(1));
@@ -238,7 +238,9 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     auto restrict Tp = T.data();
     auto incx = x.stride(); 
     auto incy = y.stride(); 
-    auto inct = 1;
+    auto inct = T.stride();
+
+    printf("rsa, csa, incx, incy, inct = %d, %d, %d, %d, %d\n", rsa, csa, incx, incy, inct);
     
     // printf("Print Ap---\n\n");
     // for (auto i : range(m))
@@ -293,7 +295,8 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     {
         #pragma omp parallel
         {
-            auto [start, end] = partition(n, BS, omp_get_num_threads(), omp_get_thread_num());
+            int start, end;
+            std::tie(start, end) = partition(n, BS, omp_get_num_threads(), omp_get_thread_num());
             double Txj[BS];
 
             auto body = [&](int& start, int BS)
@@ -321,21 +324,26 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     {
         #pragma omp parallel
         {
-            auto [start, end] = partition(m, BS, omp_get_num_threads(), omp_get_thread_num());
-            double yi[BS];
+            int start, end;
+            std::tie(start, end) = partition(m, BS, omp_get_num_threads(), omp_get_thread_num());
+            //printf("start, end, OMM_NUM_THREAD, THREAD_ID = %d, %d, %d, %d\n", start, end, omp_get_num_threads(), omp_get_thread_num());
 
             auto body = [&](int& start, int BS)
             {
                 auto i0 = start;
                 for (;i0+BS <= end;i0 += BS)
                 {
+                double yi[BS];
+                memset(&yi, 0, BS*sizeof(double));
                     for (auto i = i0;i < i0+BS;i++)
+                    {
                         yi[i-i0] += Ap[i*rsa + 0] * Tx(0, n, 1);
-                    
+                    }
                     for (auto j = 1;j < n-1;j++)
                     for (auto i = i0;i < i0+BS;i++)
+                    {
                         yi[i-i0] += Ap[i*rsa + j] * Tx(j, n, 1);
-                    
+                    }
                     for (auto i = i0;i < i0+BS;i++)
                         yi[i-i0] += Ap[i*rsa + n-1] * Tx(n-1, n, 1);
 

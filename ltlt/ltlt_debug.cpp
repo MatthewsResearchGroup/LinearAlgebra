@@ -1,18 +1,17 @@
 #include <cstdlib>
 #include "test.hpp"
 
-
 //std::mt19937_64 gen(time(nullptr));
 std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
 
-    //auto n = 20;
+    auto n = 20;
     // auto blocksize = 3;
 
 
     // test_bug(n, unblocked(ltlt_unblockRL));
-    // test_bug(n, unblocked(ltlt_unblockLL));
+    test_bug(n, unblocked(ltlt_unblockLL));
     // test_bug(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
     //test_bug(n, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize));
     //test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
@@ -30,19 +29,56 @@ int main(int argc, char* argv[])
      *
      */
 
-    // Matrix size 
-    auto n = 10;
-    
-    // Generate a raomdom square matrix A
-    auto A = random_matrix(n,n);
-    auto T = random_row(n-1);
-    auto x = random_row(n);
-    auto y = random_row(n);
-    //auto y = full_matrix_same_num(n,1,0.0);
+    // // Matrix size 
+    // auto n = 30;
+    // 
+    // // Generate a raomdom square matrix A
+    // auto A = random_matrix(n,n);
+    // printf("----------Matrix A------------\n");
+    // matrixprint(A);
+    // printf("------------------------------\n");
+    // auto B = full_matrix_same_num(n,n,1.0);
+    // auto T = make_T(B);
+    // auto t = subdiag(T);
+    // //auto T = random_row(n-1);
+    // // printf("----------Matrix T------------\n");
+    // // for (auto i : range(t.length()))
+    // //     std::cout << t[i] << ", ";
+    // // printf("\n------------------------------\n");
+    // auto x = random_row(n);
+    // printf("----------Vector x------------\n");
+    // for (auto i : range(x.length()))
+    //     std::cout << x[i] << ", ";
+    // printf("\n------------------------------\n");
+    // auto y = random_row(n);
+    // printf("\n----------Vector y------------\n");
+    // for (auto i : range(y.length()))
+    //     std::cout << y[i] << ", ";
+    // printf("\n------------------------------\n");
+    // //auto y = full_matrix_same_num(n,1,0.0);
 
-    gemv_sktri(1.0, A,T,x, 1.0, y);
+    // auto y_temp = y;
+    // printf("\n----------Vector y_temp------------\n");
+    // for (auto i : range(y_temp.length()))
+    //     std::cout << y_temp[i] << ", ";
+    // printf("\n------------------------------\n");
+
+    // gemv_sktri(1.0, A, t, x, 1.0, y);
+    // printf("----------y after gemv_sktri------------\n");
+    // for (auto i : range(y.length()))
+    //     std::cout << y[i] << ", ";
+    // printf("\n------------------------------\n");
 
 
+
+
+    // // using orginal gemv as verification
+
+    // blas::skewtrigemv(1.0, A, t, x, 1.0, y_temp);
+    // printf("----------y_temp after gemv_sktri------------\n");
+    // for (auto i : range(y_temp.length()))
+    //     std::cout << y_temp[i] << ", ";
+    // printf("\n------------------------------\n");
     // auto m = 10;
     // auto n = 10;
     // auto A = random_matrix(m, n);

@@ -1,6 +1,8 @@
 #ifndef LTLT_HPP
 #define LTLT_HPP
 
+#define MARRAY_DEFAULT_LAYOUT ROW_MAJOR 
+
 #include <type_traits>
 #include <utility>
 #include <tuple>
@@ -335,7 +337,7 @@ inline void matrixprint(const matrix_view<double>& B)
     }
 } 
 
-inline std::tuple<int, int> partition(int64_t n, int64_t bs, unsigned idx, unsigned nthreads)
+inline std::tuple<int, int> partition(int64_t n, int64_t bs, unsigned nthreads, unsigned idx)
 {
     if (nthreads == 1)
         return std::tuple(0, n);
@@ -343,7 +345,7 @@ inline std::tuple<int, int> partition(int64_t n, int64_t bs, unsigned idx, unsig
     int start = (idx * n) / nthreads;
     int end = ((idx + 1) * n) / nthreads;
 
-    return std::tuple(start, end);
+    return std::tie(start, end);
 
 }
 

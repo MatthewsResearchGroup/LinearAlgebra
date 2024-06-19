@@ -65,17 +65,17 @@ void ltlt_unblockLL(const matrix_view<double>& X, len_type k, bool first_column)
         // printf("\n");
 
 
-        blas::skewtrigemv(-1.0,         L       [     r2|R3|R4][R0|r1],
-                                subdiag(X       [R0|r1        ][R0|r1]),
-                                        temp.T()[R0|r1        ][   r1],
-                           1.0,         X       [     r2|R3|R4][   r1]);
-
-
-
-        // gemv_sktri(-1.0,         L       [     r2|R3|R4][R0|r1],
+        // blas::skewtrigemv(-1.0,         L       [     r2|R3|R4][R0|r1],
         //                         subdiag(X       [R0|r1        ][R0|r1]),
         //                                 temp.T()[R0|r1        ][   r1],
         //                    1.0,         X       [     r2|R3|R4][   r1]);
+
+
+
+        gemv_sktri(-1.0,         L       [     r2|R3|R4][R0|r1],
+                                subdiag(X       [R0|r1        ][R0|r1]),
+                                        temp.T()[R0|r1        ][   r1],
+                           1.0,         X       [     r2|R3|R4][   r1]);
 
         // printf("Print X After sktri_gemv\n");
         // matrixprint(X);
