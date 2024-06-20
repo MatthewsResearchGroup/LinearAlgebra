@@ -30,8 +30,10 @@ void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<int>& pi, l
         printf("print L before pivot\n");
         matrixprint(L);
 
-        pivot_rows(L[R2|r3|R4][R0|r1], pi[R2|r3]);
-
+        if (! (R0|r1))
+        {
+            pivot_rows(L[R2|r3|R4][R0|r1], pi[R2|r3]);
+        }    
         auto temp = temp_.rebased(1, R2.front());
         temp[r3][R2] = L[r3][R2];
         temp[r3][r3] = 1; // L[r3][r3]

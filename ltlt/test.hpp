@@ -355,7 +355,8 @@ inline void test_debug_piv(int n, const std::function<void(const matrix_view<dou
 
     // calculate the error matrix
     B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-    //check_zero(B0);
+    // check_zero(B0);
+    matrixprint(B0);
 }
 
 template<typename T>

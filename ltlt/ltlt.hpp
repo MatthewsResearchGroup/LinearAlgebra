@@ -166,7 +166,7 @@ inline void skew_tridiag_rankk(char uplo,
                                double beta,  const matrix_view<      double>& C)
 {
     PROFILE_FUNCTION
-    matrix<double> tempB = A.T();
+    matrix<double> tempB = A.T(); 
     sktrmm(1, T, tempB);
     PROFILE_SECTION("gemmt")
     gemmt(uplo, alpha, A, tempB, beta, C);

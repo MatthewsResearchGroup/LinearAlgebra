@@ -6,18 +6,18 @@ std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
 
-    auto n = 20;
-    // auto blocksize = 3;
+    auto n = 7;
+    auto blocksize = 3;
 
 
     // test_bug(n, unblocked(ltlt_unblockRL));
-    test_bug(n, unblocked(ltlt_unblockLL));
-    // test_bug(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
+    //test_bug(n, unblocked(ltlt_unblockLL));
+    //test_bug(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
     //test_bug(n, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize));
     //test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
     //test_bug(n, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize));
     // test_piv(n, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize));
-    // test_debug_piv(n, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize));
+    //test_debug_piv(n, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize));
     //timer::print_timers();
 
     // testing the multiple cores
