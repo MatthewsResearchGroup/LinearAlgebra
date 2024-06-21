@@ -166,9 +166,6 @@ inline void test(int n, const std::function<void(const matrix_view<double>&)>& L
     auto L1 = make_L(B1);
     auto T1 = make_T(B1);
 
-    // verify its correctness
-    // make L and T from B
-
     auto Lm = make_L(B);
     auto Tm = make_T(B);
 
@@ -333,12 +330,14 @@ inline void test_debug_piv(int n, const std::function<void(const matrix_view<dou
 
     // make a copy of B since we need to overwrite part of B
     matrix<double> B0 = B;
+    std::cout << "print B" << std::endl;
+    matrixprint(B);
 
-    auto B1 = B0;
-    row<int> p1{n};
-    ltlt_pivot_unblockLL(B1, p1);
-    auto L1 = make_L(B1);
-    auto T1 = make_T(B1);
+    // auto B1 = B0;
+    // row<int> p1{n};
+    // ltlt_pivot_unblockLL(B1, p1);
+    // auto L1 = make_L(B1);
+    // auto T1 = make_T(B1);
 
     row<int> p{n};
     LTLT(B, p);
@@ -353,9 +352,22 @@ inline void test_debug_piv(int n, const std::function<void(const matrix_view<dou
 
     std::cout << std::fixed << std::setprecision(10);
 
+    std::cout << "print LM" << std::endl;
+    matrixprint(Lm);
+    std::cout << "print TM" << std::endl;
+    matrixprint(Tm);
+    std::cout << "print B0" << std::endl;
+    matrixprint(B0);
+    std::cout << "print B" << std::endl;
+    matrixprint(B);
+
     // calculate the error matrix
-    B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    auto B0_res = MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    std::cout << "print B0_res" << std::endl;
+    matrixprint(B0_res);
+    B0 -= B0_res;
     // check_zero(B0);
+    std::cout << "Error Matirx " << std::endl;
     matrixprint(B0);
 }
 

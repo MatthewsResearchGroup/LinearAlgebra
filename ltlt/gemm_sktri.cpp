@@ -209,7 +209,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                                       const row_view   <const double>& x,
                         double beta,  const row_view   <      double>& y)
 {
-    constexpr auto BS = 3;
+    constexpr auto BS = 4;
 
     PROFILE_FUNCTION
     PROFILE_FLOPS(2*A.length(0)*A.length(1));
@@ -240,7 +240,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     auto incy = y.stride(); 
     auto inct = T.stride();
 
-    printf("rsa, csa, incx, incy, inct = %d, %d, %d, %d, %d\n", rsa, csa, incx, incy, inct);
+    // printf("rsa, csa, incx, incy, inct = %d, %d, %d, %d, %d\n", rsa, csa, incx, incy, inct);
     
     // printf("Print Ap---\n\n");
     // for (auto i : range(m))

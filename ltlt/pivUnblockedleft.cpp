@@ -18,12 +18,21 @@ void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<int>& pi,
 
         auto pi2 = blas::iamax(X[r2|R3][r1]);
         pi[r2] = pi2;
+        printf("pi2 is %d\n", pi2);
 
+        std::cout << "----------------Here is the first intetation before pivot_rows------------------" << std::endl;
+        matrixprint(X);
         pivot_rows(X[r2|R3][r1], pi2);
+        std::cout << "----------------Here is the first intetation after pivot_rows------------------" << std::endl;
+        matrixprint(X);
 
         L[R3][r2] = X[R3][r1] / X[r2][r1];
+        std::cout << "----------------Here is the first intetation after X[R3][r1] / X[r2][r1]------------------" << std::endl;
+        matrixprint(X);
 
         pivot_both(X[r2|R3][r2|R3], pi2, BLIS_LOWER, BLIS_SKEW_SYMMETRIC);
+        std::cout << "----------------Here is the first intetation pivot both--------------------" << std::endl;
+        matrixprint(X);
 
         // ( R0 | r1 || r2 | R3 )
         // (    T    || m  | B  )
@@ -40,6 +49,8 @@ void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<int>& pi,
 
     while (B0)
     {
+        std::cout << "----------------UNBLOCK not first interation, before interation------------------" << std::endl;
+        matrixprint(X);
         // ( T  || m  ||   B0    | B1 )
         // ( R0 || r1 || r2 | R3 | R4 )
         auto [R0, r1, r2, R3] = repartition(T, m, B0);
@@ -53,15 +64,27 @@ void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<int>& pi,
                                         temp[R0|r1   ][   r1],
                            1.0,         X   [r2|R3|R4][   r1]);
 
+        std::cout << "----------------UNBLOCK not first interation, after skewtrigemv------------------" << std::endl;
+        matrixprint(X);
         auto pi2 = blas::iamax(X[r2|R3|R4][r1]);
         pi[r2] = pi2;
 
+        printf("pi2 = %d\n", pi2);
+            
         pivot_rows(X[r2|R3|R4][r1], pi2);
+        std::cout << "----------------UNBLOCK not first interation, after pivot_rows------------------" << std::endl;
+        matrixprint(X);
 
         L[R3|R4][r2] = X[R3|R4][r1] / X[r2][r1];
+        std::cout << "----------------UNBLOCK not first interation, after X[R3|R4][r2] updating------------------" << std::endl;
+        matrixprint(X);
 
         pivot_rows(L[r2|R3|R4][R0|r1   ], pi2);
+        std::cout << "----------------UNBLOCK not first interation, after L part pivoting------------------" << std::endl;
+        matrixprint(X);
         pivot_both(X[r2|R3|R4][r2|R3|R4], pi2, BLIS_LOWER, BLIS_SKEW_SYMMETRIC);
+        std::cout << "----------------UNBLOCK not first interation, after X part both pivoting------------------" << std::endl;
+        matrixprint(X);
 
         // ( R0 | r1 || r2 | R3 | R4 )
         // (    T    || m  | B0 | B1 )

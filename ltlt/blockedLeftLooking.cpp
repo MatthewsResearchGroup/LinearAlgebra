@@ -15,7 +15,6 @@ void ltlt_blockLL(const matrix_view<double>& X, len_type block_size, const std::
         // (  T ||  m |       B      )
         // ( R0 || r1 | R2 | r3 | R4 )
         auto [R0, r1, R2, r3, R4] = repartition<DYNAMIC,1>(T, m, B, block_size);
-        printf("r1 = %d, \n", r1);
 
         auto temp = temp_.rebased(0, r1);
         temp[r1][R0] = L[r1][R0];
