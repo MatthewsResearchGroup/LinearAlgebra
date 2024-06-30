@@ -356,6 +356,8 @@ inline void test_debug_piv(int n, const std::function<void(const matrix_view<dou
     matrixprint(Lm);
     std::cout << "print TM" << std::endl;
     matrixprint(Tm);
+    std::cout << "print LM.T" << std::endl;
+    matrixprint(LmT);
     std::cout << "print B0" << std::endl;
     matrixprint(B0);
     std::cout << "print B" << std::endl;

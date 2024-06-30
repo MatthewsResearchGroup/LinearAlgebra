@@ -6,8 +6,8 @@ std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
 
-    auto n = 6;
-    auto blocksize = 2;
+    // auto n = 100;
+    // auto blocksize = 7;
 
 
     // test_bug(n, unblocked(ltlt_unblockRL));
@@ -16,8 +16,9 @@ int main(int argc, char* argv[])
     //test_bug(n, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize));
     //test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
     //test_bug(n, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize));
-    // test_piv(n, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize));
-    test_debug_piv(n, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize));
+    //test_piv(n, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize));
+    //test_debug_piv(n, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize));
+    //test_debug_piv(n, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockRL, blocksize));
     //test_debug_piv(n, unblocked(ltlt_pivot_unblockLL));
     //timer::print_timers();
 
@@ -204,5 +205,45 @@ int main(int argc, char* argv[])
     // printf("Norm of Error Matrix : %e\n", norm(C));
     // //std::cout << "norm of Error matrix : " << norm(C) << std::endl;
     // // matrixprint(B);
+    //
+    //
+    //auto n = 5;
+    for (auto n = 100; n <= 1000; n+=100)
+    {
+    auto a = random_row(n);
+    // printf("----------Vector a------------\n");
+    // for (auto i : range(a.length()))
+    //     std::cout << a[i] << ", ";
+    // printf("\n\n");
+    auto b = random_row(n);
+    // printf("----------Vector b------------\n");
+    // for (auto i : range(b.length()))
+    //     std::cout << b[i] << ", ";
+    // printf("\n\n");
+    auto C = random_matrix(n, n);
+    auto C_copy = C;
+    // printf("Print X before SKR2\n");
+    // matrixprint(C);
+    // printf("Print C_COPY before SKR2\n");
+    //matrixprint(C_copy);
+
+    skr2(1.0, a, b, 1.0, C);
+    // printf("Print X After SKR2\n");
+    // matrixprint(C);
+
+    blas::skr2('L', 1.0, a, b, 1.0, C_copy);
+    // printf("Print C_COPY after SKR2\n");
+    // matrixprint(C_copy);
+
+    C -= C_copy;
+    // printf("printf Error matrix\n");
+    // matrixprint(C);
+    printf("Norm of Error Matrix : %e\n", norm(C));
+    }
+
+
+
+
+
 
 }

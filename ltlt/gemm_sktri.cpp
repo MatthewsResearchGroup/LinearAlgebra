@@ -242,34 +242,6 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
 
     // printf("rsa, csa, incx, incy, inct = %d, %d, %d, %d, %d\n", rsa, csa, incx, incy, inct);
     
-    // printf("Print Ap---\n\n");
-    // for (auto i : range(m))
-    // {
-    //     for (auto j : range(n))
-    //     {
-    //         printf("%f, ", Ap[i*rsa+j*csa]);
-    //     }
-    //     printf("\n");
-    // }
-
-
-    // printf("\n\n********  T   **********\n");
-    // for (auto i : range(n-1))
-    //     printf("%f, ", T[i]);
-    // printf("\n");
-
-    // printf("\n\n********  xp   **********\n");
-    // for (auto i : range(n))
-    //     printf("%f, ", xp[i*incx]);
-    // printf("\n");
-    // printf("\n\n********  yp   **********\n");
-    // for (auto i : range(n))
-    //     printf("%f, ", y[i*incy]);
-    // printf("\n");
-    // printf("rsa, csa, xp, incx, incy = %d, %d, %d, %d, %d\n", rsa, csa, xp, incx, incy);
-    //
-    //
-    //
     auto Tx = [&](int j, int n, int incx)
     {
         if (j == 0)
@@ -391,48 +363,135 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
             yp[i*incy] = alpha * temp + beta * yp[i*incy]; 
         }
     }
-    // #pragma omp parallel for
-    // for (auto i : range(m))
-    // {   auto id = omp_get_thread_num();
-    //     printf("thread: %d\n", id);
-    // }
-
-
-    // row<double> tempx = x; 
-    // matrix<double> Ap = A; 
-
-    // MARRAY_ASSERT(T.length() == n - 1);
-
-    // if ( n == 0)
-    //     return;
-
-    // if (n == 1)
-    // {
-    //     y[0] *= beta;
-    //     return;
-    // }
-    // 
-    // auto ximinus1 = tempx[0];
-    // tempx[0] = (-T[0] * tempx[1]);
-    // for (auto i : range(1,n-1))
-    // {
-    //     auto xi = (T[i-1] * ximinus1 - T[i] * tempx[i+1]);
-    //     ximinus1 = tempx[i];
-    //     tempx[i] = xi;
-    // }
-
-    // tempx[n-1] =  (T[n-2] * ximinus1);
-
-    // for (auto i : range(m))
-    // {
-    //     double temp  = 0.0;
-    //     for (auto j : range(n))
-    //     {
-    //         temp += alpha * Ap[i*rsa+j*csa] * tempx[j*incx];
-    //         // printf("%f = %f * %f * %f\n", temp, alpha, A[i][j], tempx[j]);
-    //     }
-    //     y[i] = temp + beta * y[i];
-
-    // }
 
 }
+
+void skr2(double alpha, const row_view<const double>& a,
+                        const row_view<const double>& b,
+          double beta,  const matrix_view<   double>& C)
+{
+    constexpr int BS = 5;
+    
+    auto m = C.length(0);
+    auto n = C.length(1);
+    
+    MARRAY_ASSERT(m == n);
+
+    auto restrict ap = a.data();
+    auto restrict bp = b.data();
+    auto restrict Cp = C.data();
+
+    auto inca = a.stride();
+    auto incb = a.stride();
+    auto rsc = C.stride(0);
+    auto csc = C.stride(1);
+
+    if (n == 0)
+        return ;
+    if (n == 1)
+    {
+        Cp[0] *= beta;
+        return ;
+    }
+
+    //printf("inca, incb, rsc, csc = %d, %d, %d, %d\n", inca, incb, rsc, csc);
+
+
+    if (rsc == 1) // Column major
+    {
+        for (auto j : range(n))
+        {
+            auto a_temp = alpha * ap[j*inca];
+            auto b_temp = alpha * bp[j*incb];
+            for (auto i : range(j,n))
+            {
+                Cp[i+j*csc] = ap[i*inca] * b_temp - a_temp * bp[i*incb] + beta * Cp[i+j*csc];
+            }
+        }
+    }
+    else if (csc == 1) // Row major 
+    {
+        //printf("There are %d threads running\n", omp_get_num_threads());
+        int i_left;
+        #pragma omp parallel
+        {
+            // std::cout << "There are " << omp_get_num_threads() << " threads running! BlockSize is " << BS << "!" << std::endl;
+            auto BS_THREADS = BS * omp_get_num_threads();
+            i_left = ((int)n/BS_THREADS) * BS_THREADS;
+            //printf("BS_THREADS = %d\n", BS_THREADS);
+            auto i = 0;
+            for (; i + BS_THREADS <= n; i+=BS_THREADS)
+            {
+                int start, end;
+                std::tie(start, end) = partition2(i, BS, omp_get_thread_num());
+                for (auto j = 0; j <= start; j++)
+                {
+                    for (auto i0 = start; i0 < start + BS ; i0++)
+                    {
+                        // printf("idx, start, end, i0 , j =%d, %d,  %d, %d, %d\n", omp_get_thread_num(), start, end, i0, j);
+                        Cp[i0*rsc+j] = alpha * (ap[i0*inca] * bp[j*incb] - ap[j*inca] * bp[i0*incb]) + beta * Cp[i0*rsc+j];
+                    }
+                }
+            }
+        }
+        // updated the small triangle matrix below the dignaol
+        #pragma omp parallel for
+        for (auto i = 0; i < i_left; i++)
+        {   
+            auto a_temp = alpha * ap[i*inca];
+            auto b_temp = alpha * bp[i*incb];
+            for (auto j = ((int)i/BS)*BS + 1; j < i; j++)
+            {
+                //printf("i, j = %d, %d\n", i,j);
+                Cp[i*rsc+j] = a_temp * bp[j*incb] - ap[j*inca] * b_temp + beta * Cp[i*rsc+j];
+            }
+        }
+
+        //printf("-------- i_left = %d ---------------\n", i_left);
+        // deal with the left lower bottom part.
+        #pragma omp parallel for
+        for (auto i = i_left; i < n; i++)
+        {
+            auto a_temp = alpha * ap[i*inca];
+            auto b_temp = alpha * bp[i*incb];
+            for (auto j = 0; j < i; j++)
+            {
+                Cp[i*rsc+j] = a_temp * bp[j*incb] - ap[j*inca] * b_temp + beta * Cp[i*rsc+j];
+            }
+        }
+
+
+        // for (auto start = 0; start+BS_THREADS <= n-1; start+=BS_THREADS)
+        // {
+        //     #pragma omp parallel
+        //     {
+        //         printf("^^^^^^There are %d threads running\n", omp_get_num_threads());
+        //         int start_thread, end_thread;
+        //         std::tie(start_thread , end_thread) = partition2(start, BS, omp_get_thread_num());
+        //         auto body = [&](int BS)
+        //         {
+        //             for (;start_thread + BS <= end_thread; start_thread+= BS)
+        //             {
+        //                 for (auto j = 0; j < start_thread; j++)
+        //                 {
+        //                     for (auto i0 = start_thread; i0 < start_thread + BS; i0++)
+        //                     {
+        //                         Cp[i0*rsc+j] = alpha * (ap[i0*inca] * bp[j*incb] - ap[j*inca] * bp[i0*incb]) + beta * Cp[i0*rsc+j];                               
+        //                     }
+        //                 }
+        //             }
+        //         };
+        //         body(BS);
+
+        //         // auto a_temp = alpha * ap[i*inca];
+        //         // auto b_temp = alpha * bp[i*incb];
+        //         // for (auto j : range(0,i+1))
+        //         // {
+        //         //     printf("i, j = %d, %d\n", i, j);
+        //         //     Cp[i*rsc+j] = a_temp * bp[j*incb] - ap[j*inca] * b_temp + beta * Cp[i*rsc+j];
+        //         // }
+        //     }
+        // }
+    }
+}
+

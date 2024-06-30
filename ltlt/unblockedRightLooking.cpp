@@ -40,7 +40,9 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
     // ( T  || m  |    B    )
     // ( R0 || r1 | r2 | R3 )
     B = B0|B1;
+    printf("T = %d - %d, m = %d, B = %d - %d\n", T.from(), T.to(), m, B.from(), B.to());
     auto [R0, r1, r2, R3] = repartition(T, m, B);
+     printf("R0 = %d - %d, r1 = %d, r2 = %d,  R3 = %d - %d\n", R0.from(), R0.to(), r1, r2, R3.from(), R3.to());
 
     L[R3][r2] = X[R3][r1] / X[r2][r1];
 }

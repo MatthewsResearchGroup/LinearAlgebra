@@ -349,6 +349,13 @@ inline std::tuple<int, int> partition(int64_t n, int64_t bs, unsigned nthreads, 
 
 }
 
+inline std::tuple<int, int> partition2(int64_t start, int64_t bs, unsigned idx)
+{
+    auto begin = start + idx * bs;
+    auto end = start + (idx+1) * bs;
+    return std::tie(begin, end);
+}
+
 
 void ltlt_unblockRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false);
 
@@ -394,4 +401,8 @@ void gemv_sktri(double alpha, const matrix_view<const double>& A,\
                                       const row_view   <const double>& T, \
                                       const row_view   <const double>& x,\
                         double beta,  const row_view   <      double>& y);
+
+void skr2(double alpha, const row_view<const double>& a,\
+                        const row_view<const double>& b,\
+          double beta,  const matrix_view<   double>& C);
 #endif
