@@ -371,7 +371,7 @@ void skr2(char uplo, \
                         const row_view<const double>& b,
           double beta,  const matrix_view<   double>& C)
 {
-    constexpr int BS = 5;
+    constexpr int BS = 4;
     
     auto m = C.length(0);
     auto n = C.length(1);
@@ -386,6 +386,8 @@ void skr2(char uplo, \
 
     auto inca = a.stride();
     auto incb = a.stride();
+    //MARRAY_ASSERT(inca == 1);
+    //MARRAY_ASSERT(incb == 1);
     auto rsc = C.stride(0);
     auto csc = C.stride(1);
 
@@ -401,7 +403,8 @@ void skr2(char uplo, \
 
     if (uplo == 'L')
     {
-        if (rsc == 1 && inca == 1 && incb == 1) // Column major
+        //if (rsc == 1 && inca == 1 && incb == 1) // Column major
+        if (rsc == 1) 
         {
             #pragma omp parallel
             {
@@ -443,7 +446,8 @@ void skr2(char uplo, \
                 }
             }
         }
-        else if (csc == 1 && inca == 1 && incb == 1) // Row major 
+        //else if (csc == 1 && inca == 1 && incb == 1) // Row major 
+        else if (csc == 1)
         {
             #pragma omp parallel
             {
@@ -498,7 +502,7 @@ void ger2(double alpha, const row_view<const double> a,
                         const row_view<const double> d,
           double gamma, const matrix_view<   double> E)
 {
-    constexpr int BS = 5;
+    constexpr int BS = 4;
     
     auto m = E.length(0);
     auto n = E.length(1);
@@ -527,7 +531,8 @@ void ger2(double alpha, const row_view<const double> a,
     int incc = c.stride();
     int incd = d.stride();
 
-    if (rse == 1 && inca == 1 && incb == 1 && incc == 1 && incd == 1) // COLUMN MAJOR
+    //if (rse == 1 && inca == 1 && incb == 1 && incc == 1 && incd == 1) // COLUMN MAJOR
+    if (rse == 1) 
     {
         #pragma omp parallel
         {
@@ -559,7 +564,8 @@ void ger2(double alpha, const row_view<const double> a,
             }
         }
     }
-    else if (cse == 1 && inca == 1 && incb == 1 && incc == 1 && incd == 1) // ROW MAJOR
+    //else if (cse == 1 && inca == 1 && incb == 1 && incc == 1 && incd == 1) // ROW MAJOR
+    else if (cse == 1) 
     {
         #pragma omp parallel
         {
