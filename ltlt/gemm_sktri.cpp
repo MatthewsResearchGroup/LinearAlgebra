@@ -209,10 +209,9 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                                       const row_view   <const double>& x,
                         double beta,  const row_view   <      double>& y)
 {
-    constexpr auto BS = 4;
+    constexpr auto BS = 5;
 
     PROFILE_FUNCTION
-    PROFILE_FLOPS(2*A.length(0)*A.length(1));
     auto n = A.length(1);
     auto m = A.length(0);
 
@@ -364,6 +363,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
         }
     }
 
+    PROFILE_FLOPS(2*A.length(0)*A.length(1));
 }
 
 void skr2(char uplo, \ 
@@ -371,7 +371,7 @@ void skr2(char uplo, \
                         const row_view<const double>& b,
           double beta,  const matrix_view<   double>& C)
 {
-    constexpr int BS = 2;
+    constexpr int BS = 5;
     
     auto m = C.length(0);
     auto n = C.length(1);
@@ -379,7 +379,6 @@ void skr2(char uplo, \
     MARRAY_ASSERT(m == n);
 
     PROFILE_FUNCTION
-    PROFILE_FLOPS(2*m*n);
 
     auto restrict ap = a.data();
     auto restrict bp = b.data();
@@ -487,6 +486,7 @@ void skr2(char uplo, \
         }
     }
 
+    PROFILE_FLOPS(2*m*n);
     // 
     // Code for upper part update
 }
@@ -514,7 +514,6 @@ void ger2(double alpha, const row_view<const double> a,
     MARRAY_ASSERT(ld == n);
     
     PROFILE_FUNCTION
-    PROFILE_FLOPS(4*m*n);
     auto restrict ap = a.data();
     auto restrict bp = b.data();
     auto restrict cp = c.data();
@@ -595,4 +594,5 @@ void ger2(double alpha, const row_view<const double> a,
         }
     }
 
+    PROFILE_FLOPS(4*m*n);
 }
