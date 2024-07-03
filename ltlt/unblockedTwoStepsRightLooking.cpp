@@ -23,7 +23,8 @@ void ltlt_unblockTSRL(const matrix_view<double>& X, len_type k, bool first_colum
 
         X[R4][r3] -= X[r3][r2] * L[r3][r2] * L[R4][r3];
 
-        blas::skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
+        //blas::skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
+        skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
 
         X[R4][r3] += X[r3][r2] * L[R4][r2];
 

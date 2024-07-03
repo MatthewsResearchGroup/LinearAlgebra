@@ -15,8 +15,8 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
 
     if (first_column)
     {
-        //skr2('L', 1.0, L[B0][m], X[B0][m], 1.0, X[B0][B0]);
-        blas::skr2('L', 1.0, L[B0][m], X[B0][m], 1.0, X[B0][B0]);
+        skr2('L', 1.0, L[B0][m], X[B0][m], 1.0, X[B0][B0]);
+        //blas::skr2('L', 1.0, L[B0][m], X[B0][m], 1.0, X[B0][B0]);
         ger2(1.0, L[B1][m], X[B0][m], -1.0, X[B1][m], L[B0][m], 1.0, X[B1][B0]);
         //blas::ger(      1.0, L[B1][m], X[B0][m], 1.0, X[B1][B0]);
         //blas::ger(     -1.0, X[B1][m], L[B0][m], 1.0, X[B1][B0]);
@@ -31,8 +31,8 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
 
         L[R3|R4][r2] = X[R3|R4][r1] / X[r2][r1];
 
-        //skr2('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
-        blas::skr2('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
+        skr2('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
+        //blas::skr2('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
         ger2(1.0, L[R4][r2], X[R3][r2], -1.0, X[R4][r2], L[R3][r2], 1.0, X[R4][R3]);
         //blas::ger(      1.0, L[R4][r2], X[R3][r2], 1.0, X[R4][R3]);
         //blas::ger(     -1.0, X[R4][r2], L[R3][r2], 1.0, X[R4][R3]);
