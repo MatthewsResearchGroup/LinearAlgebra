@@ -402,7 +402,15 @@ void gemv_sktri(double alpha, const matrix_view<const double>& A,\
                                       const row_view   <const double>& x,\
                         double beta,  const row_view   <      double>& y);
 
-void skr2(double alpha, const row_view<const double>& a,\
+void skr2(char uplo,\
+          double alpha, const row_view<const double>& a,\
                         const row_view<const double>& b,\
           double beta,  const matrix_view<   double>& C);
+
+
+void ger2(double alpha, const row_view<const double> a,\
+                        const row_view<const double> b,\
+          double beta,  const row_view<const double> c,\
+                        const row_view<const double> d,\
+          double gamma, const matrix_view<   double> E);
 #endif

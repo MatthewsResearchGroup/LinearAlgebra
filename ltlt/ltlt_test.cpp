@@ -211,3 +211,9 @@ TEST_CASE("Piv_Both", "[Piv]")
         check_zero(Ap, uplo, struc);
     }
 }
+
+TEST_CASE("SKR2", "[Level2]")
+{
+    const int N = 10;
+    
+}

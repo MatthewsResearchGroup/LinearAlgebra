@@ -529,6 +529,7 @@ pivot_rows(MArray&& A_, const Pivot& p_)
         // ( R0 || r1 | R2 )
         auto [R0, r1, R2] = repartition(T, B);
 
+        printf("r1, A[r1][0] = %d, %f\n",r1,  A[r1][0]);
         pivot_rows(A[r1|R2][slice::all], p[r1]);
 
         // ( R0 | r1 || R2 )

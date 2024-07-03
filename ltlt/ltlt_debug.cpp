@@ -190,24 +190,9 @@ int main(int argc, char* argv[])
     // M -= MArray::blas::gemm(MArray::blas::gemm(A,T), A_T);
 
 
-    // printf("\n\n Print C\n");
-    // matrixprint(C);
-    // printf("\n\n");
-    // printf("\n\n Print D\n");
-    // matrixprint(D);
-    // printf("\n\n");
-    // printf("\n\n Print M\n");
-    // matrixprint(M);
-    // printf("\n\n");
-    // C -= D ;
-    // // printf("\n\n Print Error\n");
-    // matrixprint(C);
-    // printf("Norm of Error Matrix : %e\n", norm(C));
-    // //std::cout << "norm of Error matrix : " << norm(C) << std::endl;
-    // // matrixprint(B);
-    //
-    //
-    //auto n = 5;
+
+    /******** SKR2 ***********/ 
+    /*
     for (auto n = 100; n <= 1000; n+=100)
     {
     auto a = random_row(n);
@@ -227,7 +212,7 @@ int main(int argc, char* argv[])
     // printf("Print C_COPY before SKR2\n");
     //matrixprint(C_copy);
 
-    skr2(1.0, a, b, 1.0, C);
+    skr2('L', 1.0, a, b, 1.0, C);
     // printf("Print X After SKR2\n");
     // matrixprint(C);
 
@@ -240,10 +225,40 @@ int main(int argc, char* argv[])
     // matrixprint(C);
     printf("Norm of Error Matrix : %e\n", norm(C));
     }
+    */
 
 
 
+    /********* GER2 *********/
+    
+    auto m = 20;
+    auto n = 10;
 
+    auto a = random_row(m);
+    auto b = random_row(n);
+    auto c = random_row(m);
+    auto d = random_row(n);
+    auto E = random_matrix(m,n);
 
+    auto acopy = a;
+    auto bcopy = b;
+    auto ccopy = c;
+    auto dcopy = d;
+    auto Ecopy = E;
+
+    double alpha = 1.0;
+    double beta = -1.0;
+    double gamma = 1.0;
+
+    
+    blas::ger(      alpha, a, b, gamma, E);
+    blas::ger(      beta,  c, d, gamma, E);
+
+    ger2(alpha, acopy, bcopy, beta, ccopy, dcopy, gamma, Ecopy);
+
+    E -= Ecopy;
+    printf("printf Error matrix\n");
+    matrixprint(E);
+    printf("Norm of Error Matrix : %e\n", norm(E));
 
 }

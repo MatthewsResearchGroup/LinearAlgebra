@@ -40,10 +40,13 @@ inline auto random_permutation(int N)
 }
 
 template <typename T=double>
+//auto random_matrix(int m, int n, MArray::layout layout=MArray::DEFAULT)
 auto random_matrix(int m, int n)
 {
     static std::uniform_real_distribution<> dist;
-    matrix<T> A{m, n};
+    //matrix<T> A({m, n}, layout);
+    matrix<T> A({m, n}, COLUMN_MAJOR);
+    //matrix<T> A{m, n};
 
     for (auto i : range(m))
     for (auto j : range(n))

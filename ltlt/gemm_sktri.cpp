@@ -366,16 +366,20 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
 
 }
 
-void skr2(double alpha, const row_view<const double>& a,
+void skr2(char uplo, \ 
+          double alpha, const row_view<const double>& a,
                         const row_view<const double>& b,
           double beta,  const matrix_view<   double>& C)
 {
-    constexpr int BS = 5;
+    constexpr int BS = 2;
     
     auto m = C.length(0);
     auto n = C.length(1);
     
     MARRAY_ASSERT(m == n);
+
+    PROFILE_FUNCTION
+    PROFILE_FLOPS(2*m*n);
 
     auto restrict ap = a.data();
     auto restrict bp = b.data();
@@ -396,102 +400,199 @@ void skr2(double alpha, const row_view<const double>& a,
 
     //printf("inca, incb, rsc, csc = %d, %d, %d, %d\n", inca, incb, rsc, csc);
 
-
-    if (rsc == 1) // Column major
+    if (uplo == 'L')
     {
-        for (auto j : range(n))
+        if (rsc == 1 && inca == 1 && incb == 1) // Column major
         {
-            auto a_temp = alpha * ap[j*inca];
-            auto b_temp = alpha * bp[j*incb];
-            for (auto i : range(j,n))
+            #pragma omp parallel
             {
-                Cp[i+j*csc] = ap[i*inca] * b_temp - a_temp * bp[i*incb] + beta * Cp[i+j*csc];
-            }
-        }
-    }
-    else if (csc == 1) // Row major 
-    {
-        //printf("There are %d threads running\n", omp_get_num_threads());
-        int i_left;
-        #pragma omp parallel
-        {
-            // std::cout << "There are " << omp_get_num_threads() << " threads running! BlockSize is " << BS << "!" << std::endl;
-            auto BS_THREADS = BS * omp_get_num_threads();
-            i_left = ((int)n/BS_THREADS) * BS_THREADS;
-            //printf("BS_THREADS = %d\n", BS_THREADS);
-            auto i = 0;
-            for (; i + BS_THREADS <= n; i+=BS_THREADS)
-            {
-                int start, end;
-                std::tie(start, end) = partition2(i, BS, omp_get_thread_num());
-                for (auto j = 0; j <= start; j++)
+                auto tid = omp_get_thread_num();
+                auto nt = omp_get_num_threads();
+                for (auto j0 = tid*BS; j0 < n; j0+= BS*nt)
                 {
-                    for (auto i0 = start; i0 < start + BS ; i0++)
+                    if (j0+BS > n)
                     {
-                        // printf("idx, start, end, i0 , j =%d, %d,  %d, %d, %d\n", omp_get_thread_num(), start, end, i0, j);
-                        Cp[i0*rsc+j] = alpha * (ap[i0*inca] * bp[j*incb] - ap[j*inca] * bp[i0*incb]) + beta * Cp[i0*rsc+j];
+                        for (auto j = j0; j < n; j++)
+                        {
+                            auto a_temp = alpha * ap[j*inca];
+                            auto b_temp = alpha * bp[j*incb];
+                            for (auto i = j+1; i <n; i++)
+                            {
+                                Cp[i+j*csc] = ap[i*inca] * b_temp - a_temp * bp[i*incb] + beta * Cp[i+j*csc];
+                            } 
+                        }
+                    }
+                    else
+                    {
+                        for (auto i = j0+BS; i < n; i++)
+                        {
+                            for (auto j = j0; j < j0+BS ; j++)
+                            {
+                                Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
+                            }
+                        }
+
+                        // triangle
+                        for ( auto j = j0 ; j < j0+BS; j++)
+                        {
+                            for (auto i = j+1; i < j0 + BS; i++)
+                            {
+                                Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
+                            }
+                        }
                     }
                 }
             }
         }
-        // updated the small triangle matrix below the dignaol
-        #pragma omp parallel for
-        for (auto i = 0; i < i_left; i++)
-        {   
-            auto a_temp = alpha * ap[i*inca];
-            auto b_temp = alpha * bp[i*incb];
-            for (auto j = ((int)i/BS)*BS + 1; j < i; j++)
-            {
-                //printf("i, j = %d, %d\n", i,j);
-                Cp[i*rsc+j] = a_temp * bp[j*incb] - ap[j*inca] * b_temp + beta * Cp[i*rsc+j];
-            }
-        }
-
-        //printf("-------- i_left = %d ---------------\n", i_left);
-        // deal with the left lower bottom part.
-        #pragma omp parallel for
-        for (auto i = i_left; i < n; i++)
+        else if (csc == 1 && inca == 1 && incb == 1) // Row major 
         {
-            auto a_temp = alpha * ap[i*inca];
-            auto b_temp = alpha * bp[i*incb];
-            for (auto j = 0; j < i; j++)
+            #pragma omp parallel
             {
-                Cp[i*rsc+j] = a_temp * bp[j*incb] - ap[j*inca] * b_temp + beta * Cp[i*rsc+j];
+                auto tid = omp_get_thread_num();
+                auto nt = omp_get_num_threads();
+                for (auto i0 = tid*BS; i0 < n; i0 += BS*nt)
+                {
+                    if (i0+BS > n)
+                    {
+                        for (auto i = i0 ; i < n;i++)
+                        {
+                            for (auto j = 0;j < i;j++)
+                            {
+                                Cp[i*rsc+j] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i*rsc+j];
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (auto j = 0; j < i0; j++)
+                        {
+                            for (auto i = i0; i < i0+BS ; i++)
+                            {
+                                // printf("idx, start, end, i0 , j =%d, %d,  %d, %d, %d\n", omp_get_thread_num(), start, end, i0, j);
+                                Cp[i*rsc+j] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i*rsc+j];
+                            }
+                        }
+
+                        // triangle
+                        for (auto i = i0; i < i0 + BS; i++)
+                        {
+                            for ( auto j = i0 ; j < i; j++)
+                            {
+                                Cp[i*rsc+j] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i*rsc+j];
+                            }
+                        }
+                    }
+                }
             }
         }
-
-
-        // for (auto start = 0; start+BS_THREADS <= n-1; start+=BS_THREADS)
-        // {
-        //     #pragma omp parallel
-        //     {
-        //         printf("^^^^^^There are %d threads running\n", omp_get_num_threads());
-        //         int start_thread, end_thread;
-        //         std::tie(start_thread , end_thread) = partition2(start, BS, omp_get_thread_num());
-        //         auto body = [&](int BS)
-        //         {
-        //             for (;start_thread + BS <= end_thread; start_thread+= BS)
-        //             {
-        //                 for (auto j = 0; j < start_thread; j++)
-        //                 {
-        //                     for (auto i0 = start_thread; i0 < start_thread + BS; i0++)
-        //                     {
-        //                         Cp[i0*rsc+j] = alpha * (ap[i0*inca] * bp[j*incb] - ap[j*inca] * bp[i0*incb]) + beta * Cp[i0*rsc+j];                               
-        //                     }
-        //                 }
-        //             }
-        //         };
-        //         body(BS);
-
-        //         // auto a_temp = alpha * ap[i*inca];
-        //         // auto b_temp = alpha * bp[i*incb];
-        //         // for (auto j : range(0,i+1))
-        //         // {
-        //         //     printf("i, j = %d, %d\n", i, j);
-        //         //     Cp[i*rsc+j] = a_temp * bp[j*incb] - ap[j*inca] * b_temp + beta * Cp[i*rsc+j];
-        //         // }
-        //     }
-        // }
     }
+
+    // 
+    // Code for upper part update
 }
 
+
+void ger2(double alpha, const row_view<const double> a,
+                        const row_view<const double> b,
+          double beta,  const row_view<const double> c,
+                        const row_view<const double> d,
+          double gamma, const matrix_view<   double> E)
+{
+    constexpr int BS = 5;
+    
+    auto m = E.length(0);
+    auto n = E.length(1);
+
+    auto la = a.length();
+    auto lb = b.length();
+    auto lc = c.length();
+    auto ld = d.length();
+
+    MARRAY_ASSERT(la == m);
+    MARRAY_ASSERT(lb == n);
+    MARRAY_ASSERT(lc == m);
+    MARRAY_ASSERT(ld == n);
+    
+    PROFILE_FUNCTION
+    PROFILE_FLOPS(4*m*n);
+    auto restrict ap = a.data();
+    auto restrict bp = b.data();
+    auto restrict cp = c.data();
+    auto restrict dp = d.data();
+    auto restrict Ep = E.data();
+
+    int rse = E.stride(0);
+    int cse = E.stride(1);
+    int inca = a.stride();
+    int incb = b.stride();
+    int incc = c.stride();
+    int incd = d.stride();
+
+    if (rse == 1 && inca == 1 && incb == 1 && incc == 1 && incd == 1) // COLUMN MAJOR
+    {
+        #pragma omp parallel
+        {
+            auto tid = omp_get_thread_num();
+            auto nt = omp_get_num_threads();
+
+            for (auto j0 = tid*BS; j0 < n; j0+=nt*BS)
+            {
+                if (j0 + BS > n)
+                {
+                   for (auto j = j0; j < n; j++)
+                   {
+                       for (auto i = 0; i < m; i++)
+                       {
+                            Ep[i+j*cse] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i+j*cse];
+                       }
+                   }
+                }
+                else
+                {
+                    for (auto i = 0; i < m; i++)
+                    {
+                        for (auto j = j0; j < j0+BS; j++)
+                        {
+                            Ep[i+j*cse] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i+j*cse];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else if (cse == 1 && inca == 1 && incb == 1 && incc == 1 && incd == 1) // ROW MAJOR
+    {
+        #pragma omp parallel
+        {
+            auto tid = omp_get_thread_num();
+            auto nt = omp_get_num_threads();
+            for (auto i0 = tid*BS; i0 < m; i0+=nt*BS)
+            {
+                if (i0 + BS > m)
+                {
+                    for (auto i = i0; i < m; i++)
+                    {
+                        for (auto j = 0; j < n; j++)
+                        {
+                            Ep[i*rse+j] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i*rse+j];
+                        }
+                    }    
+                }
+                else
+                {
+                    for (auto j = 0; j < n; j++)
+                    {
+                        // auto b_temp =  bp[j*incb];
+                        // auto d_temp =  dp[j*incd];
+                        for (auto i = i0; i < i0+BS; i++)
+                        {
+                            Ep[i*rse+j] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i*rse+j];
+                        }
+                    }
+                } // 
+                
+            }
+        }
+    }
+
+}
