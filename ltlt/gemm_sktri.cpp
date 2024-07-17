@@ -410,6 +410,7 @@ void skr2(char uplo, \
             {
                 auto tid = omp_get_thread_num();
                 auto nt = omp_get_num_threads();
+                printf("We are using %d threads\n", nt);
                 for (auto j0 = tid*BS; j0 < n; j0+= BS*nt)
                 {
                     if (j0+BS > n)
@@ -453,6 +454,7 @@ void skr2(char uplo, \
             {
                 auto tid = omp_get_thread_num();
                 auto nt = omp_get_num_threads();
+                printf("We are using %d threads\n", nt);
                 for (auto i0 = tid*BS; i0 < n; i0 += BS*nt)
                 {
                     if (i0+BS > n)

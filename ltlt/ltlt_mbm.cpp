@@ -12,6 +12,7 @@ std::mt19937_64 gen(time(nullptr));
 int main()
 {
    // benchmark for gemv-sktri function with different BS
+     /*
    for (auto matrixsize = 100; matrixsize <= 5100; matrixsize+=200)
    {
      //auto matrixsize = 2100;
@@ -33,10 +34,10 @@ int main()
 
       timer::print_timers();
    }
+   */
 
 
    // benchmark for skr2 function with different BS
-   /*
    for (auto matrixsize = 100; matrixsize <= 5100; matrixsize+=200)
    {
      auto C = random_matrix(matrixsize,matrixsize);
@@ -51,7 +52,6 @@ int main()
 
      timer::print_timers();
    }
-   */
 
    // benchmark for ger2 function with different BS
    /*
