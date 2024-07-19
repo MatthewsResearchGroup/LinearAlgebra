@@ -6,6 +6,7 @@
 #include "docopt.h"
 #include "io.hpp"
 
+
 // Benchmark for different functions
 std::mt19937_64 gen(time(nullptr));
 
