@@ -293,6 +293,9 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     }
     else if ((csa == 1) && (incx == 1))
     {
+        double Txj[n];
+        for (auto j = 0;j < n;j++)
+            Txj[j] = Tx(j, n, incx);
         #pragma omp parallel
         {
             int start, end;
@@ -301,22 +304,25 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
 
             auto body = [&](int& start, int BS)
             {
+
                 auto i0 = start;
                 for (;i0+BS <= end;i0 += BS)
                 {
-                double yi[BS];
-                memset(&yi, 0, BS*sizeof(double));
+                    double yi[BS] = {};
                     for (auto i = i0;i < i0+BS;i++)
                     {
-                        yi[i-i0] += Ap[i*rsa + 0] * Tx(0, n, 1);
+                        //yi[i-i0] += Ap[i*rsa + 0] * Tx(0, n, 1);
+                        yi[i-i0] += Ap[i*rsa + 0] * Txj[0];
                     }
                     for (auto j = 1;j < n-1;j++)
                     for (auto i = i0;i < i0+BS;i++)
                     {
-                        yi[i-i0] += Ap[i*rsa + j] * Tx(j, n, 1);
+                        //yi[i-i0] += Ap[i*rsa + j] * Tx(j, n, 1);
+                        yi[i-i0] += Ap[i*rsa + j] * Txj[j];
                     }
                     for (auto i = i0;i < i0+BS;i++)
-                        yi[i-i0] += Ap[i*rsa + n-1] * Tx(n-1, n, 1);
+                        //yi[i-i0] += Ap[i*rsa + n-1] * Tx(n-1, n, 1);
+                        yi[i-i0] += Ap[i*rsa + n-1] * Txj[n];
 
                     if (beta != 0.0)
                     {
@@ -371,7 +377,7 @@ void skr2(char uplo, \
                         const row_view<const double>& b,
           double beta,  const matrix_view<   double>& C)
 {
-    constexpr int BS = 4;
+    constexpr int BS = 2;
     
     auto m = C.length(0);
     auto n = C.length(1);
@@ -379,6 +385,7 @@ void skr2(char uplo, \
     MARRAY_ASSERT(m == n);
 
     PROFILE_FUNCTION
+    PROFILE_FLOPS(2*m*n);
 
     auto restrict ap = a.data();
     auto restrict bp = b.data();
@@ -406,11 +413,12 @@ void skr2(char uplo, \
         //if (rsc == 1 && inca == 1 && incb == 1) // Column major
         if (rsc == 1) 
         {
+            if (omp_get_num_threads() > 12) // We get the best performance when we using 12 cores after testing with multiple cores
+                omp_set_num_threads(12);
             #pragma omp parallel
             {
                 auto tid = omp_get_thread_num();
                 auto nt = omp_get_num_threads();
-                printf("We are using %d threads\n", nt);
                 for (auto j0 = tid*BS; j0 < n; j0+= BS*nt)
                 {
                     if (j0+BS > n)
@@ -450,11 +458,12 @@ void skr2(char uplo, \
         //else if (csc == 1 && inca == 1 && incb == 1) // Row major 
         else if (csc == 1)
         {
-            #pragma omp parallel
+            if (omp_get_num_threads() > 12) // We get the best performance when we using 12 cores after testing with multiple cores
+                omp_set_num_threads(12);
+            #pragma omp parallel  
             {
                 auto tid = omp_get_thread_num();
                 auto nt = omp_get_num_threads();
-                printf("We are using %d threads\n", nt);
                 for (auto i0 = tid*BS; i0 < n; i0 += BS*nt)
                 {
                     if (i0+BS > n)
@@ -492,7 +501,6 @@ void skr2(char uplo, \
         }
     }
 
-    PROFILE_FLOPS(2*m*n);
     // 
     // Code for upper part update
 }
@@ -504,7 +512,7 @@ void ger2(double alpha, const row_view<const double> a,
                         const row_view<const double> d,
           double gamma, const matrix_view<   double> E)
 {
-    constexpr int BS = 4;
+    constexpr int BS = 5;
     
     auto m = E.length(0);
     auto n = E.length(1);
