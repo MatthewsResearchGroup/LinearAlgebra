@@ -209,7 +209,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                                       const row_view   <const double>& x,
                         double beta,  const row_view   <      double>& y)
 {
-    constexpr auto BS = 5;
+    constexpr int BS = 4;
 
     PROFILE_FUNCTION
     auto n = A.length(1);
@@ -308,7 +308,8 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                 auto i0 = start;
                 for (;i0+BS <= end;i0 += BS)
                 {
-                    double yi[BS] = {};
+                    double yi[BS];
+                    memset(&yi, 0, BS*sizeof(double));
                     for (auto i = i0;i < i0+BS;i++)
                     {
                         //yi[i-i0] += Ap[i*rsa + 0] * Tx(0, n, 1);
@@ -322,7 +323,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                     }
                     for (auto i = i0;i < i0+BS;i++)
                         //yi[i-i0] += Ap[i*rsa + n-1] * Tx(n-1, n, 1);
-                        yi[i-i0] += Ap[i*rsa + n-1] * Txj[n];
+                        yi[i-i0] += Ap[i*rsa + n-1] * Txj[n-1];
 
                     if (beta != 0.0)
                     {
