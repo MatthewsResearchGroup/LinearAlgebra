@@ -101,38 +101,38 @@ int main(int argc, char* argv[])
 
 
     /******** SKR2 ***********/ 
-    // for (auto n = 100; n <= 1000; n+=100)
-    // {
-    // auto a = random_row(n);
-    // // printf("----------Vector a------------\n");
-    // // for (auto i : range(a.length()))
-    // //     std::cout << a[i] << ", ";
-    // // printf("\n\n");
-    // auto b = random_row(n);
-    // // printf("----------Vector b------------\n");
-    // // for (auto i : range(b.length()))
-    // //     std::cout << b[i] << ", ";
-    // // printf("\n\n");
-    // auto C = random_matrix(n, n);
-    // auto C_copy = C;
-    // // printf("Print X before SKR2\n");
-    // // matrixprint(C);
-    // // printf("Print C_COPY before SKR2\n");
-    // //matrixprint(C_copy);
+    for (auto n = 100; n <= 1000; n+=100)
+    {
+    auto a = random_row(n);
+    // printf("----------Vector a------------\n");
+    // for (auto i : range(a.length()))
+    //     std::cout << a[i] << ", ";
+    // printf("\n\n");
+    auto b = random_row(n);
+    // printf("----------Vector b------------\n");
+    // for (auto i : range(b.length()))
+    //     std::cout << b[i] << ", ";
+    // printf("\n\n");
+    auto C = random_matrix(n, n, ROW_MAJOR);
+    auto C_copy = C;
+    // printf("Print X before SKR2\n");
+    // matrixprint(C);
+    // printf("Print C_COPY before SKR2\n");
+    //matrixprint(C_copy);
 
-    // skr2('L', 1.0, a, b, 1.0, C);
-    // // printf("Print X After SKR2\n");
-    // // matrixprint(C);
+    skr2('L', 1.0, a, b, 1.0, C);
+    // printf("Print X After SKR2\n");
+    // matrixprint(C);
 
-    // blas::skr2('L', 1.0, a, b, 1.0, C_copy);
-    // // printf("Print C_COPY after SKR2\n");
-    // // matrixprint(C_copy);
+    blas::skr2('L', 1.0, a, b, 1.0, C_copy);
+    // printf("Print C_COPY after SKR2\n");
+    // matrixprint(C_copy);
 
-    // C -= C_copy;
-    // // printf("printf Error matrix\n");
-    // // matrixprint(C);
-    // printf("Norm of Error Matrix : %e\n", norm(C));
-    // }
+    C -= C_copy;
+    // printf("printf Error matrix\n");
+    // matrixprint(C);
+    printf("Norm of Error Matrix : %e\n", norm(C));
+    }
 
 
 

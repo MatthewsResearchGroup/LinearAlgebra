@@ -496,6 +496,7 @@ void skr2(char uplo, \
         //else if (csc == 1 && inca == 1 && incb == 1) // Row major 
         else if (csc == 1 && inca == 1 && incb == 1)
         {
+            //printf("ROW MAJOR\n");
             //if (omp_get_num_threads() > 12) // We get the best performance when we using 12 cores after testing with multiple cores
             //    omp_set_num_threads(12);
             auto maxnt = std::min(omp_get_num_threads(), 12);
@@ -503,39 +504,72 @@ void skr2(char uplo, \
             {
                 auto tid = omp_get_thread_num();
                 auto nt = omp_get_num_threads();
-                for (auto i0 = tid*BS; i0 < n; i0 += BS*nt)
+
+                auto i0 = tid*BS;
+                for(; i0 <= n-BS; i0+= BS*nt)
                 {
-                    if (i0+BS > n)
+                    for (auto j = 0; j < i0; j++)
                     {
-                        for (auto i = i0 ; i < n;i++)
+                        for (auto i = i0; i < i0+BS ; i++)
                         {
-                            for (auto j = 0;j < i;j++)
-                            {
-                                Cp[i*rsc+j] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i*rsc+j];
-                            }
+                            // printf("idx, start, end, i0 , j =%d, %d,  %d, %d, %d\n", omp_get_thread_num(), start, end, i0, j);              
+                            Cp[i*rsc+j] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i*rsc+j];
                         }
                     }
-                    else
+                    
+                    // triangle
+                    for (auto i = i0; i < i0 + BS; i++)
                     {
-                        for (auto j = 0; j < i0; j++)
+                        for ( auto j = i0 ; j < i; j++)
                         {
-                            for (auto i = i0; i < i0+BS ; i++)
-                            {
-                                // printf("idx, start, end, i0 , j =%d, %d,  %d, %d, %d\n", omp_get_thread_num(), start, end, i0, j);
-                                Cp[i*rsc+j] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i*rsc+j];
-                            }
+                            Cp[i*rsc+j] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i*rsc+j];
                         }
+                    }
 
-                        // triangle
-                        for (auto i = i0; i < i0 + BS; i++)
-                        {
-                            for ( auto j = i0 ; j < i; j++)
-                            {
-                                Cp[i*rsc+j] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i*rsc+j];
-                            }
-                        }
+                }    
+
+                for (auto i = i0 ; i < n;i++)
+                {
+                    for (auto j = 0;j < i;j++)
+                    {
+                        Cp[i*rsc+j] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i*rsc+j];
                     }
                 }
+
+
+                // for (auto i0 = tid*BS; i0 < n; i0 += BS*nt)
+                // {
+                //     if (i0+BS > n)
+                //     {
+                //         for (auto i = i0 ; i < n;i++)
+                //         {
+                //             for (auto j = 0;j < i;j++)
+                //             {
+                //                 Cp[i*rsc+j] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i*rsc+j];
+                //             }
+                //         }
+                //     }
+                //     else
+                //     {
+                //         for (auto j = 0; j < i0; j++)
+                //         {
+                //             for (auto i = i0; i < i0+BS ; i++)
+                //             {
+                //                 // printf("idx, start, end, i0 , j =%d, %d,  %d, %d, %d\n", omp_get_thread_num(), start, end, i0, j);
+                //                 Cp[i*rsc+j] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i*rsc+j];
+                //             }
+                //         }
+
+                //         // triangle
+                //         for (auto i = i0; i < i0 + BS; i++)
+                //         {
+                //             for ( auto j = i0 ; j < i; j++)
+                //             {
+                //                 Cp[i*rsc+j] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i*rsc+j];
+                //             }
+                //         }
+                //     }
+                // }
             }
         }
     }
