@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
         // benchmark for skr2 function with different BS
         for (auto matrixsize = 100; matrixsize <= 5100; matrixsize+=200)
         {
-          auto C = random_matrix(matrixsize, matrixsize, COLUMN_MAJOR);
+          auto C = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
           auto x = random_row(matrixsize);
           auto y = random_row(matrixsize);
 

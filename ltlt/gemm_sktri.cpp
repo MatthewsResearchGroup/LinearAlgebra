@@ -378,7 +378,7 @@ void skr2(char uplo, \
                         const row_view<const double>& b,
           double beta,  const matrix_view<   double>& C)
 {
-    constexpr int BS = 4;
+    constexpr int BS = 5;
     
     auto m = C.length(0);
     auto n = C.length(1);
@@ -622,29 +622,43 @@ void ger2(double alpha, const row_view<const double> a,
             auto tid = omp_get_thread_num();
             auto nt = omp_get_num_threads();
 
-            for (auto j0 = tid*BS; j0 < n; j0+=nt*BS)
+            auto j0 = tid*BS;
+            for (; j0 <= n -BS; j0+=nt*BS)
             {
-                if (j0 + BS > n)
-                {
-                   for (auto j = j0; j < n; j++)
-                   {
-                       for (auto i = 0; i < m; i++)
-                       {
-                            Ep[i+j*cse] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i+j*cse];
-                       }
-                   }
-                }
-                else
-                {
-                    for (auto i = 0; i < m; i++)
-                    {
-                        for (auto j = j0; j < j0+BS; j++)
-                        {
-                            Ep[i+j*cse] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i+j*cse];
-                        }
-                    }
-                }
+                for (auto i = 0; i < m; i++)
+                for (auto j = j0; j < j0+BS; j++)
+                    Ep[i+j*cse] = alpha * ap[i] * bp[j] + beta * cp[i] * dp[j] + gamma * Ep[i+j*cse];
+
+            }    
+            for (auto j = j0; j < n; j++)
+            {
+                for (auto i = 0; i < m; i++)
+                    Ep[i+j*cse] = alpha * ap[i] * bp[j] + beta * cp[i] * dp[j] + gamma * Ep[i+j*cse];
             }
+
+            // for (auto j0 = tid*BS; j0 < n; j0+=nt*BS)
+            // {
+            //     if (j0 + BS > n)
+            //     {
+            //        for (auto j = j0; j < n; j++)
+            //        {
+            //            for (auto i = 0; i < m; i++)
+            //            {
+            //                 Ep[i+j*cse] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i+j*cse];
+            //            }
+            //        }
+            //     }
+            //     else
+            //     {
+            //         for (auto i = 0; i < m; i++)
+            //         {
+            //             for (auto j = j0; j < j0+BS; j++)
+            //             {
+            //                 Ep[i+j*cse] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i+j*cse];
+            //             }
+            //         }
+            //     }
+            // }
         }
     }
     else if (cse == 1 && inca == 1 && incb == 1 && incc == 1 && incd == 1) // ROW MAJOR
@@ -654,32 +668,50 @@ void ger2(double alpha, const row_view<const double> a,
         {
             auto tid = omp_get_thread_num();
             auto nt = omp_get_num_threads();
-            for (auto i0 = tid*BS; i0 < m; i0+=nt*BS)
+
+            auto i0 = tid*BS;
+            for (; i0 <= m-BS; i0+=nt*BS)
             {
-                if (i0 + BS > m)
+                for (auto j = 0; j < n; j++)
+                for (auto i = i0; i < i0+BS; i++)
                 {
-                    for (auto i = i0; i < m; i++)
-                    {
-                        for (auto j = 0; j < n; j++)
-                        {
-                            Ep[i*rse+j] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i*rse+j];
-                        }
-                    }    
+                    Ep[i*rse+j] = alpha * ap[i] * bp[j] + beta * cp[i] * dp[j] + gamma * Ep[i*rse+j];
                 }
-                else
-                {
-                    for (auto j = 0; j < n; j++)
-                    {
-                        // auto b_temp =  bp[j*incb];
-                        // auto d_temp =  dp[j*incd];
-                        for (auto i = i0; i < i0+BS; i++)
-                        {
-                            Ep[i*rse+j] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i*rse+j];
-                        }
-                    }
-                } // 
-                
             }
+
+            for (auto i = i0; i < m; i++)
+            {
+                for (auto j = 0; j < n; j++)
+                {
+                    Ep[i*rse+j] = alpha * ap[i] * bp[j] + beta * cp[i] * dp[j] + gamma * Ep[i*rse+j];
+                }
+            }
+            //for (auto i0 = tid*BS; i0 < m; i0+=nt*BS)
+            //{
+            //    if (i0 + BS > m)
+            //    {
+            //        for (auto i = i0; i < m; i++)
+            //        {
+            //            for (auto j = 0; j < n; j++)
+            //            {
+            //                Ep[i*rse+j] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i*rse+j];
+            //            }
+            //        }    
+            //    }
+            //    else
+            //    {
+            //        for (auto j = 0; j < n; j++)
+            //        {
+            //            // auto b_temp =  bp[j*incb];
+            //            // auto d_temp =  dp[j*incd];
+            //            for (auto i = i0; i < i0+BS; i++)
+            //            {
+            //                Ep[i*rse+j] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i*rse+j];
+            //            }
+            //        }
+            //    } // 
+            //    
+            //}
         }
     }
 
