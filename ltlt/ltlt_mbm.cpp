@@ -29,9 +29,10 @@ int main(int argc, char* argv[])
         {
           //auto matrixsize = 2100;
           auto A = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
-          auto B = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
-          auto T = make_T(B);
-          auto t = subdiag(T);
+          // auto B = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
+          // auto T = make_T(B);
+          // auto t = subdiag(T);
+          auto t = random_row(matrixsize-1);
           auto x = random_row(matrixsize);
           auto y = random_row(matrixsize);
 

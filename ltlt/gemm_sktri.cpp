@@ -209,7 +209,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                                       const row_view   <const double>& x,
                         double beta,  const row_view   <      double>& y)
 {
-    constexpr int BS = 4;
+    constexpr int BS = 5;
 
     PROFILE_FUNCTION
     auto n = A.length(1);
@@ -378,7 +378,7 @@ void skr2(char uplo, \
                         const row_view<const double>& b,
           double beta,  const matrix_view<   double>& C)
 {
-    constexpr int BS = 2;
+    constexpr int BS = 4;
     
     auto m = C.length(0);
     auto n = C.length(1);
@@ -412,56 +412,94 @@ void skr2(char uplo, \
     if (uplo == 'L')
     {
         //if (rsc == 1 && inca == 1 && incb == 1) // Column major
-        if (rsc == 1) 
+        if (rsc == 1 && inca == 1 && incb == 1) 
         {
-            if (omp_get_num_threads() > 12) // We get the best performance when we using 12 cores after testing with multiple cores
-                omp_set_num_threads(12);
-            #pragma omp parallel
+            //printf("we are runing COlumn major\n");
+            // if (omp_get_num_threads() > 12) // We get the best performance when we using 12 cores after testing with multiple cores
+            //     omp_set_num_threads(12);
+            auto maxnt = std::min(omp_get_num_threads(), 12);
+            #pragma omp parallel num_threads(maxnt)
             {
                 auto tid = omp_get_thread_num();
                 auto nt = omp_get_num_threads();
-                for (auto j0 = tid*BS; j0 < n; j0+= BS*nt)
+
+                auto j0 = tid*BS;
+
+                for (; j0 <= n-BS; j0 += BS*nt)
                 {
-                    if (j0+BS > n)
+                    for (auto i = j0+BS; i < n; i++)
                     {
-                        for (auto j = j0; j < n; j++)
+                        for (auto j = j0; j < j0+BS ; j++)
                         {
-                            auto a_temp = alpha * ap[j*inca];
-                            auto b_temp = alpha * bp[j*incb];
-                            for (auto i = j+1; i <n; i++)
-                            {
-                                Cp[i+j*csc] = ap[i*inca] * b_temp - a_temp * bp[i*incb] + beta * Cp[i+j*csc];
-                            } 
+                            Cp[i+j*csc] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i+j*csc];
                         }
                     }
-                    else
-                    {
-                        for (auto i = j0+BS; i < n; i++)
-                        {
-                            for (auto j = j0; j < j0+BS ; j++)
-                            {
-                                Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
-                            }
-                        }
 
-                        // triangle
-                        for ( auto j = j0 ; j < j0+BS; j++)
+                    // triangle
+                    for ( auto j = j0 ; j < j0+BS; j++)
+                    {
+                        for (auto i = j+1; i < j0 + BS; i++)
                         {
-                            for (auto i = j+1; i < j0 + BS; i++)
-                            {
-                                Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
-                            }
+                            Cp[i+j*csc] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i+j*csc];
                         }
                     }
                 }
+
+                for (auto j = j0; j < n; j++)
+                {
+                    for (auto i = j+1; i < n; i++)
+                    {
+                        Cp[i+j*csc] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i+j*csc];
+                    }
+                }
+                // for (auto j0 = tid*BS; j0 < n; j0+= BS*nt)
+                // {
+                //     if (j0+BS > n)
+                //     {
+                //         for (auto j = j0; j < n; j++)
+                //         {
+                //             //auto a_temp = alpha * ap[j*inca];
+                //             //auto b_temp = alpha * bp[j*incb];
+                //             auto a_temp = alpha * ap[j];
+                //             auto b_temp = alpha * bp[j];
+                //             for (auto i = j+1; i <n; i++)
+                //             {
+                //                 //Cp[i+j*csc] = ap[i*inca] * b_temp - a_temp * bp[i*incb] + beta * Cp[i+j*csc];
+                //                 Cp[i+j*csc] = ap[i] * b_temp - a_temp * bp[i] + beta * Cp[i+j*csc];
+                //             } 
+                //         }
+                //     }
+                //     else
+                //     {
+                //         for (auto i = j0+BS; i < n; i++)
+                //         {
+                //             for (auto j = j0; j < j0+BS ; j++)
+                //             {
+                //                 //Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
+                //                 Cp[i+j*csc] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i+j*csc];
+                //             }
+                //         }
+
+                //         // triangle
+                //         for ( auto j = j0 ; j < j0+BS; j++)
+                //         {
+                //             for (auto i = j+1; i < j0 + BS; i++)
+                //             {
+                //                 //Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
+                //                 Cp[i+j*csc] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i+j*csc];
+                //             }
+                //         }
+                //     }
+                // }
             }
         }
         //else if (csc == 1 && inca == 1 && incb == 1) // Row major 
-        else if (csc == 1)
+        else if (csc == 1 && inca == 1 && incb == 1)
         {
-            if (omp_get_num_threads() > 12) // We get the best performance when we using 12 cores after testing with multiple cores
-                omp_set_num_threads(12);
-            #pragma omp parallel  
+            //if (omp_get_num_threads() > 12) // We get the best performance when we using 12 cores after testing with multiple cores
+            //    omp_set_num_threads(12);
+            auto maxnt = std::min(omp_get_num_threads(), 12);
+            #pragma omp parallel num_threads(maxnt) 
             {
                 auto tid = omp_get_thread_num();
                 auto nt = omp_get_num_threads();
@@ -542,8 +580,8 @@ void ger2(double alpha, const row_view<const double> a,
     int incc = c.stride();
     int incd = d.stride();
 
-    //if (rse == 1 && inca == 1 && incb == 1 && incc == 1 && incd == 1) // COLUMN MAJOR
-    if (rse == 1) 
+    if (rse == 1 && inca == 1 && incb == 1 && incc == 1 && incd == 1) // COLUMN MAJOR
+    //if (rse == 1) 
     {
         #pragma omp parallel
         {
@@ -575,8 +613,8 @@ void ger2(double alpha, const row_view<const double> a,
             }
         }
     }
-    //else if (cse == 1 && inca == 1 && incb == 1 && incc == 1 && incd == 1) // ROW MAJOR
-    else if (cse == 1) 
+    else if (cse == 1 && inca == 1 && incb == 1 && incc == 1 && incd == 1) // ROW MAJOR
+    //else if (cse == 1) 
     {
         #pragma omp parallel
         {
