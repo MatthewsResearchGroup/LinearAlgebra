@@ -407,14 +407,14 @@ void skr2(char uplo, \
         return ;
     }
 
-    //printf("inca, incb, rsc, csc = %d, %d, %d, %d\n", inca, incb, rsc, csc);
+    printf("inca, incb, rsc, csc = %d, %d, %d, %d\n", inca, incb, rsc, csc);
 
     if (uplo == 'L')
     {
         //if (rsc == 1 && inca == 1 && incb == 1) // Column major
         if (rsc == 1 && inca == 1 && incb == 1) 
         {
-            //printf("we are runing COlumn major\n");
+            printf("we are runing COlumn major\n");
             // if (omp_get_num_threads() > 12) // We get the best performance when we using 12 cores after testing with multiple cores
             //     omp_set_num_threads(12);
             auto maxnt = std::min(omp_get_num_threads(), 12);
@@ -496,7 +496,7 @@ void skr2(char uplo, \
         //else if (csc == 1 && inca == 1 && incb == 1) // Row major 
         else if (csc == 1 && inca == 1 && incb == 1)
         {
-            //printf("ROW MAJOR\n");
+            printf("ROW MAJOR\n");
             //if (omp_get_num_threads() > 12) // We get the best performance when we using 12 cores after testing with multiple cores
             //    omp_set_num_threads(12);
             auto maxnt = std::min(omp_get_num_threads(), 12);

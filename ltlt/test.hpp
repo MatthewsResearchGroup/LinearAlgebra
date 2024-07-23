@@ -282,7 +282,7 @@ inline double performance(int n, const std::function<void(const matrix_view<doub
 
 inline void test_bug(int n, const std::function<void(const matrix_view<double>&)>& LTLT)
 {
-    auto A = random_matrix(n, n);
+    auto A = random_matrix(n, n, COLUMN_MAJOR);
     matrix<double> B = A - A.T();
 
     // make a copy of B since we need to overwrite part of B

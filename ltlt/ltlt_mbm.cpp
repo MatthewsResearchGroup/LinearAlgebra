@@ -73,11 +73,15 @@ int main(int argc, char* argv[])
         // benchmark for ger2 function with different BS
         for (auto matrixsize = 100; matrixsize <= 5100; matrixsize+=200)
         {
-          auto E = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
+          auto E = random_matrix(matrixsize, matrixsize, COLUMN_MAJOR);
           auto a = random_row(matrixsize);
           auto b = random_row(matrixsize);
           auto c = random_row(matrixsize);
           auto d = random_row(matrixsize);
+
+          auto se0 = E.stride(0);
+          auto se1 = E.stride(1);
+          printf("se0 = %d, se1 = %d\n", se0, se1);
 
           auto starting_point =  bli_clock();
           ger2(1.0, a, b, -1.0, c, d, 1.0, E);
