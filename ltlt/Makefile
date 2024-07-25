@@ -30,7 +30,7 @@ LDFLAGS += -g -lomp -fsanitize=address -L/opt/homebrew/opt/libomp/lib
 endif
 
 debug_exe=../bin/ltlt_debug
-test_exe=../bin/ltlt_test
+#test_exe=../bin/ltlt_test
 perf_exe=../bin/ltlt_perf
 benchmark_exe=../bin/ltlt_mbm
 objs=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
@@ -38,29 +38,19 @@ deps:=$(join $(addsuffix .deps/,$(dir $(objs))),$(notdir $(objs:.o=.d)))
 objs:=$(filter-out ltlt_debug.o ltlt_test.o ltlt_perf.o ltlt_mbm.o,$(objs))
 
 .PHONY: all
-all: $(test_exe) $(perf_exe) $(debug_exe) $(benchmark_exe)
+#all: $(test_exe) $(perf_exe) $(debug_exe) $(benchmark_exe)
+all: $(perf_exe) $(debug_exe) $(benchmark_exe)
 
 -include $(deps)
 
 .PHONY: clean
 clean:
-	rm -f $(objs) $(exe) $(test_exe) $(perf_exe) $(benchmark_exe) ltlt_test.o ltlt_perf.o ltlt_mbm.o ltlt_debug.o
-
-$(benchmark_exe): $(objs) ltlt_mbm.o
-	@mkdir -p $(dir $(benchmark_exe))
-	$(CXX) -o $(benchmark_exe) $(objs) ltlt_mbm.o $(LDFLAGS) $(LIBS)
+	rm -f $(objs) $(exe) $(perf_exe) $(benchmark_exe) ltlt_test.o ltlt_perf.o ltlt_mbm.o ltlt_debug.o
+	#rm -f $(objs) $(exe) $(test_exe) $(perf_exe) $(benchmark_exe) ltlt_test.o ltlt_perf.o ltlt_mbm.o ltlt_debug.o
 
 $(debug_exe): $(objs) ltlt_debug.o
 	@mkdir -p $(dir $(debug_exe))
 	$(CXX) -o $(debug_exe) $(objs) ltlt_debug.o $(LDFLAGS) $(LIBS)
-
-$(test_exe): $(objs) ltlt_test.o
-	@mkdir -p $(dir $(test_exe))
-	$(CXX) -o $(test_exe) $(objs) ltlt_test.o $(LDFLAGS) $(LIBS)
-
-$(perf_exe): $(objs) ltlt_perf.o
-	@mkdir -p $(dir $(perf_exe))
-	$(CXX) -o $(perf_exe) $(objs) ltlt_perf.o $(LDFLAGS) $(LIBS)
 
 %.o: %.cpp
 	@mkdir -p $(dir $@).deps

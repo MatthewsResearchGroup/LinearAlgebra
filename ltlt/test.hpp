@@ -89,15 +89,16 @@ auto random_row(int n)
 }
 
 
-inline auto unblocked(const std::function<void(const matrix_view<double>&,len_type,bool)>& unblock)
-{
-    return std::bind(unblock, std::placeholders::_1, -1, false);
-}
-
-inline auto unblocked(const std::function<void(const matrix_view<double>&,const row_view<int>&,len_type,bool)>& unblock)
+inline auto unblocked(const std::function<void(const matrix_view<double>&, const row_view<double>&, len_type,bool)>& unblock)
 {
     return std::bind(unblock, std::placeholders::_1, std::placeholders::_2, -1, false);
 }
+
+//inline auto unblocked(const std::function<void(const matrix_view<double>&,const row_view<int>&,len_type,bool)>& unblock)
+//{
+//    return std::bind(unblock, std::placeholders::_1, std::placeholders::_2, -1, false);
+//}
+//
 
 template <typename BL>
 auto blocked(const BL& block, const std::function<void(const matrix_view<double>&,len_type,bool)>& unblock, int blocksize)
@@ -149,129 +150,7 @@ void check_zero(const MArray& X, uplo_t uplo = BLIS_LOWER, struc_t struc = BLIS_
     }
 }
 
-inline void test(int n, const std::function<void(const matrix_view<double>&)>& LTLT)
-{
-    // make skew symmetric matrix
-    n = 5;
 
-    INFO("n = " << n);
-
-    auto A = random_matrix(n, n);
-    matrix<double> B = A - A.T();
-
-    // make a copy of B since we need to overwrite part of B
-    matrix<double> B0 = B;
-
-    LTLT(B);
-
-    auto B1 = B0;
-    ltlt_unblockLL(B1);
-    auto L1 = make_L(B1);
-    auto T1 = make_T(B1);
-
-    auto Lm = make_L(B);
-    auto Tm = make_T(B);
-
-    std::cout << std::fixed << std::setprecision(10);
-
-    INFO("L:\n" << Lm);
-    INFO("L (exact):\n" << L1);
-    INFO("T:\n" << Tm);
-    INFO("T (exact):\n" << T1);
-    INFO("B:\n" << B0);
-    INFO("LTLT:\n" << MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), Lm.T()));
-
-    // calculate the error matrix
-    B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), Lm.T());
-
-    std::cout << "E:" << std::endl << B0 << std::endl;
-
-    //check_zero(B0);
-}
-
-inline void test_piv(int n, const std::function<void(const matrix_view<double>&,const row_view<int>&)>& LTLT)
-{
-    n = 5;
-
-    // make skew symmetric matrix
-    auto A = random_matrix(n, n);
-    matrix<double> B = A - A.T();
-
-    // make a copy of B since we need to overwrite part of B
-    matrix<double> B0 = B;
-
-    auto B1 = B0;
-    row<int> p1{n};
-    ltlt_pivot_unblockLL(B1, p1);
-    auto L1 = make_L(B1);
-    auto T1 = make_T(B1);
-
-    row<int> p{n};
-    LTLT(B, p);
-    pivot_both(B0, p);
-
-    // verify its correctness
-    // make L and T from B
-
-    auto Lm = make_L(B);
-    auto Tm = make_T(B);
-    auto LmT = Lm.T();
-
-    std::cout << std::fixed << std::setprecision(10);
-
-    INFO("L:\n" << Lm);
-    INFO("L (exact):\n" << L1);
-    INFO("T:\n" << Tm);
-    INFO("T (exact):\n" << T1);
-    INFO("p:\n" << p);
-    INFO("p (exact):\n" << p1);
-    INFO("B:\n" << B0);
-    INFO("LTLT:\n" << MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), Lm.T()));
-
-    // calculate the error matrix
-    B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-    //check_zero(B0);
-}
-
-
-inline double performance(int n, const std::function<void(const matrix_view<double>&)>& LTLT, int repitation = 3)
-{
-    auto MinTime = std::numeric_limits<double>::max();
-    //double MinTime = 1.0e4;
-    // make skew symmetric matrix
-    auto A = random_matrix(n, n);
-    matrix<double> B = A - A.T();
-
-    // make a copy of B since we need to overwrite part of B
-    matrix<double> B0 = B;
-
-    for (auto i : range(repitation))
-    {
-        auto B = B0;
-        auto B_deepcopy = B;
-
-        auto starting_point =  bli_clock();
-        LTLT(B);
-        auto ending_point = bli_clock();
-
-        auto time = ending_point - starting_point;
-        printf("Rep and time: %d, %f\n", i, time);
-
-        auto Lm = make_L(B);
-        auto Tm = make_T(B);
-        auto LmT = Lm.T();
-
-        // calculate the error matrix
-        B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-        double err = norm(B_deepcopy) / (n * n);
-        //check_zero(B0);
-
-        MinTime = (time < MinTime)? time : MinTime;
-
-    }
-    return MinTime;
-
-}
 
 // The following code is designed for debug
 //
@@ -280,10 +159,11 @@ inline double performance(int n, const std::function<void(const matrix_view<doub
 
 
 
-inline void test_bug(int n, const std::function<void(const matrix_view<double>&)>& LTLT)
+inline void test_bug(int n, const std::function<void(const matrix_view<double>&, const row_view<double>&)>& LTLT)
 {
     auto A = random_matrix(n, n, COLUMN_MAJOR);
     matrix<double> B = A - A.T();
+    row<double> t{n-1}; 
 
     // make a copy of B since we need to overwrite part of B
     matrix<double> B0 = B;
@@ -292,19 +172,19 @@ inline void test_bug(int n, const std::function<void(const matrix_view<double>&)
     matrixprint(B);
 
     auto starting_point =  bli_clock();
-    LTLT(B);
+    LTLT(B, t);
     auto ending_point = bli_clock();
 
     auto time = ending_point - starting_point;
 
     auto Lm = make_L(B);
-    auto Tm = make_T(B);
+    auto Tm = make_T(t);
     auto LmT = Lm.T();
 
-    // std::cout<< "Print Matrix Lm " << std::endl;
-    // matrixprint(Lm);
-    // std::cout<< "Print Matrix Tm " << std::endl;
-    // matrixprint(Tm);
+    std::cout<< "Print Matrix Lm " << std::endl;
+    matrixprint(Lm);
+    std::cout<< "Print Matrix Tm " << std::endl;
+    matrixprint(Tm);
     // std::cout<< "Print Matrix LmT " << std::endl;
     // matrixprint(LmT);
     
@@ -323,58 +203,6 @@ inline void test_bug(int n, const std::function<void(const matrix_view<double>&)
     
 }
 
-
-inline void test_debug_piv(int n, const std::function<void(const matrix_view<double>&,const row_view<int>&)>& LTLT)
-{
-
-    // make skew symmetric matrix
-    auto A = random_matrix(n, n);
-    matrix<double> B = A - A.T();
-
-    // make a copy of B since we need to overwrite part of B
-    matrix<double> B0 = B;
-    std::cout << "print B" << std::endl;
-    matrixprint(B);
-
-    // auto B1 = B0;
-    // row<int> p1{n};
-    // ltlt_pivot_unblockLL(B1, p1);
-    // auto L1 = make_L(B1);
-    // auto T1 = make_T(B1);
-
-    row<int> p{n};
-    LTLT(B, p);
-    pivot_both(B0, p);
-
-    // verify its correctness
-    // make L and T from B
-
-    auto Lm = make_L(B);
-    auto Tm = make_T(B);
-    auto LmT = Lm.T();
-
-    std::cout << std::fixed << std::setprecision(10);
-
-    std::cout << "print LM" << std::endl;
-    matrixprint(Lm);
-    std::cout << "print TM" << std::endl;
-    matrixprint(Tm);
-    std::cout << "print LM.T" << std::endl;
-    matrixprint(LmT);
-    std::cout << "print B0" << std::endl;
-    matrixprint(B0);
-    std::cout << "print B" << std::endl;
-    matrixprint(B);
-
-    // calculate the error matrix
-    auto B0_res = MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-    std::cout << "print B0_res" << std::endl;
-    matrixprint(B0_res);
-    B0 -= B0_res;
-    // check_zero(B0);
-    std::cout << "Error Matirx " << std::endl;
-    matrixprint(B0);
-}
 
 template<typename T>
 inline bool check_RL(const T& majoralgo)

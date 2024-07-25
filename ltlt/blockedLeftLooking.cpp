@@ -1,3 +1,4 @@
+#if 0 
 #include "ltlt.hpp"
 
 void ltlt_blockLL(const matrix_view<double>& X, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB)
@@ -40,3 +41,4 @@ void ltlt_blockLL(const matrix_view<double>& X, len_type block_size, const std::
         tie(T, m, B) = continue_with<2>(R0, r1, R2, r3, R4);
     }
 }
+#endif

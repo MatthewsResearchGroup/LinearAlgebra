@@ -240,17 +240,33 @@ inline matrix<double> make_L(const matrix_view<const double>& X)
     return B;
 }
 
-inline matrix<double> make_T(const matrix_view<const double>& X)
+// inline matrix<double> make_T(const matrix_view<const double>& X)
+// {
+//     auto n = X.length(0);
+//     matrix<double> B{n, n};
+//     for (auto i : range(n))
+//     for (auto j : range(i))
+//     {
+//         if (i == j + 1)
+//         {
+//             B[i][j] = X[i][j];
+//             B[j][i] = -X[i][j];
+//         }
+//     }
+//     return B;
+// }
+//
+inline matrix<double> make_T(const row_view<double>& t)
 {
-    auto n = X.length(0);
-    matrix<double> B{n, n};
-    for (auto i : range(n))
+    auto n = t.length(0);
+    matrix<double> B{n+1, n+1};
+    for (auto i : range(n+1))
     for (auto j : range(i))
     {
         if (i == j + 1)
         {
-            B[i][j] = X[i][j];
-            B[j][i] = -X[i][j];
+            B[i][j] = t[j];
+            B[j][i] = -t[j];
         }
     }
     return B;
@@ -335,7 +351,17 @@ inline void matrixprint(const matrix_view<double>& B)
         }
         printf("\n");
     }
-} 
+}
+
+inline void rowprint(const row_view<double>& a)
+{
+    auto n = a.length(0);
+    for (auto i : range(n))
+    {
+        printf("%f ", a[i]);
+    }
+    printf("\n");
+}
 
 inline std::tuple<int, int> partition(int64_t n, int64_t bs, unsigned nthreads, unsigned idx)
 {
@@ -357,23 +383,23 @@ inline std::tuple<int, int> partition2(int64_t start, int64_t bs, unsigned idx)
 }
 
 
-void ltlt_unblockRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false);
+void ltlt_unblockRL(const matrix_view<double>& X, const row_view<double>& t, len_type k = -1, bool first_column = false);
 
-void ltlt_unblockLL(const matrix_view<double>& X, len_type k = -1, bool first_column = false);
+void ltlt_unblockLL(const matrix_view<double>& X, const row_view<double>& t, len_type k = -1, bool first_column = false);
 
-void ltlt_unblockTSRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false);
-
-void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB);
-
-void ltlt_blockLL(const matrix_view<double>& X, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB);
-
-void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<int>& pi, len_type k = -1, bool first_column = false);
+//void ltlt_unblockTSRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false);
+//
+//void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB);
+//
+//void ltlt_blockLL(const matrix_view<double>& X, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB);
+//
+//void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<int>& pi, len_type k = -1, bool first_column = false);
 
 // void ltlt_pivot_blockLL(const matrix_view<double>& X, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB);
 
-void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&, const row_view<int>&,len_type,bool)>& LTLT_UNB);
-
-void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type k = -1, bool first_column = false);
+// void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&, const row_view<int>&,len_type,bool)>& LTLT_UNB);
+// 
+// void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<int>& pi, len_type k = -1, bool first_column = false);
 
 void gemm_sktri
      (
