@@ -358,7 +358,7 @@ inline void rowprint(const row_view<double>& a)
     auto n = a.length(0);
     for (auto i : range(n))
     {
-        printf("%f ", a[i]);
+        printf("%f, ", a[i]);
     }
     printf("\n");
 }

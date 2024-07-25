@@ -80,9 +80,10 @@ int main(int argc, char* argv[])
      */
     /*
     //auto n = 10;
-    auto A = random_matrix(n,n,COLUMN_MAJOR);
+    auto A = random_matrix(n,n,ROW_MAJOR);
     auto t = random_row(n-1);
-    auto x = random_row(n);
+    //auto x = random_row(n);
+    auto x = A[all][0];
     auto y = random_row(n);
     auto y_temp = y;
 
@@ -94,8 +95,6 @@ int main(int argc, char* argv[])
         std::cout << y[i] << ", ";
     std::cout << std::endl;
     */
-
-    
 
 
 

@@ -239,7 +239,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     auto incy = y.stride(); 
     auto inct = T.stride();
 
-    // printf("rsa, csa, incx, incy, inct = %d, %d, %d, %d, %d\n", rsa, csa, incx, incy, inct);
+    //printf("rsa, csa, incx, incy, inct = %d, %d, %d, %d, %d\n", rsa, csa, incx, incy, inct);
     
     auto Tx = [&](int j, int n, int incx)
     {
@@ -270,6 +270,8 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
             std::tie(start, end) = partition(n, BS, omp_get_num_threads(), omp_get_thread_num());
             double Txj[BS];
 
+            for (auto i = 0; i < m; i++)
+                yp[i] *= beta;
             auto body = [&](int& start, int BS)
             {
                 auto j0 = start;
@@ -281,7 +283,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                     for (auto i = 0;i < m;i++)
                     for (auto j = j0;j < j0+BS;j++)
                     {
-                        yp[i] += Ap[i + j*csa] * Txj[j-j0];
+                        yp[i] += alpha * Ap[i + j*csa] * Txj[j-j0];
                     }
                 }
                 start =  j0;

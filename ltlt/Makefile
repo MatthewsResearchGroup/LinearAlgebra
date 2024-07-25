@@ -52,6 +52,10 @@ $(debug_exe): $(objs) ltlt_debug.o
 	@mkdir -p $(dir $(debug_exe))
 	$(CXX) -o $(debug_exe) $(objs) ltlt_debug.o $(LDFLAGS) $(LIBS)
 
+$(perf_exe): $(objs) ltlt_perf.o
+	@mkdir -p $(dir $(perf_exe))
+	$(CXX) -o $(perf_exe) $(objs) ltlt_perf.o $(LDFLAGS) $(LIBS)
+
 %.o: %.cpp
 	@mkdir -p $(dir $@).deps
 	$(CXX) $(CXXFLAGS) -MT $@ -MP -MMD -MF $(dir $@).deps/$(notdir $(@:.o=.d)) -o $@ -c $<
