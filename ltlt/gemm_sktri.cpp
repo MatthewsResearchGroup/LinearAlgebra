@@ -269,6 +269,8 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
             int start, end;
             std::tie(start, end) = partition(n, BS, omp_get_num_threads(), omp_get_thread_num());
             double Txj[BS];
+            for (auto i = 0; i < m; i++)
+                yp[i] *= beta;
 
             auto body = [&](int& start, int BS)
             {
@@ -281,7 +283,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                     for (auto i = 0;i < m;i++)
                     for (auto j = j0;j < j0+BS;j++)
                     {
-                        yp[i] += Ap[i + j*csa] * Txj[j-j0];
+                        yp[i] += alpha * Ap[i + j*csa] * Txj[j-j0];
                     }
                 }
                 start =  j0;
