@@ -6,12 +6,11 @@ std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
 
-    auto n = 10;
-    // auto blocksize = 3;
-
-
-    //test_bug(n, unblocked(ltlt_unblockRL));
-    test_bug(n, unblocked(ltlt_unblockLL));
+    auto n = 7;
+    auto blocksize = 2;
+    
+    test_bug(n, unblocked(ltlt_unblockRL));
+    //test_bug(n, unblocked(ltlt_unblockLL));
     //test_bug(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
     //test_bug(n, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize));
     //test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
@@ -115,24 +114,24 @@ int main(int argc, char* argv[])
     //// printf("\n\n");
     //auto C = random_matrix(n, n, ROW_MAJOR);
     //auto C_copy = C;
-    //// printf("Print X before SKR2\n");
-    //// matrixprint(C);
-    //// printf("Print C_COPY before SKR2\n");
-    ////matrixprint(C_copy);
+    //printf("Print X before SKR2\n");
+    //matrixprint(C);
+    //printf("Print C_COPY before SKR2\n");
+    //matrixprint(C_copy);
 
-    //skr2('L', 1.0, a, b, 1.0, C);
-    //// printf("Print X After SKR2\n");
-    //// matrixprint(C);
+    //skr2('L', -1.0, a, b, 2.0, C);
+    //printf("Print X After SKR2\n");
+    //matrixprint(C);
 
-    //blas::skr2('L', 1.0, a, b, 1.0, C_copy);
-    //// printf("Print C_COPY after SKR2\n");
-    //// matrixprint(C_copy);
+    //blas::syr2('L', -1.0, a, b, 2.0, C_copy);
+    //printf("Print C_COPY after SKR2\n");
+    //matrixprint(C_copy);
 
     //C -= C_copy;
-    //// printf("printf Error matrix\n");
-    //// matrixprint(C);
+    //printf("printf Error matrix\n");
+    //matrixprint(C);
     //printf("Norm of Error Matrix : %e\n", norm(C));
-    //}
+    
 
 
 
@@ -168,5 +167,33 @@ int main(int argc, char* argv[])
     ////matrixprint(E);
     //printf("Norm of Error Matrix : %e\n", norm(E));
     //}
+    //
+    //
+    /************** GEMM-sktri ***************/
+    
+    //auto m = 1;
+    //auto n = 1;
+    //auto A = random_matrix(m,n,COLUMN_MAJOR);
+    //auto t = random_row(n-1);
+    ////auto A_T = A.T();
+    //auto B = random_matrix(n,n,COLUMN_MAJOR);
+    //matrix<double> C({m, n}, COLUMN_MAJOR);
+    ////auto C = random_matrix(m,m,ROW_MAJOR);
+    //auto C_copy = C;
 
+    //printf("Print X before gemm\n");
+    //matrixprint(C);
+    //printf("Print C_COPY before gemm\n");
+    //matrixprint(C_copy);
+    //blas::skew_tridiag_gemm(-1.0, A, t, B, 1.0, C);
+    //gemm_sktri(-1.0, A, t, B, 1.0, C_copy);
+    //printf("Print X after gemm\n");
+    //matrixprint(C);
+    //printf("Print C_COPY after gemm\n");
+    //matrixprint(C_copy);
+
+    //C -= C_copy;
+    //printf("printf Error matrix\n");
+    //matrixprint(C);
+    //printf("Norm of Error Matrix : %e\n", norm(C));
 }

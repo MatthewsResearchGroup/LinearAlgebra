@@ -25,18 +25,22 @@ void ltlt_blockRL(const matrix_view<double>& X, len_type block_size, const std::
 
         auto temp_T = temp.T();
     
-        //blas::skew_tridiag_rankk('L',
-        //                         -1.0,      temp[r3|R4][R2|r3],
-        //                               subdiag(X[R2|r3][R2|r3]),
-        //                          1.0,         X[r3|R4][r3|R4]);
+        // blas::skew_tridiag_rankk('L',
+        //                          -1.0,      temp[r3|R4][R2|r3],
+        //                                subdiag(X[R2|r3][R2|r3]),
+        //                           1.0,         X[r3|R4][r3|R4]);
         
         gemmt_sktri('L',
                     -1.0,      temp[r3|R4][R2|r3],
                           subdiag(X[R2|r3][R2|r3]),
                              temp_T[R2|r3][r3|R4],
                       1.0,        X[r3|R4][r3|R4]);
-        //blas::skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
+        //printf("print X[R4][R4] before skr2\n");
+        //matrixprint(X[R4][R4]);
+        ////blas::skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
         skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
+        //printf("print X[R4][R4] after skr2\n");
+        //matrixprint(X[R4][R4]);
 
         // ( R0 | r1 | R2 || r3 | R4 )
         // (      T       ||  m |  B )

@@ -12,13 +12,20 @@ void gemm_sktri
        const matrix_view<double>&  c \
      )
 {
+    //std::cout << "matrix a" << std::endl;
+    //matrixprint(a);
+    //std::cout << "matrix b" << std::endl;
+    //matrixprint(b);
+    //std::cout << "matrix c" << std::endl;
+    //matrixprint(c);
     PROFILE_FUNCTION
     PROFILE_FLOPS(2*a.length(0)*a.length(1)*b.length(1));
-    if (a.length(0) == 1)
+    if (a.length(1) == 1)
         return;
 
 	bli_init();
 
+    printf("a.stride(0), a.stride(1), b.stride(0), b.stride(1), c.stride(0), c.stride(1) = %d, %d, %d, %d, %d, %d\n", a.stride(0), a.stride(1), b.stride(0), b.stride(1), c.stride(0), c.stride(1));
     obj_t alpha_local, beta_local, a_local, b_local, c_local;
     bli_obj_create_1x1_with_attached_buffer(BLIS_DOUBLE, &alpha, &alpha_local);
     bli_obj_create_1x1_with_attached_buffer(BLIS_DOUBLE, &beta, &beta_local);
@@ -59,10 +66,11 @@ void gemm_sktri
 	// method id determined above
 	auto cntx = bli_gks_query_cntx();
 
-    bli_negsc( &alpha_local, &alpha_local );
+    if (c.stride(1) == 1) // C with the ROW-MAJOR
+        bli_negsc( &alpha_local, &alpha_local );
 	gemm_cntl_t cntl;
 
-	bli_gemm_cntl_init
+	auto transpose = bli_gemm_cntl_init
 	(
 	  im,
 	  BLIS_GEMM,
@@ -75,11 +83,17 @@ void gemm_sktri
 	  &cntl
 	);
 
+    //bli_negsc( &alpha_local, &alpha_local );
+    //std::cout << "transpose"  << transpose << std::endl;
+    //bli_printm("alpha_local", &alpha_local, "%5.2f", "");
+    //if (!transpose)
+    //    bli_negsc( &alpha_local, &alpha_local);
+    //bli_printm("alpha_local", &alpha_local, "%5.2f", "");
+    
     func_t pack;
     bli_func_set_dt((void*)&packing, BLIS_DOUBLE, &pack);
     bli_gemm_cntl_set_packb_ukr_simple(&pack, &cntl);
     skparams params;
-    //params.t = static_cast<const void*>(d.data());   
     params.t = static_cast<const void*>(d.data());   
     params.inct = d.stride();   
     params.n = a.length(1);
@@ -113,7 +127,7 @@ void gemmt_sktri
 {
     PROFILE_FUNCTION
     PROFILE_FLOPS(a.length(0)*a.length(1)*b.length(1));
-    if (a.length(0) == 1)
+    if (a.length(1) == 1)
         return;
 	bli_init();
 
@@ -165,7 +179,8 @@ void gemmt_sktri
 	// method id determined above.
 	auto cntx = bli_gks_query_cntx();
 
-    bli_negsc( &alpha_local, &alpha_local );
+    if (c.stride(1) == 1) // C with the ROW-MAJOR
+        bli_negsc( &alpha_local, &alpha_local );
 	// Alias A, B, and C in case we need to apply transformations.
 	gemm_cntl_t cntl;
 	bli_gemm_cntl_init
@@ -380,7 +395,7 @@ void skr2(char uplo, \
                         const row_view<const double>& b,
           double beta,  const matrix_view<   double>& C)
 {
-    constexpr int BS = 5;
+    constexpr int BS = 1;
     
     auto m = C.length(0);
     auto n = C.length(1);
@@ -574,6 +589,10 @@ void skr2(char uplo, \
                 // }
             }
         }
+        else
+        {
+            printf("skr2 Nothing to do\n");
+        }
     }
 
     // 
@@ -587,7 +606,7 @@ void ger2(double alpha, const row_view<const double> a,
                         const row_view<const double> d,
           double gamma, const matrix_view<   double> E)
 {
-    constexpr int BS = 5;
+    constexpr int BS = 4;
     
     auto m = E.length(0);
     auto n = E.length(1);

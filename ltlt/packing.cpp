@@ -28,11 +28,13 @@ void packing
     const inc_t  inct = skp->inct;
     t += panel_len_off * inct;
 
-    //printf("Print t\n");
-    //for (auto i : range(n-1))
-    //    printf("%f, ", t[i*inct]);
-    //printf("\n\n");
+    printf("Print t\n");
+    for (auto i : range(n-1))
+        printf("%f, ", t[i*inct]);
+    printf("\n\n");
+    printf("incc, ldc, ldp, inct = %d, %d, %d, %d\n", incc, ldc, ldp, inct);
     double kappa_local = *kappa;
+    printf("kappa_local = %f\n", kappa_local);
     
     if ((panel_len_off) == 0 and (n > panel_len))
     {
