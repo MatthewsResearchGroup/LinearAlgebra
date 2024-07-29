@@ -469,45 +469,6 @@ void skr2(char uplo, \
                         Cp[i+j*csc] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i+j*csc];
                     }
                 }
-                // for (auto j0 = tid*BS; j0 < n; j0+= BS*nt)
-                // {
-                //     if (j0+BS > n)
-                //     {
-                //         for (auto j = j0; j < n; j++)
-                //         {
-                //             //auto a_temp = alpha * ap[j*inca];
-                //             //auto b_temp = alpha * bp[j*incb];
-                //             auto a_temp = alpha * ap[j];
-                //             auto b_temp = alpha * bp[j];
-                //             for (auto i = j+1; i <n; i++)
-                //             {
-                //                 //Cp[i+j*csc] = ap[i*inca] * b_temp - a_temp * bp[i*incb] + beta * Cp[i+j*csc];
-                //                 Cp[i+j*csc] = ap[i] * b_temp - a_temp * bp[i] + beta * Cp[i+j*csc];
-                //             } 
-                //         }
-                //     }
-                //     else
-                //     {
-                //         for (auto i = j0+BS; i < n; i++)
-                //         {
-                //             for (auto j = j0; j < j0+BS ; j++)
-                //             {
-                //                 //Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
-                //                 Cp[i+j*csc] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i+j*csc];
-                //             }
-                //         }
-
-                //         // triangle
-                //         for ( auto j = j0 ; j < j0+BS; j++)
-                //         {
-                //             for (auto i = j+1; i < j0 + BS; i++)
-                //             {
-                //                 //Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
-                //                 Cp[i+j*csc] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i+j*csc];
-                //             }
-                //         }
-                //     }
-                // }
             }
         }
         //else if (csc == 1 && inca == 1 && incb == 1) // Row major 
@@ -552,41 +513,6 @@ void skr2(char uplo, \
                         Cp[i*rsc+j] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i*rsc+j];
                     }
                 }
-
-
-                // for (auto i0 = tid*BS; i0 < n; i0 += BS*nt)
-                // {
-                //     if (i0+BS > n)
-                //     {
-                //         for (auto i = i0 ; i < n;i++)
-                //         {
-                //             for (auto j = 0;j < i;j++)
-                //             {
-                //                 Cp[i*rsc+j] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i*rsc+j];
-                //             }
-                //         }
-                //     }
-                //     else
-                //     {
-                //         for (auto j = 0; j < i0; j++)
-                //         {
-                //             for (auto i = i0; i < i0+BS ; i++)
-                //             {
-                //                 // printf("idx, start, end, i0 , j =%d, %d,  %d, %d, %d\n", omp_get_thread_num(), start, end, i0, j);
-                //                 Cp[i*rsc+j] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i*rsc+j];
-                //             }
-                //         }
-
-                //         // triangle
-                //         for (auto i = i0; i < i0 + BS; i++)
-                //         {
-                //             for ( auto j = i0 ; j < i; j++)
-                //             {
-                //                 Cp[i*rsc+j] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i*rsc+j];
-                //             }
-                //         }
-                //     }
-                // }
             }
         }
         else
@@ -643,43 +569,40 @@ void ger2(double alpha, const row_view<const double> a,
             auto tid = omp_get_thread_num();
             auto nt = omp_get_num_threads();
 
-            auto j0 = tid*BS;
-            for (; j0 <= n -BS; j0+=nt*BS)
+            int start, end;
+            std::tie(start, end) = partition(n, BS, tid, nt);
+            auto body = [&](int& start, int BS)
             {
-                for (auto i = 0; i < m; i++)
-                for (auto j = j0; j < j0+BS; j++)
-                    Ep[i+j*cse] = alpha * ap[i] * bp[j] + beta * cp[i] * dp[j] + gamma * Ep[i+j*cse];
+                auto j0 = start;
+                for (; j0 + BS < n; j0+=BS)
+                {
+                    for (auto i = 0; i < m; i++)
+                    {
+                        for( auto j = j0; j < j0 + BS; j++)
+                        {
+                            Ep[i+j*cse] = alpha * ap[i] * bp[j] + beta * cp[i] * dp[j] + gamma * Ep[i+j*cse];
+                        }
+                    }
+                }
+                start = j0;
+            };
+            body(start, BS);
+            body(start, 1);
 
-            }    
-            for (auto j = j0; j < n; j++)
-            {
-                for (auto i = 0; i < m; i++)
-                    Ep[i+j*cse] = alpha * ap[i] * bp[j] + beta * cp[i] * dp[j] + gamma * Ep[i+j*cse];
-            }
-
-            // for (auto j0 = tid*BS; j0 < n; j0+=nt*BS)
+            // auto j0 = tid*BS;
+            // for (; j0 <= n -BS; j0+=nt*BS)
             // {
-            //     if (j0 + BS > n)
-            //     {
-            //        for (auto j = j0; j < n; j++)
-            //        {
-            //            for (auto i = 0; i < m; i++)
-            //            {
-            //                 Ep[i+j*cse] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i+j*cse];
-            //            }
-            //        }
-            //     }
-            //     else
-            //     {
-            //         for (auto i = 0; i < m; i++)
-            //         {
-            //             for (auto j = j0; j < j0+BS; j++)
-            //             {
-            //                 Ep[i+j*cse] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i+j*cse];
-            //             }
-            //         }
-            //     }
+            //     for (auto i = 0; i < m; i++)
+            //     for (auto j = j0; j < j0+BS; j++)
+            //         Ep[i+j*cse] = alpha * ap[i] * bp[j] + beta * cp[i] * dp[j] + gamma * Ep[i+j*cse];
+
+            // }    
+            // for (auto j = j0; j < n; j++)
+            // {
+            //     for (auto i = 0; i < m; i++)
+            //         Ep[i+j*cse] = alpha * ap[i] * bp[j] + beta * cp[i] * dp[j] + gamma * Ep[i+j*cse];
             // }
+
         }
     }
     else if (cse == 1 && inca == 1 && incb == 1 && incc == 1 && incd == 1) // ROW MAJOR
@@ -690,50 +613,32 @@ void ger2(double alpha, const row_view<const double> a,
             auto tid = omp_get_thread_num();
             auto nt = omp_get_num_threads();
 
-            auto i0 = tid*BS;
-            for (; i0 <= m-BS; i0+=nt*BS)
+            int start, end;
+            std::tie(start, end) = partition(m, BS, tid, nt);
+            auto body = [&](int& start, int BS)
             {
-                for (auto j = 0; j < n; j++)
-                for (auto i = i0; i < i0+BS; i++)
+                auto i0 = start;
+                for(; i0 + BS <= end; i0+=BS)
                 {
-                    Ep[i*rse+j] = alpha * ap[i] * bp[j] + beta * cp[i] * dp[j] + gamma * Ep[i*rse+j];
+                    for(auto j = 0; j < n; j++)
+                    {
+                        for(auto i = i0; i < i0 + BS; i++)
+                        {
+                            Ep[i*rse+j] = alpha * ap[i] * bp[j] + beta * cp[i] * dp[j] + gamma * Ep[i*rse+j];
+                        }
+                    }
                 }
-            }
+                start = i0;
+            };
 
-            for (auto i = i0; i < m; i++)
-            {
-                for (auto j = 0; j < n; j++)
-                {
-                    Ep[i*rse+j] = alpha * ap[i] * bp[j] + beta * cp[i] * dp[j] + gamma * Ep[i*rse+j];
-                }
-            }
-            //for (auto i0 = tid*BS; i0 < m; i0+=nt*BS)
-            //{
-            //    if (i0 + BS > m)
-            //    {
-            //        for (auto i = i0; i < m; i++)
-            //        {
-            //            for (auto j = 0; j < n; j++)
-            //            {
-            //                Ep[i*rse+j] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i*rse+j];
-            //            }
-            //        }    
-            //    }
-            //    else
-            //    {
-            //        for (auto j = 0; j < n; j++)
-            //        {
-            //            // auto b_temp =  bp[j*incb];
-            //            // auto d_temp =  dp[j*incd];
-            //            for (auto i = i0; i < i0+BS; i++)
-            //            {
-            //                Ep[i*rse+j] = alpha * ap[i*inca] * bp[j*incb] + beta * cp[i*incc] * dp[j*incd] + gamma * Ep[i*rse+j];
-            //            }
-            //        }
-            //    } // 
-            //    
-            //}
+            body(start, BS);
+            body(start, 1);
+
         }
+    }
+    else
+    {
+        printf("General function hasn't been impletemented!\n");
     }
 
     PROFILE_FLOPS(4*m*n);
