@@ -6,15 +6,15 @@ std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
 
-    auto n = 7;
-    auto blocksize = 2;
+    auto n = 16;
+    auto blocksize = 3;
     
     test_bug(n, unblocked(ltlt_unblockRL));
-    //test_bug(n, unblocked(ltlt_unblockLL));
-    //test_bug(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
-    //test_bug(n, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize));
-    //test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
-    //test_bug(n, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize));
+    test_bug(n, unblocked(ltlt_unblockLL));
+    test_bug(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
+    test_bug(n, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize));
+    test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
+    test_bug(n, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize));
     //test_debug_piv(n, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize));
     //test_debug_piv(n, unblocked(ltlt_pivot_unblockLL));
     //test_debug_piv(n, unblocked(ltlt_pivot_unblockRL));
@@ -137,14 +137,13 @@ int main(int argc, char* argv[])
 
     /********* GER2 *********/
     
-    //for (auto n = 100; n <= 1000; n+=100)
+    //for (auto n = 7; n <= 100; n+=3)
     //{
-
     //auto a = random_row(n);
     //auto b = random_row(n);
     //auto c = random_row(n);
     //auto d = random_row(n);
-    //auto E = random_matrix(n,n,COLUMN_MAJOR);
+    //auto E = random_matrix(n,n,ROW_MAJOR);
 
     //auto acopy = a;
     //auto bcopy = b;
@@ -156,12 +155,21 @@ int main(int argc, char* argv[])
     //double beta = -1.0;
     //double gamma = 1.0;
 
+    ////printf("E before ger2\n");
+    ////matrixprint(E);
+    ////printf("E_Copy before ger2\n");
+    ////matrixprint(Ecopy);
     //
     //blas::ger(      alpha, a, b, gamma, E);
     //blas::ger(      beta,  c, d, gamma, E);
-
+    //
     //ger2(alpha, acopy, bcopy, beta, ccopy, dcopy, gamma, Ecopy);
 
+    ////printf("E after ger2\n");
+    ////matrixprint(E);
+    ////printf("E_Copy after ger2\n");
+    ////matrixprint(Ecopy);
+    //    
     //E -= Ecopy;
     ////printf("printf Error matrix\n");
     ////matrixprint(E);

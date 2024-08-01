@@ -71,7 +71,7 @@ void bli_gemm_var_cntl_init_node
 	);
 }
 
-bool bli_gemm_cntl_init
+void bli_gemm_cntl_init
      (
              ind_t        im,
              opid_t       family,
@@ -174,7 +174,6 @@ bool bli_gemm_cntl_init
 	                                      BLIS_NO_CONJUGATE,
 	                                      alpha,
 	                                      &alpha_cast );
-    bli_printm("alpha_cast", &alpha_cast, "%5.2f", "");
 	// Cast beta to the type of C, since we will need to
 	// ignore the imaginary part of beta for real C.
 	bli_obj_scalar_init_detached_copy_of( dt_c,
@@ -561,7 +560,6 @@ bool bli_gemm_cntl_init
 	  cntl
 	);
 
-    return needs_swap;
 }
 
 void bli_gemm_cntl_finalize

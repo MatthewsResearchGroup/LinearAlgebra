@@ -1,7 +1,7 @@
 #ifndef LTLT_HPP
 #define LTLT_HPP
 
-#define MARRAY_DEFAULT_LAYOUT ROW_MAJOR 
+#define MARRAY_DEFAULT_LAYOUT ROW_MAJOR
 
 #include <type_traits>
 #include <utility>
