@@ -20,7 +20,6 @@ void ltlt_unblockLL(const matrix_view<double>& X, const row_view<double>& t, len
         t[r1] = L[r2][r2];
         L[r2][r2] = 1;
 
-        printf("\n t[r1] = %f\n", t[r1]);
         // ( R0 | r1 || r2 | R3 )
         // (    T    || m  | B  )
         tie(T, m, B) = continue_with(R0, r1, r2, R3);
@@ -41,11 +40,6 @@ void ltlt_unblockLL(const matrix_view<double>& X, const row_view<double>& t, len
 
 
         // blas::skewtrigemv(-1.0,         L       [     r2|R3|R4][R0|r1],
-        //                         subdiag(X       [R0|r1        ][R0|r1]),
-        //                                 temp.T()[R0|r1        ][   r1],
-        //                    1.0,         X       [     r2|R3|R4][   r1]);
-        //
-        // blas::skewtrigemv(-1.0,         L       [     r2|R3|R4][R0|r1],
         //                                                          t[R0],
         //                                 L          [r1        ][R0|r1],
         //                    1.0,         X       [     r2|R3|R4][   r1]);
@@ -58,7 +52,6 @@ void ltlt_unblockLL(const matrix_view<double>& X, const row_view<double>& t, len
         t[r1] = L[r2][r2];
         L[r2][r2] = 1;
 
-        printf("\n t[r1] = %f\n", t[r1]);
         // ( R0 | r1 || r2 | R3 | R4 )
         // (    T    || m  | B0 | B1 )
         tie(T, m, B0) = continue_with(R0, r1, r2, R3);
