@@ -94,11 +94,11 @@ inline auto unblocked(const std::function<void(const matrix_view<double>&, const
     return std::bind(unblock, std::placeholders::_1, std::placeholders::_2, -1, false);
 }
 
-//inline auto unblocked(const std::function<void(const matrix_view<double>&,const row_view<int>&,len_type,bool)>& unblock)
-//{
-//    return std::bind(unblock, std::placeholders::_1, std::placeholders::_2, -1, false);
-//}
-//
+inline auto unblocked(const std::function<void(const matrix_view<double>&,const row_view<double>&, const row_view<int>&, len_type, bool)>& unblock)
+{
+    return std::bind(unblock, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, -1, false);
+}
+
 
 template <typename BL>
 auto blocked(const BL& block, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& unblock, int blocksize)
@@ -106,11 +106,11 @@ auto blocked(const BL& block, const std::function<void(const matrix_view<double>
     return std::bind(block, std::placeholders::_1, std::placeholders::_2, blocksize, unblock);
 }
 
-//template <typename BL>
-//auto blocked(const BL& block, const std::function<void(const matrix_view<double>&,const row_view<int>&,len_type,bool)>& unblock, int blocksize)
-//{
-//    return std::bind(block, std::placeholders::_1, std::placeholders::_2, blocksize, unblock);
-//}
+template <typename BL>
+auto blocked(const BL& block, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& unblock, int blocksize)
+{
+    return std::bind(block, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, blocksize, unblock);
+}
 
 template <typename MArray>
 void check_zero(const MArray& X, uplo_t uplo = BLIS_LOWER, struc_t struc = BLIS_GENERAL)
@@ -156,9 +156,6 @@ void check_zero(const MArray& X, uplo_t uplo = BLIS_LOWER, struc_t struc = BLIS_
 //
 //
 
-
-
-
 inline void test_bug(int n, const std::function<void(const matrix_view<double>&, const row_view<double>&)>& LTLT)
 {
     auto A = random_matrix(n, n, COLUMN_MAJOR);
@@ -174,6 +171,52 @@ inline void test_bug(int n, const std::function<void(const matrix_view<double>&,
     auto starting_point =  bli_clock();
     LTLT(B, t);
     auto ending_point = bli_clock();
+
+    auto time = ending_point - starting_point;
+
+    auto Lm = make_L(B);
+    auto Tm = make_T(t);
+    auto LmT = Lm.T();
+
+    std::cout<< "Print Matrix Lm " << std::endl;
+    matrixprint(Lm);
+    std::cout<< "Print Matrix Tm " << std::endl;
+    matrixprint(Tm);
+    // std::cout<< "Print Matrix LmT " << std::endl;
+    // matrixprint(LmT);
+    
+    std::cout<< "Print Matrix LTLT " << std::endl;
+    auto B_LTLT = MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    matrixprint(B_LTLT);
+
+    // calculate the error matrix
+    B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    double err = norm(B0) / (n * n);
+
+    
+    std::cout<< "Print Error Matrix " << std::endl;
+    matrixprint(B0);
+    std::cout << "Norm of Error Matrix : " << err << std::endl;
+    
+}
+
+inline void test_debug_piv(int n, const std::function<void(const matrix_view<double>&, const row_view<double>&, const row_view<int>&)>& LTLT)
+{
+    auto A = random_matrix(n, n, COLUMN_MAJOR);
+    matrix<double> B = A - A.T();
+    row<double> t{n-1}; 
+    row<int> p{n};
+
+    // make a copy of B since we need to overwrite part of B
+    matrix<double> B0 = B;
+
+    std::cout<< "Print Matrix B before LTLT" << std::endl;
+    matrixprint(B);
+
+    auto starting_point =  bli_clock();
+    LTLT(B, t, p);
+    auto ending_point = bli_clock();
+    pivot_both(B0, p);
 
     auto time = ending_point - starting_point;
 

@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
 {
 
     auto n = 7;
-    auto blocksize = 2;
+    auto blocksize = 3;
 
 
     //test_bug(n, unblocked(ltlt_unblockRL));
