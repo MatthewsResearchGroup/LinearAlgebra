@@ -32,20 +32,20 @@ endif
 debug_exe=../bin/ltlt_debug
 #test_exe=../bin/ltlt_test
 perf_exe=../bin/ltlt_perf
-benchmark_exe=../bin/ltlt_mbm
+#benchmark_exe=../bin/ltlt_mbm
 objs=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
 deps:=$(join $(addsuffix .deps/,$(dir $(objs))),$(notdir $(objs:.o=.d)))
 objs:=$(filter-out ltlt_debug.o ltlt_test.o ltlt_perf.o ltlt_mbm.o,$(objs))
 
 .PHONY: all
 #all: $(test_exe) $(perf_exe) $(debug_exe) $(benchmark_exe)
-all: $(perf_exe) $(debug_exe) $(benchmark_exe)
+all: $(perf_exe) $(debug_exe) 
 
 -include $(deps)
 
 .PHONY: clean
 clean:
-	rm -f $(objs) $(exe) $(perf_exe) $(benchmark_exe) ltlt_test.o ltlt_perf.o ltlt_mbm.o ltlt_debug.o
+	rm -f $(objs) $(exe) $(perf_exe) ltlt_test.o ltlt_perf.o  ltlt_debug.o
 	#rm -f $(objs) $(exe) $(test_exe) $(perf_exe) $(benchmark_exe) ltlt_test.o ltlt_perf.o ltlt_mbm.o ltlt_debug.o
 
 $(debug_exe): $(objs) ltlt_debug.o

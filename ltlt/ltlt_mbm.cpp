@@ -1,3 +1,4 @@
+#if 0
 #include <cstdlib>
 #include <map>
 #include <math.h>
@@ -94,3 +95,4 @@ int main(int argc, char* argv[])
     }
     return 0;
 }
+#endif

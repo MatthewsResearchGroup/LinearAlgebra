@@ -101,16 +101,16 @@ inline auto unblocked(const std::function<void(const matrix_view<double>&, const
 //
 
 template <typename BL>
-auto blocked(const BL& block, const std::function<void(const matrix_view<double>&,len_type,bool)>& unblock, int blocksize)
-{
-    return std::bind(block, std::placeholders::_1, blocksize, unblock);
-}
-
-template <typename BL>
-auto blocked(const BL& block, const std::function<void(const matrix_view<double>&,const row_view<int>&,len_type,bool)>& unblock, int blocksize)
+auto blocked(const BL& block, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& unblock, int blocksize)
 {
     return std::bind(block, std::placeholders::_1, std::placeholders::_2, blocksize, unblock);
 }
+
+//template <typename BL>
+//auto blocked(const BL& block, const std::function<void(const matrix_view<double>&,const row_view<int>&,len_type,bool)>& unblock, int blocksize)
+//{
+//    return std::bind(block, std::placeholders::_1, std::placeholders::_2, blocksize, unblock);
+//}
 
 template <typename MArray>
 void check_zero(const MArray& X, uplo_t uplo = BLIS_LOWER, struc_t struc = BLIS_GENERAL)

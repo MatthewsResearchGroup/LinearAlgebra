@@ -1,6 +1,6 @@
 #include "ltlt.hpp"
 
-void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
+void ltlt_unblockRL(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column)
 {
     PROFILE_FUNCTION
     auto n = X.length(0);
@@ -30,6 +30,8 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
         auto [R0, r1, r2, R3] = repartition(T, m, B0);
 
         L[R3|R4][r2] = X[R3|R4][r1] / X[r2][r1];
+        t[r1] = L[r2][r2];
+        L[r2][r2] = 1;
 
         skr2('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
         //blas::skr2('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
@@ -48,4 +50,6 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
     auto [R0, r1, r2, R3] = repartition(T, m, B);
 
     L[R3][r2] = X[R3][r1] / X[r2][r1];
+    t[r1] = L[r2][r2];
+    L[r2][r2] = 1;
 }
