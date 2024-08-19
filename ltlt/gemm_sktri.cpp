@@ -65,7 +65,7 @@ void gemm_sktri
 	// method id determined above
 	auto cntx = bli_gks_query_cntx();
 
-    if (c.stride(1) == 1) // C with the ROW-MAJOR
+    if (c.stride(1) == 1) // C with the ROW-MAJOR, hardcode. 
         bli_negsc( &alpha_local, &alpha_local );
 	gemm_cntl_t cntl;
 

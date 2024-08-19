@@ -253,13 +253,13 @@ inline double performance(int n, const std::function<void(const matrix_view<doub
     // make skew symmetric matrix
     auto A = random_matrix(n, n);
     matrix<double> B = A - A.T();
-    row<double> t{n};
 
     // make a copy of B since we need to overwrite part of B
     matrix<double> B0 = B;
 
     for (auto i : range(repitation))
     {
+        row<double> t{n};
         auto B = B0;
         auto B_deepcopy = B;
 

@@ -77,40 +77,40 @@ int main(int argc, const char** argv)
             if (majoralgo == "ltlt_unblockLL")
                 time = performance(matrixsize, unblocked(ltlt_unblockLL), repitation);
 
-           // else if (majoralgo == "ltlt_unblockRL")
-           //     time = performance(matrixsize, unblocked(ltlt_unblockRL), repitation);
+            else if (majoralgo == "ltlt_unblockRL")
+                time = performance(matrixsize, unblocked(ltlt_unblockRL), repitation);
 
-           // else if (majoralgo == "ltlt_unblockTSRL")
-           //     time = performance(matrixsize, unblocked(ltlt_unblockTSRL), repitation);
+            //else if (majoralgo == "ltlt_unblockTSRL")
+            //    time = performance(matrixsize, unblocked(ltlt_unblockTSRL), repitation);
 
-           // else
-           // {
-           //     std::cerr << "The Algorithm is not suppotted" << std::endl;
-           //     exit(1);
-           // }
+            else
+            {
+                std::cerr << "The Algorithm is not suppotted" << std::endl;
+                exit(1);
+            }
         }
-        //else
-        //{
-        //    if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockRL")
-        //        time = performance(matrixsize, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize), repitation);
+        else
+        {
+            if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockRL")
+                time = performance(matrixsize, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize), repitation);
 
-        //    else if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockLL")
-        //        time = performance(matrixsize, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize), repitation);
+            else if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockLL")
+                time = performance(matrixsize, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize), repitation);
 
-        //    else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockRL")
-        //        time = performance(matrixsize, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize), repitation);
+            else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockRL")
+                time = performance(matrixsize, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize), repitation);
 
-        //    else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockLL")
-        //        time = performance(matrixsize, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize), repitation);
+            else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockLL")
+                time = performance(matrixsize, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize), repitation);
 
-        //    else
-        //    {
-        //        std::cerr << "The Algorithm is not suppotted" << std::endl;
-        //        exit(1);
-        //    }
-        //
-        //}
-        // auto GFLOPS = check_RL(majoralgo)? 3*pow(matrixsize,3)/(time*3e9) : pow(matrixsize,3)/(time*3e9);
+            else
+            {
+                std::cerr << "The Algorithm is not suppotted" << std::endl;
+                exit(1);
+            }
+        
+        }
+        //auto GFLOPS = check_RL(majoralgo)? 3*pow(matrixsize,3)/(time*3e9) : pow(matrixsize,3)/(time*3e9);
         auto GFLOPS = pow(matrixsize,3)/(time*3e9);
         printf("matrixsize, blocksize, GFLOPS = %ld, %ld, %f\n", matrixsize, blocksize, GFLOPS);
          // for (auto i : range(repitation))
