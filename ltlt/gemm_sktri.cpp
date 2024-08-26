@@ -275,7 +275,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     
 
     //
-    // A as the column major, rsa = 1 and incx = 1
+    // A as the column major, rsa = 1 and incy = 1
     //
     //
     if ((rsa == 1) && (incy == 1))
@@ -284,30 +284,36 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
         #pragma omp parallel
         {
             int start, end;
-            std::tie(start, end) = partition(n, BS, omp_get_num_threads(), omp_get_thread_num());
+            std::tie(start, end) = partition(m, BS, omp_get_num_threads(), omp_get_thread_num());
             double Txj[BS];
-            for (auto i = 0; i < m; i++)
-                yp[i] *= beta;
-
-            auto body = [&](int& start, int BS)
+            //
+            for (auto i = start; i < end; i++)
             {
-                auto j0 = start;
-                for (;j0+BS <= end;j0 += BS)
+                yp[i] *= beta;
+            }
+            
+            int begin = 0;
+            auto body = [&](int& begin, int BS)
+            {
+                int j0 = begin;
+                for (; j0 + BS <= n; j0+=BS)
                 {
-                    for (auto j = j0;j < j0+BS;j++)
-                        Txj[j-j0] = Tx(j, n, incx);
-
-                    for (auto i = 0;i < m;i++)
-                    for (auto j = j0;j < j0+BS;j++)
+                    for (auto j = j0; j < j0+BS; j++)
                     {
-                        yp[i] += alpha * Ap[i + j*csa] * Txj[j-j0];
+                        Txj[j-j0] = Tx(j, n, incx);
                     }
-                }
-                start =  j0;
+
+                    for (auto i = start; i < end; i++)
+                    for (auto j = j0; j < j0 + BS; j++)
+                            yp[i] += alpha * Ap[i + j * csa] * Txj[j-j0];
+                }               
+                
+                begin = j0;
+
             };
 
-            body(start, BS);
-            body(start, 1);
+            body(begin, BS);
+            body(begin, 1);
         }
     }
     else if ((csa == 1) && (incx == 1))
