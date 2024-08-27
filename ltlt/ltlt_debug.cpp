@@ -6,14 +6,14 @@ std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
 
-    auto n = 7;
+    auto n = 20;
     auto blocksize = 3;
     
     //test_bug(n, unblocked(ltlt_unblockRL));
     //test_bug(n, unblocked(ltlt_unblockLL));
-    //test_bug(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
+    test_bug(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
     //test_bug(n, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize));
-    test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
+    //test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
     //test_bug(n, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize));
     //test_debug_piv(n, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize));
     //test_debug_piv(n, unblocked(ltlt_pivot_unblockLL));
@@ -77,22 +77,20 @@ int main(int argc, char* argv[])
      *  GEMV-SKTRI function
      * 
      */
-    /*
-    //auto n = 10;
-    auto A = random_matrix(n,n,COLUMN_MAJOR);
-    auto t = random_row(n-1);
-    auto x = random_row(n);
-    auto y = random_row(n);
-    auto y_temp = y;
+    //auto n = 51;
+    //auto A = random_matrix(n,n,COLUMN_MAJOR);
+    //auto t = random_row(n-1);
+    //auto x = random_row(n);
+    //auto y = random_row(n);
+    //auto y_temp = y;
 
-    gemv_sktri(1.0, A, t, x, 1.0, y);
-    blas::skewtrigemv(1.0, A, t, x, 1.0, y_temp);
-    y -= y_temp;
-    printf("print error matrix\n");
-    for (auto i : range(y.length()))
-        std::cout << y[i] << ", ";
-    std::cout << std::endl;
-    */
+    //gemv_sktri(1.0, A, t, x, 1.0, y);
+    //blas::skewtrigemv(1.0, A, t, x, 1.0, y_temp);
+    //y -= y_temp;
+    //printf("print error matrix\n");
+    //for (auto i : range(y.length()))
+    //    std::cout << y[i] << ", ";
+    //std::cout << std::endl;
 
     
 
