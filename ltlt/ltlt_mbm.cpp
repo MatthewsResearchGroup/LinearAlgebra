@@ -28,8 +28,9 @@ int main(int argc, char* argv[])
     if (funcname == "gemv-sktri")
     {
         // benchmark for gemv-sktri function with different BS
-        for ( auto matrixsize = 100; matrixsize <= 5100; matrixsize += 200 )
+        for ( auto matrixsize = 100; matrixsize <= 10100; matrixsize += 200 )
         {
+          //int n = 1000;
           auto A = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
           // auto B = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
           // auto T = make_T(B);
@@ -37,6 +38,10 @@ int main(int argc, char* argv[])
           auto t = random_row(matrixsize-1);
           auto x = random_row(matrixsize);
           auto y = random_row(matrixsize);
+          //auto A = random_matrix(matrixsize, n, ROW_MAJOR);
+          //auto t = random_row(n-1);
+          //auto x = random_row(n);
+          //auto y = random_row(matrixsize);
 
 
           auto min_time = std::numeric_limits<float>::max();
@@ -53,7 +58,6 @@ int main(int argc, char* argv[])
             if (time < min_time)
                 min_time = time;
           }
-          //auto GFLOPS = 2*pow(matrixsize,2)/((ending_point-starting_point)*1e9);
           auto GFLOPS = 2*(matrixsize* matrixsize)/(min_time *1e9);
           printf("gemv-sktri: matrixsize, time,  GFLOPS = %ld, %f s, %f gflops/sec\n", matrixsize, min_time, GFLOPS);
 
