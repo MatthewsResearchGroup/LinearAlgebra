@@ -53,7 +53,9 @@ void ltlt_unblockLL(const matrix_view<double>& X, len_type k, bool first_column)
                                         temp.T()[R0|r1        ][   r1],
                            1.0,         X       [     r2|R3|R4][   r1]);
 
+        PROFILE_SECTION("divide")
         L[R3|R4][r2] = X[R3|R4][r1] / X[r2][r1];
+        PROFILE_STOP
 
         // ( R0 | r1 || r2 | R3 | R4 )
         // (    T    || m  | B0 | B1 )

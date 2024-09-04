@@ -67,7 +67,7 @@ int main(int argc, const char** argv)
     auto repitation = args["<repitation>"].asLong();
     auto minoralgo = args["--minoralgo"] ? args["--minoralgo"].asString() : std::string("");
     auto blocksize = args["--bs"] ? args["--bs"].asLong(): 0;
-    PROFILE_SECTION("main function")
+    //PROFILE_SECTION("main function")
         
     for (auto matrixsize = matrixsize_min; matrixsize <=  matrixsize_max; matrixsize += step)
     {   
@@ -116,7 +116,7 @@ int main(int argc, const char** argv)
          // for (auto i : range(repitation))
         output_to_csv(matrixsize, majoralgo, minoralgo, blocksize, time, GFLOPS);
     }
-    PROFILE_STOP
+    //PROFILE_STOP
 
     timer::print_timers();
 

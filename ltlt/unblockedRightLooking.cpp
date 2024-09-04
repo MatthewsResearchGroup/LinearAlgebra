@@ -29,7 +29,9 @@ void ltlt_unblockRL(const matrix_view<double>& X, len_type k, bool first_column)
         // ( R0 || r1 | r2 | R3 | R4 )
         auto [R0, r1, r2, R3] = repartition(T, m, B0);
 
+        PROFILE_SECTION("divide")
         L[R3|R4][r2] = X[R3|R4][r1] / X[r2][r1];
+        PROFILE_STOP
 
         skr2('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
         //blas::skr2('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);

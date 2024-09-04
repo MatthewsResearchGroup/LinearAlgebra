@@ -28,10 +28,11 @@ int main(int argc, char* argv[])
     if (funcname == "gemv-sktri")
     {
         // benchmark for gemv-sktri function with different BS
-        for ( auto matrixsize = 100; matrixsize <= 10100; matrixsize += 200 )
+        for ( auto matrixsize = 100; matrixsize <= 20100; matrixsize += 200 )
         {
           //int n = 1000;
-          auto A = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
+          //auto A = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
+          auto A = random_matrix(matrixsize, matrixsize, COLUMN_MAJOR);
           // auto B = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
           // auto T = make_T(B);
           // auto t = subdiag(T);
@@ -67,9 +68,10 @@ int main(int argc, char* argv[])
     else if (funcname == "skr2")
     {
         // benchmark for skr2 function with different BS
-        for (auto matrixsize = 100; matrixsize <= 5100; matrixsize+=200)
+        for (auto matrixsize = 100; matrixsize <= 20100; matrixsize+=200)
         {
-          auto C = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
+          //auto C = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
+          auto C = random_matrix(matrixsize, matrixsize, COLUMN_MAJOR);
           auto x = random_row(matrixsize);
           auto y = random_row(matrixsize);
           auto min_time = std::numeric_limits<float>::max();
@@ -95,7 +97,8 @@ int main(int argc, char* argv[])
         for (auto matrixsize = 100; matrixsize <= 20100; matrixsize+=200)
         {
           auto stride = 2;
-          auto C = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
+          //auto C = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
+          auto C = random_matrix(matrixsize, matrixsize, COLUMN_MAJOR);
           auto X = random_matrix(stride, matrixsize, COLUMN_MAJOR);
           auto Y = random_matrix(stride, matrixsize, COLUMN_MAJOR);
           auto x = X[0][all];
@@ -124,6 +127,7 @@ int main(int argc, char* argv[])
         // benchmark for ger2 function with different BS
         for (auto matrixsize = 100; matrixsize <= 20100; matrixsize+=200)
         {
+          //auto E = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
           auto E = random_matrix(matrixsize, matrixsize, COLUMN_MAJOR);
           auto a = random_row(matrixsize);
           auto b = random_row(matrixsize);
@@ -156,7 +160,8 @@ int main(int argc, char* argv[])
         for (auto matrixsize = 100; matrixsize <= 20100; matrixsize+=200)
         {
           auto stride = 2;
-          auto E = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
+          //auto E = random_matrix(matrixsize, matrixsize, ROW_MAJOR);
+          auto E = random_matrix(matrixsize, matrixsize, COLUMN_MAJOR);
           auto A = random_matrix(stride, matrixsize, COLUMN_MAJOR);
           auto B = random_matrix(stride, matrixsize, COLUMN_MAJOR);
           auto C = random_matrix(stride, matrixsize, COLUMN_MAJOR);
