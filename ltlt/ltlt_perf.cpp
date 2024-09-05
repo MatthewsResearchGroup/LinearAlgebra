@@ -80,8 +80,8 @@ int main(int argc, const char** argv)
             else if (majoralgo == "ltlt_unblockRL")
                 time = performance(matrixsize, unblocked(ltlt_unblockRL), repitation);
 
-            else if (majoralgo == "ltlt_unblockTSRL")
-                time = performance(matrixsize, unblocked(ltlt_unblockTSRL), repitation);
+            //else if (majoralgo == "ltlt_unblockTSRL")
+            //    time = performance(matrixsize, unblocked(ltlt_unblockTSRL), repitation);
 
             else
             {
@@ -108,9 +108,9 @@ int main(int argc, const char** argv)
                 std::cerr << "The Algorithm is not suppotted" << std::endl;
                 exit(1);
             }
-    
+        
         }
-        // auto GFLOPS = check_RL(majoralgo)? 3*pow(matrixsize,3)/(time*3e9) : pow(matrixsize,3)/(time*3e9);
+        //auto GFLOPS = check_RL(majoralgo)? 3*pow(matrixsize,3)/(time*3e9) : pow(matrixsize,3)/(time*3e9);
         auto GFLOPS = pow(matrixsize,3)/(time*3e9);
         printf("matrixsize, blocksize, GFLOPS = %ld, %ld, %f\n", matrixsize, blocksize, GFLOPS);
          // for (auto i : range(repitation))

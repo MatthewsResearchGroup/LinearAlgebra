@@ -1,7 +1,6 @@
 #include "ltlt.hpp"
 #include "packing.hpp"
 
-
 void gemm_sktri
      (
        double  alpha, \
@@ -89,7 +88,7 @@ void gemm_sktri
     //if (!transpose)
     //    bli_negsc( &alpha_local, &alpha_local);
     //bli_printm("alpha_local", &alpha_local, "%5.2f", "");
-    
+
     func_t pack;
     bli_func_set_dt((void*)&packing, BLIS_DOUBLE, &pack);
     bli_gemm_cntl_set_packb_ukr_simple(&pack, &cntl);
@@ -97,8 +96,8 @@ void gemm_sktri
     params.t = static_cast<const void*>(d.data());   
     params.inct = d.stride();   
     params.n = a.length(1);
-    
-    bli_gemm_cntl_set_packb_params(&params, &cntl);   
+
+    bli_gemm_cntl_set_packb_params(&params, &cntl);
 
 	// Invoke the internal back-end via the thread handler.
 	bli_l3_thread_decorator
@@ -108,7 +107,7 @@ void gemm_sktri
 	  &c_local,
 	  cntx,
 	  ( cntl_t* )&cntl,
-	  nullptr 
+	  nullptr
 	);
 }
 
@@ -201,11 +200,11 @@ void gemmt_sktri
     bli_func_set_dt((void*)&packing, BLIS_DOUBLE, &pack);
     bli_gemm_cntl_set_packb_ukr_simple(&pack, &cntl);
     skparams params;
-    params.t = static_cast<const void*>(d.data());   
-    params.inct = d.stride();   
+    params.t = static_cast<const void*>(d.data());
+    params.inct = d.stride();
     params.n = a.length(1);
-    
-    bli_gemm_cntl_set_packb_params(&params, &cntl);   
+
+    bli_gemm_cntl_set_packb_params(&params, &cntl);
 
 	// Invoke the internal back-end via the thread handler.
 	bli_l3_thread_decorator
@@ -243,7 +242,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
         return;
     }
     // to get the normal base (0), we create a new matrix A_temp with base as 0,
-    // otherwise we will use A element wrong when we call it by index. 
+    // otherwise we will use A element wrong when we call it by index.
     // Question, I don't know how native gemv impletation solves this issue.
     auto restrict Ap =  A.data();
     auto rsa = A.stride(0);
@@ -251,12 +250,12 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     auto restrict xp = x.data();
     auto restrict yp = y.data();
     auto restrict Tp = T.data();
-    auto incx = x.stride(); 
-    auto incy = y.stride(); 
+    auto incx = x.stride();
+    auto incy = y.stride();
     auto inct = T.stride();
 
     // printf("rsa, csa, incx, incy, inct = %d, %d, %d, %d, %d\n", rsa, csa, incx, incy, inct);
-    
+
     auto Tx = [&](int j, int n, int incx)
     {
         if (j == 0)
@@ -272,7 +271,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
             return Tp[(j-1)*inct] * xp[(j-1)*incx] - Tp[j*inct] * xp[(j+1)*incx];
         }
     };
-    
+
 
     //
     // A as the column major, rsa = 1 and incy = 1
@@ -393,23 +392,23 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                     temp+= (- Ap[i*rsa+(j-1)*csa] * T[j-1] + Ap[i*rsa+(j+1)*csa] * T[j]) * xp[j*incx] ;
                 }
             }
-            yp[i*incy] = alpha * temp + beta * yp[i*incy]; 
+            yp[i*incy] = alpha * temp + beta * yp[i*incy];
         }
     }
 
     PROFILE_FLOPS(2*A.length(0)*A.length(1));
 }
 
-void skr2(char uplo, \ 
+void skr2(char uplo, \
           double alpha, const row_view<const double>& a,
                         const row_view<const double>& b,
           double beta,  const matrix_view<   double>& C)
 {
     constexpr int BS = 2;
-    
+
     auto m = C.length(0);
     auto n = C.length(1);
-    
+
     MARRAY_ASSERT(m == n);
 
     PROFILE_FUNCTION
@@ -439,14 +438,14 @@ void skr2(char uplo, \
     if (uplo == 'L')
     {
         //if (rsc == 1 && inca == 1 && incb == 1) // Column major
-        if (rsc == 1) 
+        if (rsc == 1)
         {
             if ( inca == 1 && incb == 1 ) // a and b are unit stride.
             {
                 //printf("unit stride skr2 with COLUMN major\n");
                 //auto maxnt = std::min(omp_get_num_threads(), 12);
                 //#pragma omp parallel num_threads(maxnt)
-                #pragma omp parallel 
+                #pragma omp parallel
                 {
                     auto tid = omp_get_thread_num();
                     auto nt = omp_get_num_threads();
@@ -525,7 +524,7 @@ void skr2(char uplo, \
 
             }
         }
-        //else if (csc == 1 && inca == 1 && incb == 1) // Row major 
+        //else if (csc == 1 && inca == 1 && incb == 1) // Row major
         else if (csc == 1) // ROW major
         {
             //printf("ROW MAJOR\n");
@@ -534,7 +533,7 @@ void skr2(char uplo, \
             {
                 //printf("unit stride skr2 with row major\n");
                 //auto maxnt = std::min(omp_get_num_threads(), 12);
-                //#pragma omp parallel num_threads(maxnt) 
+                //#pragma omp parallel num_threads(maxnt)
                 #pragma omp parallel
                 {
                     auto tid = omp_get_thread_num();
@@ -547,11 +546,11 @@ void skr2(char uplo, \
                         {
                             for (auto i = i0; i < i0+BS ; i++)
                             {
-                                // printf("idx, start, end, i0 , j =%d, %d,  %d, %d, %d\n", omp_get_thread_num(), start, end, i0, j);              
+                                // printf("idx, start, end, i0 , j =%d, %d,  %d, %d, %d\n", omp_get_thread_num(), start, end, i0, j);
                                 Cp[i*rsc+j] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i*rsc+j];
                             }
                         }
-                        
+
                         // triangle
                         for (auto i = i0; i < i0 + BS; i++)
                         {
@@ -561,7 +560,7 @@ void skr2(char uplo, \
                             }
                         }
 
-                    }    
+                    }
 
                     for (auto i = i0 ; i < n;i++)
                     {
@@ -577,8 +576,8 @@ void skr2(char uplo, \
                 //printf("nonunit stride skr2 with row major\n");
                 //    omp_set_num_threads(12);
                 //auto maxnt = std::min(omp_get_num_threads(), 12);
-                //#pragma omp parallel num_threads(maxnt) 
-                #pragma omp parallel 
+                //#pragma omp parallel num_threads(maxnt)
+                #pragma omp parallel
                 {
                     auto tid = omp_get_thread_num();
                     auto nt = omp_get_num_threads();
@@ -592,11 +591,11 @@ void skr2(char uplo, \
                             auto tmpb = bp[j*incb];
                             for (auto i = i0; i < i0+BS ; i++)
                             {
-                                // printf("idx, start, end, i0 , j =%d, %d,  %d, %d, %d\n", omp_get_thread_num(), start, end, i0, j);              
+                                // printf("idx, start, end, i0 , j =%d, %d,  %d, %d, %d\n", omp_get_thread_num(), start, end, i0, j);
                                 Cp[i*rsc+j] = alpha * (ap[i*inca] * tmpb - tmpa * bp[i*incb]) + beta * Cp[i*rsc+j];
                             }
                         }
-                        
+
                         // triangle
                         for (auto i = i0; i < i0 + BS; i++)
                         {
@@ -606,7 +605,7 @@ void skr2(char uplo, \
                             }
                         }
 
-                    }    
+                    }
 
                     for (auto i = i0 ; i < n;i++)
                     {
@@ -628,7 +627,7 @@ void skr2(char uplo, \
         }
     }
 
-    // 
+    //
     // Code for upper part update
 }
 
@@ -640,7 +639,7 @@ void ger2(double alpha, const row_view<const double> a,
           double gamma, const matrix_view<   double> E)
 {
     constexpr int BS = 5;
-    
+
     auto m = E.length(0);
     auto n = E.length(1);
 
@@ -653,7 +652,7 @@ void ger2(double alpha, const row_view<const double> a,
     MARRAY_ASSERT(lb == n);
     MARRAY_ASSERT(lc == m);
     MARRAY_ASSERT(ld == n);
-    
+
     PROFILE_FUNCTION
     auto restrict ap = a.data();
     auto restrict bp = b.data();
@@ -707,7 +706,7 @@ void ger2(double alpha, const row_view<const double> a,
                 //     for (auto j = j0; j < j0+BS; j++)
                 //         Ep[i+j*cse] = alpha * ap[i] * bp[j] + beta * cp[i] * dp[j] + gamma * Ep[i+j*cse];
 
-                // }    
+                // }
                 // for (auto j = j0; j < n; j++)
                 // {
                 //     for (auto i = 0; i < m; i++)
@@ -749,7 +748,7 @@ void ger2(double alpha, const row_view<const double> a,
         }
     }
     //else if (cse == 1 && inca == 1 && incb == 1 && incc == 1 && incd == 1) // ROW MAJOR
-    else if (cse == 1) 
+    else if (cse == 1)
     {
         if ( inca == 1 && incb == 1 && incc == 1 && incd == 1 ) // a, b , c and d are unit stride
         {
@@ -824,3 +823,4 @@ void ger2(double alpha, const row_view<const double> a,
 
     PROFILE_FLOPS(4*m*n);
 }
+

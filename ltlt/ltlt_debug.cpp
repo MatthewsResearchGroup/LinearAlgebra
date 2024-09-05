@@ -92,8 +92,6 @@ int main(int argc, char* argv[])
     //    std::cout << y[i] << ", ";
     //std::cout << std::endl;
 
-    
-
 
 
 
