@@ -731,6 +731,11 @@ using value_type = std::remove_cv_t<typename std::decay_t<T>::value_type>;
 namespace blas
 {
 
+using std::conj;
+inline float conj(float x) { return x; }
+inline double conj(double x) { return x; }
+inline long double conj(long double x) { return x; }
+
 /******************************************************************************
  *
  * Level 1 BLAS, C++ overloads
