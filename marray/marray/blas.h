@@ -3647,6 +3647,91 @@ auto skr2(char uplo, T&& x, U&& y)
 
 #endif
 
+template <typename T, typename U, typename V, typename W, typename X>
+std::enable_if_t<detail::is_marray_like_v<U,1> &&
+                 detail::is_marray_like_v<V,1> &&
+                 detail::is_marray_like_v<X,2>>
+syr2(char uplo, T alpha, U&& x, V&& y, W beta, X&& A)
+{
+    auto A_ = A.view();
+    auto x_ = x.view();
+    auto y_ = y.view();
+
+    auto m = A_.length(0);
+
+    MARRAY_ASSERT(x_.length() == m);
+    MARRAY_ASSERT(y_.length() == m);
+    MARRAY_ASSERT(A_.length(1) == m);
+
+    if (beta == 0.0) A_ = 0;
+    else if (beta != 1.0) A_ *= beta;
+
+    MARRAY_ASSERT(uplo == 'U' || uplo == 'L');
+    bli_syr2(uplo == 'U' ? BLIS_UPPER : BLIS_LOWER, BLIS_NO_CONJUGATE, BLIS_NO_CONJUGATE, m,
+             alpha, x_.data(), x_.stride(),
+                    y_.data(), y_.stride(),
+                    A_.data(), A_.stride(0), A_.stride(1));
+}
+
+/**
+ * Perform the skew-symmetric outer product \f$ A = xy^\text{H} - yx^\text{H} \f$.
+ *
+ * @param uplo  'L' if A is stored lower-triangular or 'U' if A is stored upper-triangular.
+ *
+ * @param x     A vector or vector view of length `m`.
+ *
+ * @param y     A vector or vector view of length `m`.
+ *
+ * @param A     A `m`x`m` skew-symmetric matrix or matrix view. Must have either a row or
+ *              column stride of one.
+ */
+template <typename T, typename U, typename V>
+std::enable_if_t<detail::is_marray_like_v<T,1> &&
+                 detail::is_marray_like_v<U,1> &&
+                 detail::is_marray_like_v<V,2>>
+syr2(char uplo, T&& x, U&& y, V&& A)
+{
+    syr2(uplo, 1.0, x, y, 0.0, A);
+}
+
+/**
+ * Return the result of the skew-symmetric outer product \f$ A = \alpha xy^\text{H} - \alpha' yx^\text{H} \f$.
+ *
+ * @param uplo  'L' if A is stored lower-triangular or 'U' if A is stored upper-triangular.
+ *
+ * @param alpha Scalar factor for the product \f$ xy^\text{H} \f$.
+ *
+ * @param x     A vector or vector view of length `m`.
+ *
+ * @param y     A vector or vector view of length `m`.
+ */
+template <typename T, typename U, typename V, typename=
+    std::enable_if_t<detail::is_marray_like_v<U,1> &&
+                     detail::is_marray_like_v<V,1>>>
+auto syr2(char uplo, T alpha, U&& x, V&& y)
+{
+    marray<detail::value_type<U>,2> A({x.length(), x.length()}, uninitialized);
+    syr2(uplo, alpha, x, y, 0.0, A);
+    return A;
+}
+
+/**
+ * Return the result of the skew-symmetric outer product \f$ A = xy^\text{H} - yx^\text{H} \f$.
+ *
+ * @param uplo  'L' if A is stored lower-triangular or 'U' if A is stored upper-triangular.
+ *
+ * @param x     A vector or vector view of length `m`.
+ *
+ * @param y     A vector or vector view of length `m`.
+ */
+template <typename T, typename U, typename=
+    std::enable_if_t<detail::is_marray_like_v<T,1> &&
+                     detail::is_marray_like_v<U,1>>>
+auto syr2(char uplo, T&& x, U&& y)
+{
+    return syr2(uplo, 1.0, x, y);
+}
+
 /******************************************************************************
  *
  * Level 3 BLAS, MArray wrappers

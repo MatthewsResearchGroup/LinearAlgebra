@@ -559,6 +559,7 @@ void bli_gemm_cntl_init
 	  c,
 	  cntl
 	);
+
 }
 
 void bli_gemm_cntl_finalize
