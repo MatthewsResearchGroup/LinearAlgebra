@@ -274,11 +274,13 @@ inline double performance(int n, const std::function<void(const matrix_view<doub
         auto Tm = make_T(t);
         auto LmT = Lm.T();
 
-        // calculate the error matrix
-        B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-        double err = norm(B_deepcopy) / (n * n);
-        printf("err is %f\n", err);
-        //check_zero(B0);
+        //matrixprint(B_LTLT);
+        //// calculate the error matrix
+        //auto B_LTLT = MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+        //B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+        //double err = norm(B_deepcopy) / (n * n);
+        //printf("err is %f\n", err);
+        ////check_zero(B0);
 
         MinTime = (time < MinTime)? time : MinTime;
 
@@ -287,6 +289,48 @@ inline double performance(int n, const std::function<void(const matrix_view<doub
 
 }
 
+inline double pivperformance(int n, const std::function<void(const matrix_view<double>&, const row_view<double>&, const row_view<int>&)>& LTLT, int repitation = 3)
+{
+    auto MinTime = std::numeric_limits<double>::max();
+    //double MinTime = 1.0e4;
+    // make skew symmetric matrix
+    auto A = random_matrix(n, n);
+    matrix<double> B = A - A.T();
+
+    // make a copy of B since we need to overwrite part of B
+    matrix<double> B0 = B;
+
+    for (auto i : range(repitation))
+    {
+        row<double> t{n};
+        row<int> p{n};
+        auto B = B0;
+        auto B_deepcopy = B;
+
+        auto starting_point =  bli_clock();
+        LTLT(B,t,p);
+        auto ending_point = bli_clock();
+
+        auto time = ending_point - starting_point;
+        printf("Rep and time: %d, %f\n", i, time);
+
+        auto Lm = make_L(B);
+        auto Tm = make_T(t);
+        auto LmT = Lm.T();
+        
+            
+        // calculate the error matrix
+        //B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+        //double err = norm(B_deepcopy) / (n * n);
+        //printf("err is %f\n", err);
+        //check_zero(B0);
+
+        MinTime = (time < MinTime)? time : MinTime;
+
+    }
+    return MinTime;
+
+}
 
 template<typename T>
 inline bool check_RL(const T& majoralgo)

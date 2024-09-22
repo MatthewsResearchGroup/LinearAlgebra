@@ -39,10 +39,10 @@ void ltlt_unblockLL(const matrix_view<double>& X, const row_view<double>& t, len
         auto [R0, r1, r2, R3] = repartition(T, m, B0);
 
 
-        // blas::skewtrigemv(-1.0,         L       [     r2|R3|R4][R0|r1],
-        //                                                          t[R0],
-        //                                 L          [r1        ][R0|r1],
-        //                    1.0,         X       [     r2|R3|R4][   r1]);
+        //blas::skewtrigemv(-1.0,         L       [     r2|R3|R4][R0|r1],
+        //                                                         t[R0],
+        //                                L          [r1        ][R0|r1],
+        //                   1.0,         X       [     r2|R3|R4][   r1]);
         gemv_sktri( -1.0,               L       [     r2|R3|R4][R0|r1],
                                                                  t[R0],
                                         L          [r1        ][R0|r1],
@@ -51,7 +51,7 @@ void ltlt_unblockLL(const matrix_view<double>& X, const row_view<double>& t, len
         PROFILE_SECTION("divide")
         L[R3|R4][r2] = X[R3|R4][r1] / X[r2][r1];
         PROFILE_STOP
-        t[r1] = L[r2][r2];
+        t[r1] = X[r2][r1];
         L[r2][r2] = 1;
 
         // ( R0 | r1 || r2 | R3 | R4 )

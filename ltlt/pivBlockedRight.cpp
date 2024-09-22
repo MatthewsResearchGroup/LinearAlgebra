@@ -19,7 +19,7 @@ void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<double>& t,
                        L.T()[R2|r3][r3|R4],
                   1.0,     X[r3|R4][r3|R4]);
 
-    blas::skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
+    skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
 
     tie(T, m, B) = continue_with<2>(R0, r1, R2, r3, R4);
 
@@ -31,7 +31,9 @@ void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<double>& t,
 
         LTLT_UNB(X[r1|R2|r3|R4][r1|R2|r3|R4], t[r1|R2], pi[r1|R2|r3], (r1|R2|r3).size(), false);
 
+        PROFILE_SECTION("pivot_rows_BRL")
         pivot_rows(X[R2|r3|R4][R0], pi[R2|r3|R4]);
+        PROFILE_STOP
 
         gemmt_sktri('L',
                     -1.0,      L[r3|R4][R2|r3],
@@ -39,7 +41,7 @@ void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<double>& t,
                            L.T()[R2|r3][r3|R4],
                       1.0,     X[r3|R4][r3|R4]);
 
-        blas::skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
+        skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
 
         tie(T, m, B) = continue_with<2>(R0, r1, R2, r3, R4);
     }

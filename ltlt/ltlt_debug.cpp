@@ -6,15 +6,15 @@ std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
 
-    auto n = 20;
-    auto blocksize = 6;
+    auto n = 500;
+    auto blocksize = 128;
     
-    test_bug(n, unblocked(ltlt_unblockRL));
+    //test_bug(n, unblocked(ltlt_unblockRL));
     test_bug(n, unblocked(ltlt_unblockLL));
-    test_bug(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
-    test_bug(n, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize));
-    test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
-    test_bug(n, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize));
+    //test_bug(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
+    //test_bug(n, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize));
+    //test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
+    //test_bug(n, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize));
     //test_debug_piv(n, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize));
     //test_debug_piv(n, unblocked(ltlt_pivot_unblockLL));
     //test_debug_piv(n, unblocked(ltlt_pivot_unblockRL));
@@ -175,29 +175,49 @@ int main(int argc, char* argv[])
     //
     /************** GEMM-sktri ***************/
     
-    //auto m = 1;
-    //auto n = 1;
-    //auto A = random_matrix(m,n,COLUMN_MAJOR);
-    //auto t = random_row(n-1);
-    ////auto A_T = A.T();
-    //auto B = random_matrix(n,n,COLUMN_MAJOR);
-    //matrix<double> C({m, n}, COLUMN_MAJOR);
-    ////auto C = random_matrix(m,m,ROW_MAJOR);
-    //auto C_copy = C;
+    // //auto m = 257;
+    // //auto n = 257;
+    // //auto k = 540;
+    // auto m = 500;
+    // auto n = 500;
+    // auto k = 258;
+    // auto A = random_matrix(m,k,COLUMN_MAJOR);
+    // auto t = random_row(k-1);
+    // //auto A_T = A.T();
+    // auto B = random_matrix(k,n,COLUMN_MAJOR);
+    // matrix<double> C({m, n}, COLUMN_MAJOR);
+    // //auto C = random_matrix(m,m,ROW_MAJOR);
+    // auto C_copy = C;
 
-    //printf("Print X before gemm\n");
-    //matrixprint(C);
-    //printf("Print C_COPY before gemm\n");
-    //matrixprint(C_copy);
-    //blas::skew_tridiag_gemm(-1.0, A, t, B, 1.0, C);
-    //gemm_sktri(-1.0, A, t, B, 1.0, C_copy);
-    //printf("Print X after gemm\n");
-    //matrixprint(C);
-    //printf("Print C_COPY after gemm\n");
-    //matrixprint(C_copy);
+    // //for (auto p = 0; p < 256; p++)
+    // //{
+    // //for (auto i = 0; i < m; i++)
+    // //    A[i][p] = 0.0;
 
-    //C -= C_copy;
-    //printf("printf Error matrix\n");
-    //matrixprint(C);
-    //printf("Norm of Error Matrix : %e\n", norm(C));
+    // //for (auto j = 0; j < n; j++)
+    // //    B[p][j] = 0.0;
+    // //}
+    // //for (auto p = 512; p < 540; p++)
+    // //{
+    // //for (auto i = 0; i < m; i++)
+    // //    A[i][p] = 0.0;
+
+    // //for (auto j = 0; j < n; j++)
+    // //    B[p][j] = 0.0;
+    // //}
+    // printf("Print X before gemm\n");
+    // //matrixprint(C);
+    // printf("Print C_COPY before gemm\n");
+    // //matrixprint(C_copy);
+    // blas::skew_tridiag_gemm(-1.0, A, t, B, 1.0, C);
+    // gemm_sktri(-1.0, A, t, B, 1.0, C_copy);
+    // printf("Print X after gemm\n");
+    // //matrixprint(C);
+    // printf("Print C_COPY after gemm\n");
+    // //matrixprint(C_copy);
+
+    // C -= C_copy;
+    // printf("printf Error matrix\n");
+    // //matrixprint(C);
+    // printf("Norm of Error Matrix : %e\n", norm(C));
 }

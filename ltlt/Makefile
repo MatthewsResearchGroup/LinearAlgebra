@@ -18,6 +18,7 @@ CXXFLAGS = -std=c++17 -Wno-unused-result -Wno-unused-result -I../marray/marray \
 LDFLAGS = -L../build/blis/lib/$(CONFIG) -Wl,-rpath,$(shell pwd)/../build/blis/lib/$(CONFIG) -L../build/docopt.cpp/lib 
 LIBS = -lm -ldl -lblis -ldocopt 
 #/usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0
+#-lflame
 
 ifeq ($(M3),true)
 CXX = g++
@@ -45,8 +46,7 @@ all: $(perf_exe) $(debug_exe)
 
 .PHONY: clean
 clean:
-	rm -f $(objs) $(exe) $(perf_exe) ltlt_test.o ltlt_perf.o  ltlt_debug.o
-	#rm -f $(objs) $(exe) $(test_exe) $(perf_exe) $(benchmark_exe) ltlt_test.o ltlt_perf.o ltlt_mbm.o ltlt_debug.o
+	rm -f $(objs) $(debug_exe) $(perf_exe) ltlt_test.o ltlt_perf.o  ltlt_debug.o 
 
 $(debug_exe): $(objs) ltlt_debug.o
 	@mkdir -p $(dir $(debug_exe))

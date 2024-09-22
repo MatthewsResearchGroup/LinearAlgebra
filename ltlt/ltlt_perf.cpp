@@ -24,12 +24,16 @@ int main(int argc, const char** argv)
       Options:
         <majoralgo>       The major algorithm for ltlt, including UnBlock algorithms and Block algorithms                                                     
                           Block algorithms: 
-                                            Block Right Loooking (ltlt_blockRL), 
-                                            Block Left Loooking (ltlt_blockLL).
+                                            Block Right Looking (ltlt_blockRL), 
+                                            Block Left Looking (ltlt_blockLL).
                           UnBlock algorithms: 
-                                            UnBlock Right Loooking (ltlt_unblockRL), 
-                                            Unblock Left Loooking (ltlt_unblockLL)
+                                            UnBlock Right Looking (ltlt_unblockRL), 
+                                            Unblock Left Looking (ltlt_unblockLL)
                                             UnBlock Two Step Right Looking (ltlt_unblockTSRL)
+                                            Pivot Unblock Left Looking (ltlt_pivot_unblockLL)
+                                            Pivot Unblock Right Looking (ltlt_pivot_unblockRL)
+                          piv block algorithms:
+                                            pivot Block Right Looking (ltlt_pivot_blockRL (it only applies to unblock left looking))
 
         <matrixsize_min>  The min size of skew matirx we plan to decompose
 
@@ -80,6 +84,11 @@ int main(int argc, const char** argv)
             else if (majoralgo == "ltlt_unblockRL")
                 time = performance(matrixsize, unblocked(ltlt_unblockRL), repitation);
 
+            else if (majoralgo == "ltlt_pivot_unblockLL")
+                time = pivperformance(matrixsize, unblocked(ltlt_pivot_unblockLL), repitation);
+
+            else if (majoralgo == "ltlt_pivot_unblockRL")
+                time = pivperformance(matrixsize, unblocked(ltlt_pivot_unblockRL), repitation);
             //else if (majoralgo == "ltlt_unblockTSRL")
             //    time = performance(matrixsize, unblocked(ltlt_unblockTSRL), repitation);
 
@@ -103,6 +112,9 @@ int main(int argc, const char** argv)
             else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockLL")
                 time = performance(matrixsize, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize), repitation);
 
+            else if (majoralgo == "ltlt_pivot_blockRL" && minoralgo == "ltlt_pivot_unblockLL") 
+                time = pivperformance(matrixsize, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize), repitation);
+
             else
             {
                 std::cerr << "The Algorithm is not suppotted" << std::endl;
@@ -112,9 +124,15 @@ int main(int argc, const char** argv)
         }
         //auto GFLOPS = check_RL(majoralgo)? 3*pow(matrixsize,3)/(time*3e9) : pow(matrixsize,3)/(time*3e9);
         auto GFLOPS = pow(matrixsize,3)/(time*3e9);
-        printf("matrixsize, blocksize, GFLOPS = %ld, %ld, %f\n", matrixsize, blocksize, GFLOPS);
+        printf("matrixsize, blocksize, time, GFLOPS = %d, %d, %f, %f\n", matrixsize, blocksize, time, GFLOPS);
          // for (auto i : range(repitation))
-        output_to_csv(matrixsize, majoralgo, minoralgo, blocksize, time, GFLOPS);
+        int nt = 0;
+        #pragma omp parallel
+        {
+            nt = omp_get_num_threads();
+        }
+        //printf("We are using %d threads\n", nt);
+        output_to_csv(nt, matrixsize, majoralgo, minoralgo, blocksize, time, GFLOPS);
     }
     //PROFILE_STOP
 

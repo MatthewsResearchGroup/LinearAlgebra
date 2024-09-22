@@ -7,7 +7,8 @@
 #include <filesystem>
 
 
-void output_to_csv(const int& MatrixSize, 
+void output_to_csv(const int& nt,
+                   const int& MatrixSize, 
                    const std::string& MajorAlgo,
                    const std::string& MinorAlgo,
                    const int& BlockSize,
@@ -29,14 +30,14 @@ void output_to_csv(const int& MatrixSize,
         exit(1);
     }
     //Generate formatting for output
-    std::string header = "MatrixSize, MajorAlgo, MinorAlgo, BlockSize, time, GFLOPS";
-    std::string values_f = "%6d, %s, %s, %6d, %E, %E\n";
+    std::string header = "NUM_THREADS, MatrixSize, MajorAlgo, MinorAlgo, BlockSize, Time, GFLOPS";
+    std::string values_f = "%6d, %6d, %s, %s, %6d, %E, %E\n";
 
 
     if (std::filesystem::is_empty(filename))
         fprintf(out_csv,"%s\n",header.c_str());
 
-    fprintf(out_csv, values_f.c_str(),
+    fprintf(out_csv,           values_f.c_str(),  nt,
             MatrixSize,         MajorAlgo.c_str(),
             MinorAlgo.c_str(),  BlockSize,
             time,               GFLOPS);

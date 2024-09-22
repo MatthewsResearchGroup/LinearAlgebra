@@ -65,7 +65,9 @@ void gemm_sktri
 	// method id determined above
 	auto cntx = bli_gks_query_cntx();
 
-    if (c.stride(1) == 1) // C with the ROW-MAJOR
+    auto pack_side = 1;
+
+    if (c.stride(pack_side) == 1) // C with the ROW-MAJOR
         bli_negsc( &alpha_local, &alpha_local );
 	gemm_cntl_t cntl;
 
@@ -91,13 +93,19 @@ void gemm_sktri
 
     func_t pack;
     bli_func_set_dt((void*)&packing, BLIS_DOUBLE, &pack);
-    bli_gemm_cntl_set_packb_ukr_simple(&pack, &cntl);
+    if (pack_side == 0)
+        bli_gemm_cntl_set_packa_ukr_simple(&pack, &cntl); // packa
+    else
+        bli_gemm_cntl_set_packb_ukr_simple(&pack, &cntl); // packa
     skparams params;
     params.t = static_cast<const void*>(d.data());   
     params.inct = d.stride();   
-    params.n = a.length(1);
-
-    bli_gemm_cntl_set_packb_params(&params, &cntl);
+    params.n = a.length(pack_side);
+    
+    if (pack_side == 0)
+        bli_gemm_cntl_set_packa_params(&params, &cntl);
+    else
+        bli_gemm_cntl_set_packb_params(&params, &cntl);
 
 	// Invoke the internal back-end via the thread handler.
 	bli_l3_thread_decorator

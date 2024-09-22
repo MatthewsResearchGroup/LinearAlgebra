@@ -88,7 +88,7 @@ void packing
         for (int i = 0; i < panel_dim; i++)
             p[i+j*ldp] =  kappa_local * t[j*inct]*c[i*incc+(j+1)*ldc] - kappa_local * t[(j-1)*inct]*c[i*incc+(j-1)*ldc];
         
-        int last_column = n - panel_len_off;
+        int last_column = n - panel_len_off - 1;
         for (int i = 0; i < panel_dim; i++)
             p[i+(last_column)*ldp] = - kappa_local * t[(last_column-1)*inct]*c[i*incc+(last_column-1)*ldc];
     }
