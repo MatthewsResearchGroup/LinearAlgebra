@@ -277,9 +277,9 @@ inline double performance(int n, const std::function<void(const matrix_view<doub
         //matrixprint(B_LTLT);
         //// calculate the error matrix
         //auto B_LTLT = MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-        //B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-        //double err = norm(B_deepcopy) / (n * n);
-        //printf("err is %f\n", err);
+        B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+        double err = norm(B_deepcopy) / (n * n);
+        printf("err is %f\n", err);
         ////check_zero(B0);
 
         MinTime = (time < MinTime)? time : MinTime;
