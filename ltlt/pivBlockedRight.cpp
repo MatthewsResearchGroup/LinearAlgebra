@@ -15,7 +15,7 @@ void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<double>& t,
 
     gemmt_sktri('L',
                 -1.0,      L[r3|R4][R2|r3],
-                                  t[R2|r3],
+                                     t[R2],
                        L.T()[R2|r3][r3|R4],
                   1.0,     X[r3|R4][r3|R4]);
 
@@ -37,7 +37,7 @@ void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<double>& t,
 
         gemmt_sktri('L',
                     -1.0,      L[r3|R4][R2|r3],
-                                      t[R2|r3],
+                                         t[R2],
                            L.T()[R2|r3][r3|R4],
                       1.0,     X[r3|R4][r3|R4]);
 

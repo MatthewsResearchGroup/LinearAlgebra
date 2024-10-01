@@ -24,7 +24,7 @@ void ltlt_blockRL(const matrix_view<double>& X, const row_view<double>& t, len_t
         
         gemmt_sktri('L',
                     -1.0,      L[r3|R4][R2|r3],
-                                      t[R2|r3],
+                                         t[R2],
                            L.T()[R2|r3][r3|R4],
                       1.0,     X[r3|R4][r3|R4]);
         //blas::skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
