@@ -50,57 +50,69 @@ void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<double>& t,
 
 void ltlt_pivot_blockRL_var1(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB)
 {
+    printf("X in the begining\n");
+    matrixprint(X);
+
+    printf("\n\n");
+
+
+    PROFILE_FUNCTION
     auto [T, m, B] = partition_rows<DYNAMIC,1,DYNAMIC>(X);
 
     matrix_view<double> L = X.rebased(1, 1);
+    int first_iter = false;
 
     pi[0] = 0;
+    // ( T  || m  |    B0   | B1 )
+    // ( R0 || r1 | r2 | R3 | R4 )
+    auto [R0, r1, r2, R3] = repartition(T, m, B);
 
-    auto [R0, r1, R2, r3, R4] = repartition<DYNAMIC,1>(T, m, B, block_size);
+    auto pi2 = blas::iamax(X[r2|R3][r1]);
+    pi[r2] = pi2;
 
-    LTLT_UNB(X[r1|R2|r3|R4][r1|R2|r3|R4], t[r1|R2|r3], pi[r1|R2|r3|R4.front()], (r1|R2|r3|R4.front()).size(), false);
+    PROFILE_SECTION("pivot_row_UBLL")
+    pivot_rows(X[r2|R3][r1], pi2);
+    PROFILE_STOP
+    
+    printf("print X after pivto_row in the first interation\n");
+    matrixprint(X);
 
-    gemmt_sktri('L',
-                -1.0,      L[R4][R2|r3|R4.front()],
-                                     t[R2|r3],
-                       L.T()[R2|r3|R4.front()][R4],
-                  1.0,     X[R4][R4]);
+    PROFILE_SECTION("divide")
+    L[R3][r2] = X[R3][r1] / X[r2][r1];
+    PROFILE_STOP
+    t[r1] = X[r2][r1];
+    L[r2][r2] = 1;
 
-    tie(T, m, B) = continue_with<2>(R0, r1, R2, r3, R4);
+    printf("print X after divide in the first interation\n");
+    matrixprint(X);
 
-    while (B)
+    PROFILE_SECTION("pivot_both_UBLL")
+    pivot_both(X[r2|R3][r2|R3], pi2, BLIS_LOWER, BLIS_SKEW_SYMMETRIC);
+    PROFILE_STOP
+    printf("print X after pivoting both in the first interation\n");
+    matrixprint(X);
+
+    while (B.size() > 1)
     {
         // (  T ||  m |       B      )
         // ( R0 || r1 | R2 | r3 | R4 )
-        auto [R0, r1, R2, r3, R4] = repartition<DYNAMIC,1>(T, m, B, block_size);
+        auto [R0, r1, R2, r3, r4, R5] = repartition<DYNAMIC,1,1>(T, m, B, block_size);
 
-        if (!R4)
-        {
-            auto tau1 = t[r1];
-            LTLT_UNB(X[r1|R2|r3|R4][r1|R2|r3|R4], t[r1|R2], pi[r1|R2|r3], (r1|R2|r3).size(), false);
-            t[r1] = tau1;
-        }
-        else
-        {
-            auto tau1 = t[r1];
-            LTLT_UNB(X[r1|R2|r3|R4][r1|R2|r3|R4], t[r1|R2|r3], pi[r1|R2|r3|R4.front()], (r1|R2|r3|R4.front()).size(), false);
-            t[r1] = tau1;
-        }
+        //LTLT_UNB(X[R2|r3|r4|R5][R2|r3|r4|R5], t[R2|r3], (R2|r3|r4).size(), true);
+        LTLT_UNB(X[R2|r3|r4|R5][R2|r3|r4|R5], t[R2|r3], pi[R2|r3|r4], (R2|r3|r4).size(), true);
 
         PROFILE_SECTION("pivot_rows_BRL")
-        pivot_rows(X[R2|r3|R4][R0], pi[R2|r3|R4]);
+        pivot_rows(X[R2|r3|r4|R5][R0|r1], pi[R2|r3|r4|R5]);  // add r1 if it doesn't work
         PROFILE_STOP
 
-        if (R4)
-        {
-            gemmt_sktri('L',
-                        -1.0,      L[r3|R4][R2|r3|R4.front()],
-                                             t[R2|r3],
-                               L.T()[R2|r3|R4.front()][R4],
-                          1.0,     X[R4][R4]);
-        }
-
-
-        tie(T, m, B) = continue_with<2>(R0, r1, R2, r3, R4);
+        gemmt_sktri('L',
+                    -1.0,      L[r4|R5][R2|r3|r4],
+                                      t[R2|r3   ],
+                           L.T()       [R2|r3|r4][r4|R5],
+                      1.0,     X[r4|R5]          [r4|R5]);
+        // ( R0 | r1 | R2 || r3 | R4 )
+        // (      T       ||  m |  B )
+        tie(T, m, B) = continue_with<2>(R0, r1, R2, r3, r4|R5);
     }
+
 }
