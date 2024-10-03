@@ -100,11 +100,11 @@ int main(int argc, const char** argv)
         }
         else
         {
-            if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockRL")
-                time = performance(matrixsize, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize), repitation);
+            if (majoralgo == "ltlt_blockRL_var0" && minoralgo == "ltlt_unblockRL")
+                time = performance(matrixsize, blocked(ltlt_blockRL_var0, ltlt_unblockRL, blocksize), repitation);
 
-            else if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockLL")
-                time = performance(matrixsize, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize), repitation);
+            else if (majoralgo == "ltlt_blockRL_var0" && minoralgo == "ltlt_unblockLL")
+                time = performance(matrixsize, blocked(ltlt_blockRL_var0, ltlt_unblockLL, blocksize), repitation);
 
             else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockRL")
                 time = performance(matrixsize, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize), repitation);

@@ -5,21 +5,27 @@
 std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
-
-    auto n = 500;
-    auto blocksize = 128;
+    for (auto n : {20,21})
+    for (auto blocksize : {6,7})
+    {
+    //auto n = 19;
+    //auto blocksize = 7;
+    printf("matrixsize, blocksize = %d, %d\n", n, blocksize);
     
     // printf("Checking for error: unblockedLL\n"); test_bug(n, unblocked(ltlt_unblockRL));
     // printf("Checking for error: unblockedRL\n"); test_bug(n, unblocked(ltlt_unblockLL));
-    printf("Checking for error: blockedRL+unbLL\n"); test_bug(n, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize));
+    // printf("Checking for error: blockedRL_var0+unbLL\n"); test_bug(n, blocked(ltlt_blockRL_var0, ltlt_unblockLL, blocksize));
+    printf("Checking for error: blockedRL_var1+unbLL\n"); test_bug(n, blocked(ltlt_blockRL_var1, ltlt_unblockLL, blocksize));
+    printf("Checking for error: blockedRL_var1+unbRL\n"); test_bug(n, blocked(ltlt_blockRL_var1, ltlt_unblockRL, blocksize));
     // printf("Checking for error: blockedRL+unbRL\n"); test_bug(n, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize));
     // printf("Checking for error: blockedLL+unbLL\n"); test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
     // printf("Checking for error: blockedLL+unbRL\n"); test_bug(n, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize));
-    //test_debug_piv(n, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize));
+    // test_debug_piv(n, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize));
+    // test_debug_piv(n, blocked(ltlt_pivot_blockRL_var1, ltlt_pivot_unblockLL, blocksize));
     //test_debug_piv(n, unblocked(ltlt_pivot_unblockLL));
     //test_debug_piv(n, unblocked(ltlt_pivot_unblockRL));
     //timer::print_timers();
-
+    }
     // testing the multiple cores
  
 

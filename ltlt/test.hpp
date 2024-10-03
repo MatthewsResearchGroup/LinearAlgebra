@@ -165,8 +165,8 @@ inline void test_bug(int n, const std::function<void(const matrix_view<double>&,
     // make a copy of B since we need to overwrite part of B
     matrix<double> B0 = B;
 
-    std::cout<< "Print Matrix B before LTLT" << std::endl;
-    matrixprint(B);
+    //std::cout<< "Print Matrix B before LTLT" << std::endl;
+    //matrixprint(B);
 
     auto starting_point =  bli_clock();
     LTLT(B, t);
@@ -178,24 +178,24 @@ inline void test_bug(int n, const std::function<void(const matrix_view<double>&,
     auto Tm = make_T(t);
     auto LmT = Lm.T();
 
-    std::cout<< "Print Matrix Lm " << std::endl;
-    matrixprint(Lm);
-    std::cout<< "Print Matrix Tm " << std::endl;
-    matrixprint(Tm);
-    // std::cout<< "Print Matrix LmT " << std::endl;
-    // matrixprint(LmT);
+    // std::cout<< "Print Matrix Lm " << std::endl;
+    // matrixprint(Lm);
+    // std::cout<< "Print Matrix Tm " << std::endl;
+    // matrixprint(Tm);
+    // // std::cout<< "Print Matrix LmT " << std::endl;
+    // // matrixprint(LmT);
     
-    std::cout<< "Print Matrix LTLT " << std::endl;
+    // std::cout<< "Print Matrix LTLT " << std::endl;
     auto B_LTLT = MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-    matrixprint(B_LTLT);
+    // matrixprint(B_LTLT);
 
     // calculate the error matrix
     B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
     double err = norm(B0) / (n * n);
 
     
-    std::cout<< "Print Error Matrix " << std::endl;
-    matrixprint(B0);
+    // std::cout<< "Print Error Matrix " << std::endl;
+    // matrixprint(B0);
     std::cout << "Norm of Error Matrix : " << err << std::endl;
     
 }
@@ -210,8 +210,8 @@ inline void test_debug_piv(int n, const std::function<void(const matrix_view<dou
     // make a copy of B since we need to overwrite part of B
     matrix<double> B0 = B;
 
-    std::cout<< "Print Matrix B before LTLT" << std::endl;
-    matrixprint(B);
+    // std::cout<< "Print Matrix B before LTLT" << std::endl;
+    // matrixprint(B);
 
     auto starting_point =  bli_clock();
     LTLT(B, t, p);
@@ -224,24 +224,24 @@ inline void test_debug_piv(int n, const std::function<void(const matrix_view<dou
     auto Tm = make_T(t);
     auto LmT = Lm.T();
 
-    std::cout<< "Print Matrix Lm " << std::endl;
-    matrixprint(Lm);
-    std::cout<< "Print Matrix Tm " << std::endl;
-    matrixprint(Tm);
-    // std::cout<< "Print Matrix LmT " << std::endl;
-    // matrixprint(LmT);
+    // std::cout<< "Print Matrix Lm " << std::endl;
+    // matrixprint(Lm);
+    // std::cout<< "Print Matrix Tm " << std::endl;
+    // matrixprint(Tm);
+    // // std::cout<< "Print Matrix LmT " << std::endl;
+    // // matrixprint(LmT);
     
-    std::cout<< "Print Matrix LTLT " << std::endl;
+    // std::cout<< "Print Matrix LTLT " << std::endl;
     auto B_LTLT = MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-    matrixprint(B_LTLT);
+    // matrixprint(B_LTLT);
 
     // calculate the error matrix
     B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
     double err = norm(B0) / (n * n);
 
     
-    std::cout<< "Print Error Matrix " << std::endl;
-    matrixprint(B0);
+    // std::cout<< "Print Error Matrix " << std::endl;
+    // matrixprint(B0);
     std::cout << "Norm of Error Matrix : " << err << std::endl;
     
 }
