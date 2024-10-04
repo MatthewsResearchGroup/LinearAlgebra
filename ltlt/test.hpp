@@ -194,7 +194,8 @@ inline void test_bug(int n, const std::function<void(const matrix_view<double>&,
     // std::cout<< "Print Matrix LmT " << std::endl;
     // matrixprint(LmT);
     
-    auto B_LTLT = MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    //auto B_LTLT = MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    auto B_LTLT = gemm_chao(gemm_chao(Lm,Tm), LmT);
 
     if (PRINTMODE)
     {
@@ -203,7 +204,8 @@ inline void test_bug(int n, const std::function<void(const matrix_view<double>&,
     }
 
     // calculate the error matrix
-    B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    B0 -= B_LTLT;
+    // B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
     double err = norm(B0) / (n * n);
 
     if (PRINTMODE)
@@ -225,6 +227,8 @@ inline void test_debug_piv(int n, const std::function<void(const matrix_view<dou
     // make a copy of B since we need to overwrite part of B
     matrix<double> B0 = B;
 
+    //    std::cout<< "Print Matrix B before LTLT" << std::endl;
+    //    matrixprint(B);
     if (PRINTMODE)
     {
         std::cout<< "Print Matrix B before LTLT" << std::endl;
@@ -235,6 +239,8 @@ inline void test_debug_piv(int n, const std::function<void(const matrix_view<dou
     LTLT(B, t, p);
     auto ending_point = bli_clock();
     pivot_both(B0, p);
+    //for (auto i : range(n))
+    //    printf("p[%d] = %d\n", i, p[i]);
 
     if (PRINTMODE)
     {
@@ -258,7 +264,8 @@ inline void test_debug_piv(int n, const std::function<void(const matrix_view<dou
     // std::cout<< "Print Matrix LmT " << std::endl;
     // matrixprint(LmT);
     
-    auto B_LTLT = MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    //auto B_LTLT = MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    auto B_LTLT = gemm_chao(gemm_chao(Lm,Tm), LmT);
     if (PRINTMODE)
     {
         std::cout<< "Print Matrix LTLT " << std::endl;
@@ -266,8 +273,26 @@ inline void test_debug_piv(int n, const std::function<void(const matrix_view<dou
     }
 
     // calculate the error matrix
-    B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+    B0 -= B_LTLT;
+    //B0 -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
     double err = norm(B0) / (n * n);
+    printf("err is %f\n", err);
+    if (err > 1e-14)
+    {
+        printf("******** B ************\n\n");
+        matrixprint(B);
+        printf("******** LM ************\n\n");
+        matrixprint(Lm);
+        printf("******** TM ************\n\n");
+        matrixprint(Tm);
+        printf("******** LMT ************\n\n");
+        matrixprint(LmT);
+        printf("******** B_LTLT ************\n\n");
+        matrixprint(B_LTLT);
+        printf("******** Error ************\n\n");
+        matrixprint(B0);
+        exit(0);
+    }
 
     
     if (PRINTMODE)
@@ -292,7 +317,7 @@ inline double performance(int n, const std::function<void(const matrix_view<doub
 
     for (auto i : range(repitation))
     {
-        row<double> t{n};
+        row<double> t{n-1};
         auto B = B0;
         auto B_deepcopy = B;
 
@@ -335,7 +360,7 @@ inline double pivperformance(int n, const std::function<void(const matrix_view<d
 
     for (auto i : range(repitation))
     {
-        row<double> t{n};
+        row<double> t{n-1};
         row<int> p{n};
         auto B = B0;
         auto B_deepcopy = B;

@@ -336,6 +336,36 @@ inline matrix<double> gemm_chao(const double alpha,
     return C;
 }
 
+inline matrix<double> gemm_chao(
+               const matrix_view<double>& A,
+               const matrix_view<double>& B)
+{
+    auto m = A.length(0);
+    auto k = A.length(1);
+    auto n = B.length(1);
+
+
+    matrix<double> C{m, n};
+
+    MARRAY_ASSERT(C.length(0) == m);
+    MARRAY_ASSERT(C.length(1) == n);
+    MARRAY_ASSERT(B.length(0) == k);
+
+    for (auto i : range(m))
+    {
+        for (auto j : range(n))
+        {
+            double s = 0.0;
+            for (auto p : range(k))
+            {
+                s += A[i][p] * B[p][j];
+            }
+            C[i][j] = s;
+        }
+    }
+    return C;
+}
+
 inline void matrixprint(const matrix_view<double>& B)
 {
     auto m = B.length(0);

@@ -91,7 +91,15 @@ void ltlt_pivot_blockRL_var1(const matrix_view<double>& X, const row_view<double
 
         auto [R2f, R2l] = split(R2, 1);
         PROFILE_SECTION("pivot_rows_BRL")
-        pivot_rows(X[R2l|r3|r4|R5][R0], pi[R2l|r3|r4|R5]);  // add r1 if it doesn't work
+        if (R2.size() > 0)
+        {
+            
+            pivot_rows(X[R2l|r3|r4|R5][R0], pi[R2l|r3|r4|R5]);  // add r1 if it doesn't work
+        }
+        else
+        {
+            pivot_rows(X[r4|R5][R0], pi[r4|R5]);  // add r1 if it doesn't work
+        }
         PROFILE_STOP
 
         gemmt_sktri('L',
