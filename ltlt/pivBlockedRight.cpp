@@ -50,11 +50,6 @@ void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<double>& t,
 
 void ltlt_pivot_blockRL_var1(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB)
 {
-    printf("X in the begining\n");
-    matrixprint(X);
-
-    printf("\n\n");
-
 
     PROFILE_FUNCTION
     auto [T, m, B] = partition_rows<DYNAMIC,1,DYNAMIC>(X);
@@ -74,23 +69,15 @@ void ltlt_pivot_blockRL_var1(const matrix_view<double>& X, const row_view<double
     pivot_rows(X[r2|R3][r1], pi2);
     PROFILE_STOP
     
-    printf("print X after pivto_row in the first interation\n");
-    matrixprint(X);
-
     PROFILE_SECTION("divide")
     L[R3][r2] = X[R3][r1] / X[r2][r1];
     PROFILE_STOP
     t[r1] = X[r2][r1];
     L[r2][r2] = 1;
 
-    printf("print X after divide in the first interation\n");
-    matrixprint(X);
-
     PROFILE_SECTION("pivot_both_UBLL")
     pivot_both(X[r2|R3][r2|R3], pi2, BLIS_LOWER, BLIS_SKEW_SYMMETRIC);
     PROFILE_STOP
-    printf("print X after pivoting both in the first interation\n");
-    matrixprint(X);
 
     while (B.size() > 1)
     {
@@ -101,8 +88,10 @@ void ltlt_pivot_blockRL_var1(const matrix_view<double>& X, const row_view<double
         //LTLT_UNB(X[R2|r3|r4|R5][R2|r3|r4|R5], t[R2|r3], (R2|r3|r4).size(), true);
         LTLT_UNB(X[R2|r3|r4|R5][R2|r3|r4|R5], t[R2|r3], pi[R2|r3|r4], (R2|r3|r4).size(), true);
 
+
+        auto [R2f, R2l] = split(R2, 1);
         PROFILE_SECTION("pivot_rows_BRL")
-        pivot_rows(X[R2|r3|r4|R5][R0|r1], pi[R2|r3|r4|R5]);  // add r1 if it doesn't work
+        pivot_rows(X[R2l|r3|r4|R5][R0], pi[R2l|r3|r4|R5]);  // add r1 if it doesn't work
         PROFILE_STOP
 
         gemmt_sktri('L',

@@ -19,9 +19,11 @@ void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<double>& 
         auto pi2 = blas::iamax(X[r2|R3][r1]);
         pi[r2] = pi2;
 
+
         PROFILE_SECTION("pivot_row_UBLL")
         pivot_rows(X[r2|R3][r1], pi2);
         PROFILE_STOP
+
 
         L[R3][r2] = X[R3][r1] / X[r2][r1];
         t[r1] = L[r2][r2];

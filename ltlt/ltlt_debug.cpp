@@ -5,8 +5,8 @@
 std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
-    for (auto n : {6,})
-    for (auto blocksize : {2,})
+    for (auto n : {20,21})
+    for (auto blocksize : {3,5,7,8})
     {
     //auto n = 19;
     //auto blocksize = 7;
@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
     // printf("Checking for error: blockedLL+unbRL\n"); test_bug(n, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize));
     // test_debug_piv(n, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize));
     test_debug_piv(n, blocked(ltlt_pivot_blockRL_var1, ltlt_pivot_unblockLL, blocksize));
-    //test_debug_piv(n, unblocked(ltlt_pivot_unblockLL));
+    // test_debug_piv(n, unblocked(ltlt_pivot_unblockLL));
     //test_debug_piv(n, unblocked(ltlt_pivot_unblockRL));
     //timer::print_timers();
     }
