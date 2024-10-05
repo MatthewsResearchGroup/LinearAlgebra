@@ -92,8 +92,9 @@ int main(int argc, const char** argv)
 
             else if (majoralgo == "ltlt_pivot_unblockRL")
                 time = pivperformance(matrixsize, unblocked(ltlt_pivot_unblockRL), repitation);
-            //else if (majoralgo == "ltlt_unblockTSRL")
-            //    time = performance(matrixsize, unblocked(ltlt_unblockTSRL), repitation);
+
+            else if (majoralgo == "ltlt_unblockTSRL")
+                time = performance(matrixsize, unblocked(ltlt_unblockTSRL), repitation);
 
             else
             {
