@@ -1,6 +1,6 @@
 #include "ltlt.hpp"
 
-void ltlt_unblockTSRL(const matrix_view<double>& X, len_type k, bool first_column)
+void ltlt_unblockTSRL(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column)
 {
     auto [T, m, B] = partition_rows<DYNAMIC, 1, DYNAMIC>(X);
 
@@ -21,12 +21,18 @@ void ltlt_unblockTSRL(const matrix_view<double>& X, len_type k, bool first_colum
         L[r3|R4][r2] = X[r3|R4][r1] / X[r2][r1];
         L[   R4][r3] = X[   R4][r2] / X[r3][r2];
 
-        X[R4][r3] -= X[r3][r2] * L[r3][r2] * L[R4][r3];
+        t[r1] = X[r2][r1];
+        t[r2] = X[r3][r2];
+
+        L[r2][r2] = 1;
+        L[r3][r3] = 1;
+
+        X[R4][r3] -= t[r2] * L[r3][r2] * L[R4][r3];
 
         //blas::skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
         skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
 
-        X[R4][r3] += X[r3][r2] * L[R4][r2];
+        X[R4][r3] += t[r2] * L[R4][r2];
 
         // ( R0 | r1 | r2 || r3 | R4 )
         // (      T       || m  | B  )
