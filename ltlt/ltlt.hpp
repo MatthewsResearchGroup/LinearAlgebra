@@ -417,7 +417,7 @@ void ltlt_unblockRL(const matrix_view<double>& X, const row_view<double>& t, len
 
 void ltlt_unblockLL(const matrix_view<double>& X, const row_view<double>& t, len_type k = -1, bool first_column = false);
 
-//void ltlt_unblockTSRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false);
+void ltlt_unblockTSRL(const matrix_view<double>& X, const row_view<double>& t, len_type k = -1, bool first_column = false);
 //
 void ltlt_blockRL_var0(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
 //

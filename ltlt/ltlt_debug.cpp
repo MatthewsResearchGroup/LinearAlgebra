@@ -5,19 +5,20 @@
 std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
-    //for (auto n : {5})
-    //for (auto blocksize : {2})
-    for (auto n : range(1000,5000,1000))
-    for (auto blocksize : range(128,512,128))
+    // for (auto n : {11, })
+    // for (auto blocksize : {2})
+    for (auto n : range(11,501,50))
+    for (auto blocksize : range(128,190,128))
     {
     //auto n = 19;
     //auto blocksize = 7;
     printf("matrixsize, blocksize = %d, %d\n", n, blocksize);
     
-    // printf("Checking for error: unblockedLL\n"); test_bug(n, unblocked(ltlt_unblockRL));
-    // printf("Checking for error: unblockedRL\n"); test_bug(n, unblocked(ltlt_unblockLL));
-    printf("Checking for error: blockedRL_var0+unbLL\n"); test_bug(n, blocked(ltlt_blockRL_var0, ltlt_unblockLL, blocksize));
-    printf("Checking for error: blockedRL_var1+unbLL\n"); test_bug(n, blocked(ltlt_blockRL_var1, ltlt_unblockLL, blocksize));
+    // printf("Checking for error: unblockedRL\n"); test_bug(n, unblocked(ltlt_unblockRL));
+    // printf("Checking for error: unblockedLL\n"); test_bug(n, unblocked(ltlt_unblockLL));
+    printf("Checking for error: unblockedTSRL\n"); test_bug(n, unblocked(ltlt_unblockTSRL));
+    //printf("Checking for error: blockedRL_var0+unbLL\n"); test_bug(n, blocked(ltlt_blockRL_var0, ltlt_unblockLL, blocksize));
+    //printf("Checking for error: blockedRL_var1+unbLL\n"); test_bug(n, blocked(ltlt_blockRL_var1, ltlt_unblockLL, blocksize));
     // printf("Checking for error: blockedRL_var1+unbRL\n"); test_bug(n, blocked(ltlt_blockRL_var1, ltlt_unblockRL, blocksize));
     // printf("Checking for error: blockedRL_var0+unbRL\n"); test_bug(n, blocked(ltlt_blockRL_var0, ltlt_unblockRL, blocksize));
     // printf("Checking for error: blockedLL+unbLL\n"); test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
