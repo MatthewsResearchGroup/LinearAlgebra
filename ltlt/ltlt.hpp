@@ -336,6 +336,36 @@ inline matrix<double> gemm_chao(const double alpha,
     return C;
 }
 
+inline matrix<double> gemm_chao(
+               const matrix_view<double>& A,
+               const matrix_view<double>& B)
+{
+    auto m = A.length(0);
+    auto k = A.length(1);
+    auto n = B.length(1);
+
+
+    matrix<double> C{m, n};
+
+    MARRAY_ASSERT(C.length(0) == m);
+    MARRAY_ASSERT(C.length(1) == n);
+    MARRAY_ASSERT(B.length(0) == k);
+
+    for (auto i : range(m))
+    {
+        for (auto j : range(n))
+        {
+            double s = 0.0;
+            for (auto p : range(k))
+            {
+                s += A[i][p] * B[p][j];
+            }
+            C[i][j] = s;
+        }
+    }
+    return C;
+}
+
 inline void matrixprint(const matrix_view<double>& B)
 {
     auto m = B.length(0);
@@ -389,7 +419,9 @@ void ltlt_unblockLL(const matrix_view<double>& X, const row_view<double>& t, len
 
 //void ltlt_unblockTSRL(const matrix_view<double>& X, len_type k = -1, bool first_column = false);
 //
-void ltlt_blockRL(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
+void ltlt_blockRL_var0(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
+//
+void ltlt_blockRL_var1(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
 //
 void ltlt_blockLL(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
 //
@@ -397,9 +429,11 @@ void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<double>& 
 
 // void ltlt_pivot_blockLL(const matrix_view<double>& X, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB);
 
-void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
+void ltlt_pivot_blockRL_var0(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
 // 
 void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k = -1, bool first_column = false);
+
+void ltlt_pivot_blockRL_var1(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
 
 void gemm_sktri
      (

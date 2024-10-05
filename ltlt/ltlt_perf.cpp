@@ -24,16 +24,18 @@ int main(int argc, const char** argv)
       Options:
         <majoralgo>       The major algorithm for ltlt, including UnBlock algorithms and Block algorithms                                                     
                           Block algorithms: 
-                                            Block Right Looking (ltlt_blockRL), 
-                                            Block Left Looking (ltlt_blockLL).
+                                            Block Right Looking var0 (ltlt_blockRL_var0) 
+                                            Block Right Looking var1 (ltlt_blockRL_var1) 
+                                            Block Left Looking (ltlt_blockLL)
                           UnBlock algorithms: 
-                                            UnBlock Right Looking (ltlt_unblockRL), 
+                                            UnBlock Right Looking (ltlt_unblockRL) 
                                             Unblock Left Looking (ltlt_unblockLL)
                                             UnBlock Two Step Right Looking (ltlt_unblockTSRL)
                                             Pivot Unblock Left Looking (ltlt_pivot_unblockLL)
                                             Pivot Unblock Right Looking (ltlt_pivot_unblockRL)
                           piv block algorithms:
-                                            pivot Block Right Looking (ltlt_pivot_blockRL (it only applies to unblock left looking))
+                                            pivot Block Right Looking var0 (ltlt_pivot_blockRL_var0 (it only applies to unblock left looking))
+                                            pivot Block Right Looking var1 (ltlt_pivot_blockRL_var0 (it only applies to unblock left looking))
 
         <matrixsize_min>  The min size of skew matirx we plan to decompose
 
@@ -47,6 +49,7 @@ int main(int argc, const char** argv)
                           There are two options: 
                                                 UnBlock Right Loooking (ltlt_unblockRL),
                                                 Unblock Left Loooking (ltlt_unblockLL).
+                                                Pivot Unblock Left Looking (ltlt_pivot_unblockLL) only work for piv right looking.
 
         [--bs]            The block size for block algorithm
 
@@ -100,11 +103,17 @@ int main(int argc, const char** argv)
         }
         else
         {
-            if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockRL")
-                time = performance(matrixsize, blocked(ltlt_blockRL, ltlt_unblockRL, blocksize), repitation);
+            if (majoralgo == "ltlt_blockRL_var0" && minoralgo == "ltlt_unblockRL")
+                time = performance(matrixsize, blocked(ltlt_blockRL_var0, ltlt_unblockRL, blocksize), repitation);
 
-            else if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockLL")
-                time = performance(matrixsize, blocked(ltlt_blockRL, ltlt_unblockLL, blocksize), repitation);
+            else if (majoralgo == "ltlt_blockRL_var0" && minoralgo == "ltlt_unblockLL")
+                time = performance(matrixsize, blocked(ltlt_blockRL_var0, ltlt_unblockLL, blocksize), repitation);
+
+            else if (majoralgo == "ltlt_blockRL_var1" && minoralgo == "ltlt_unblockRL")
+                time = performance(matrixsize, blocked(ltlt_blockRL_var1, ltlt_unblockRL, blocksize), repitation);
+
+            else if (majoralgo == "ltlt_blockRL_var1" && minoralgo == "ltlt_unblockLL")
+                time = performance(matrixsize, blocked(ltlt_blockRL_var1, ltlt_unblockLL, blocksize), repitation);
 
             else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockRL")
                 time = performance(matrixsize, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize), repitation);
@@ -112,8 +121,11 @@ int main(int argc, const char** argv)
             else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockLL")
                 time = performance(matrixsize, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize), repitation);
 
-            else if (majoralgo == "ltlt_pivot_blockRL" && minoralgo == "ltlt_pivot_unblockLL") 
-                time = pivperformance(matrixsize, blocked(ltlt_pivot_blockRL, ltlt_pivot_unblockLL, blocksize), repitation);
+            else if (majoralgo == "ltlt_pivot_blockRL_var0" && minoralgo == "ltlt_pivot_unblockLL") 
+                time = pivperformance(matrixsize, blocked(ltlt_pivot_blockRL_var0, ltlt_pivot_unblockLL, blocksize), repitation);
+
+            else if (majoralgo == "ltlt_pivot_blockRL_var1" && minoralgo == "ltlt_pivot_unblockLL") 
+                time = pivperformance(matrixsize, blocked(ltlt_pivot_blockRL_var1, ltlt_pivot_unblockLL, blocksize), repitation);
 
             else
             {
