@@ -417,23 +417,49 @@ void ltlt_unblockRL(const matrix_view<double>& X, const row_view<double>& t, len
 
 void ltlt_unblockLL(const matrix_view<double>& X, const row_view<double>& t, len_type k = -1, bool first_column = false);
 
+void ltlt_unblockLL_s0(const matrix_view<double>& X, const row_view<double>& t, len_type k = -1, bool first_column = false);
+
+void ltlt_unblockLL_s1(const matrix_view<double>& X, const row_view<double>& t, len_type k = -1, bool first_column = false);
+
 void ltlt_unblockTSRL(const matrix_view<double>& X, const row_view<double>& t, len_type k = -1, bool first_column = false);
-//
+
 void ltlt_blockRL_var0(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
-//
+
+void ltlt_blockRL_var0_s0(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
+
+void ltlt_blockRL_var0_s1(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
+
+void ltlt_blockRL_var0_s2(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
+
 void ltlt_blockRL_var1(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
-//
+
+void ltlt_blockRL_var1_s0(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
+
+void ltlt_blockRL_var1_s1(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
+
 void ltlt_blockLL(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
-//
+
 void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k = -1, bool first_column = false);
 
-// void ltlt_pivot_blockLL(const matrix_view<double>& X, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,len_type,bool)>& LTLT_UNB);
+void ltlt_pivot_unblockLL_s0(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k = -1, bool first_column = false);
+
+void ltlt_pivot_unblockLL_s1(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k = -1, bool first_column = false);
 
 void ltlt_pivot_blockRL_var0(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
-// 
+ 
+void ltlt_pivot_blockRL_var0_s0(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
+
+void ltlt_pivot_blockRL_var0_s1(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
+
+void ltlt_pivot_blockRL_var0_s2(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
+
 void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k = -1, bool first_column = false);
 
 void ltlt_pivot_blockRL_var1(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
+
+void ltlt_pivot_blockRL_var1_s0(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
+
+void ltlt_pivot_blockRL_var1_s1(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
 
 void gemm_sktri
      (

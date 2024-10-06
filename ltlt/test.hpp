@@ -336,6 +336,8 @@ inline double performance(int n, const std::function<void(const matrix_view<doub
         //auto B_LTLT = MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
         B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
         double err = norm(B_deepcopy) / (n * n);
+        std::cout << "Norm of Error Matrix : " << err << std::endl;
+
         ////check_zero(B0);
 
         MinTime = (time < MinTime)? time : MinTime;
@@ -376,8 +378,9 @@ inline double pivperformance(int n, const std::function<void(const matrix_view<d
         
             
         // calculate the error matrix
-        //B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
-        //double err = norm(B_deepcopy) / (n * n);
+        B_deepcopy -= MArray::blas::gemm(MArray::blas::gemm(Lm,Tm), LmT);
+        double err = norm(B_deepcopy) / (n * n);
+        std::cout << "Norm of Error Matrix : " << err << std::endl;
         //printf("err is %f\n", err);
         //check_zero(B0);
 
