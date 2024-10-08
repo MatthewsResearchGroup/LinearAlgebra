@@ -28,6 +28,8 @@ else
 CXX = clang++
 CXXFLAGS += -g -O0 -DDEBUG -Xclang -fopenmp -fsanitize=address -DMARRAY_ENABLE_ASSERTS -I/opt/homebrew/opt/libomp/include
 LDFLAGS += -g -lomp -fsanitize=address -L/opt/homebrew/opt/libomp/lib
+#CXXFLAGS += -O3 -march=native -Xclang -fopenmp -I/opt/homebrew/opt/libomp/include
+#LDFLAGS += -lomp -L/opt/homebrew/opt/libomp/lib
 endif
 
 debug_exe=../bin/ltlt_debug

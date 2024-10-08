@@ -517,34 +517,44 @@ pivot_rows(MArray&& A_, const Pivot& p_)
 {
     auto A = A_.view();
     auto p = p_.view();
-    auto [T, B] = partition_rows(A);
-    auto [L, R] = partition_columns(A);
 
     MARRAY_ASSERT(A.dimension() == 2);
     MARRAY_ASSERT(p.dimension() == 1);
     MARRAY_ASSERT(A.length(0) >= p.length(0));
 
-    auto R3 = range(p.length(0),A.length(0));
-    B = range(p.length(0));
-
-    while (R)
+    #pragma omp parallel
     {
-        auto [C0, C1, C2] = repartition<DYNAMIC>(L, R, 32);
+        auto nt = omp_get_num_threads();
+        auto tid = omp_get_thread_num();
 
-        while (B)
+        auto m = A.length(1);
+        auto start = (m*tid)/nt;
+        auto end = (m*(tid+1))/nt;
+
+        auto [L, R] = partition(range(start,end));
+        auto R3 = range(p.length(0),A.length(0));
+
+        while (R)
         {
-            // (  T ||    B    )
-            // ( R0 || r1 | R2 )
-            auto [R0, r1, R2] = repartition(T, B);
+            auto [C0, C1, C2] = repartition<DYNAMIC>(L, R, 64);
 
-            pivot_rows(A[r1|R2|R3][C1], p[r1]);
+            auto [T, B] = partition_rows(p);
 
-            // ( R0 | r1 || R2 )
-            // (    T    ||  B )
-            std::tie(T, B) = continue_with(R0, r1, R2);
+            while (B)
+            {
+                // (  T ||    B    )
+                // ( R0 || r1 | R2 )
+                auto [R0, r1, R2] = repartition(T, B);
+
+                pivot_rows(A[r1|R2|R3][C1], p[r1]);
+
+                // ( R0 | r1 || R2 )
+                // (    T    ||  B )
+                std::tie(T, B) = continue_with(R0, r1, R2);
+            }
+
+            std::tie(L, R) = continue_with(C0, C1, C2);
         }
-
-        std::tie(L, R) = continue_with(C0, C1, C2);
     }
 }
 

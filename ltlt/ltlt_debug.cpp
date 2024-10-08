@@ -5,9 +5,27 @@
 std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
+    /*
+    auto X0 = random_matrix(20000,20000);
+
+    for (auto n : range(20000,20001,1000))
+    {
+        matrix<double> X = X0[range(n)][range(n)];
+        row<double> T{n-1};
+        row<int> p{n};
+
+        for (auto r : range(3))
+            ltlt_pivot_blockRL<STEP_5>(X, T, p, 256, ltlt_pivot_unblockLL<STEP_5>);
+    }
+
+    timer::print_timers();
+
+    return 0;
+    */
+
     auto test = [] <int Options>
     {
-        for (auto n : {11,24})
+        for (auto n : {11,24,200})
         for (auto blocksize : {2,3,6,13})
         {
             printf("matrixsize, blocksize = %d, %d\n", n, blocksize);
@@ -20,7 +38,7 @@ int main(int argc, char* argv[])
             printf("Checking for error: blockedRL+unbRL\n"); test_bug(n, blocked(ltlt_blockRL<Options>, ltlt_unblockRL<Options>, blocksize));
             printf("Checking for error: blockedLL+unbLL\n"); test_bug(n, blocked(ltlt_blockLL<Options>, ltlt_unblockLL<Options>, blocksize));
             printf("Checking for error: blockedLL+unbRL\n"); test_bug(n, blocked(ltlt_blockLL<Options>, ltlt_unblockRL<Options>, blocksize));
-            printf("Checking for error: pivot+unbRL\n"); test_debug_piv(n, unblocked(ltlt_pivot_unblockRL<Options>));
+            //printf("Checking for error: pivot+unbRL\n"); test_debug_piv(n, unblocked(ltlt_pivot_unblockRL<Options>));
             printf("Checking for error: pivot+unbLL\n"); test_debug_piv(n, unblocked(ltlt_pivot_unblockLL<Options>));
             printf("Checking for error: pivot+BRL+unbLL\n"); test_debug_piv(n, blocked(ltlt_pivot_blockRL<Options>, ltlt_pivot_unblockLL<Options>, blocksize));
             //timer::print_timers();

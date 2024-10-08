@@ -489,74 +489,81 @@ void skr2(char uplo, \
             auto work = (n*n)/4;
             auto start = (work*tid)/nt;
             auto end = (work*(tid+1))/nt;
+            auto start0 = start;
+            auto end0 = end;
 
-            auto jstart = 0;
-            for (auto pos = 0; jstart <= n-BS; jstart += BS)
+            if (start != end)
             {
-                if (start < pos+n-jstart-1)
+                auto jstart = 0;
+                for (auto pos = 0; jstart <= n-BS; jstart += BS)
                 {
-                    start -= pos;
-                    break;
-                }
-                pos += n-jstart-1;
-            }
-
-            auto jend = 0;
-            for (auto pos = 0; jend <= n-BS; jend += BS)
-            {
-                if (end <= pos+n-jend-1)
-                {
-                    end -= pos;
-                    break;
-                }
-                pos += n-jend-1;
-            }
-
-            auto body = [&](auto j0, auto start, auto end, auto inca, auto incb)
-            {
-                // 2x2 diagonal
-                if (start == 0)
-                {
-                    auto i = j0+1;
-                    auto j = j0;
-                    Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
-                    start++;
+                    if (start < pos+n-jstart-1)
+                    {
+                        start -= pos;
+                        break;
+                    }
+                    pos += n-jstart-1;
                 }
 
-                for (auto pos = start; pos < end; pos++)
+                auto jend = 0;
+                for (auto pos = 0; jend <= n-BS; jend += BS)
                 {
-                    auto i = j0+BS+pos-1;
-                    for (auto j = j0; j < j0+BS ; j++)
+                    if (end <= pos+n-jend-1)
+                    {
+                        end -= pos;
+                        break;
+                    }
+                    pos += n-jend-1;
+                }
+
+                //printf("[%d/%d]: %d:%d of %d, %d,%d -> %d,%d\n", tid, nt, start0, end0, work, jstart, start, jend, end);
+
+                auto body = [&](auto j0, auto start, auto end, auto inca, auto incb)
+                {
+                    // 2x2 diagonal
+                    if (start == 0)
+                    {
+                        auto i = j0+1;
+                        auto j = j0;
                         Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
-                }
-            };
+                        start++;
+                    }
 
-            if (inca == 1 && incb == 1)
-            {
-                if (jstart == jend)
+                    for (auto pos = start; pos < end; pos++)
+                    {
+                        auto i = j0+BS+pos-1;
+                        for (auto j = j0; j < j0+BS ; j++)
+                            Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
+                    }
+                };
+
+                if (inca == 1 && incb == 1)
                 {
-                    body(jstart, start, end, 1, 1);
+                    if (jstart == jend)
+                    {
+                        body(jstart, start, end, 1, 1);
+                    }
+                    else
+                    {
+                        body(jstart, start, n-jstart-1, 1, 1);
+                        for (auto j0 = jstart+BS; j0 < jend; j0 += BS)
+                            body(j0, 0, n-j0-1, 1, 1);
+                        body(jend, 0, end, 1, 1);
+                    }
                 }
                 else
                 {
-                    body(jstart, start, n-jstart-1, 1, 1);
-                    for (auto j0 = jstart+BS; j0 < jend; j0 += BS)
-                        body(j0, 0, n-j0-1, 1, 1);
-                    body(jend, 0, end, 1, 1);
-                }
-            }
-            else
-            {
-                if (jstart == jend)
-                {
-                    body(jstart, start, end, inca, incb);
-                }
-                else
-                {
-                    body(jstart, start, n-jstart-1, inca, incb);
-                    for (auto j0 = jstart+BS; j0 < jend; j0 += BS)
-                        body(j0, 0, n-j0-1, inca, incb);
-                    body(jend, 0, end, inca, incb);
+                    if (jstart == jend)
+                    {
+                        body(jstart, start, end, inca, incb);
+                    }
+                    else
+                    {
+                        body(jstart, start, n-jstart-1, inca, incb);
+                        for (auto j0 = jstart+BS; j0 < jend; j0 += BS)
+                            body(j0, 0, n-j0-1, inca, incb);
+                        body(jend, 0, end, inca, incb);
+                    }
                 }
             }
         }
@@ -571,74 +578,81 @@ void skr2(char uplo, \
             auto work = (n*n)/4;
             auto start = (work*tid)/nt;
             auto end = (work*(tid+1))/nt;
+            auto start0 = start;
+            auto end0 = end;
 
-            auto jstart = n&1;
-            for (auto pos = 0; jstart <= n-BS; jstart += BS)
+            if (start != end)
             {
-                if (start < pos+jstart+1)
+                auto jstart = n&1;
+                for (auto pos = 0; jstart <= n-BS; jstart += BS)
                 {
-                    start -= pos;
-                    break;
-                }
-                pos += jstart+1;
-            }
-
-            auto jend = n&1;
-            for (auto pos = 0; jend <= n-BS; jend += BS)
-            {
-                if (end <= pos+jend+1)
-                {
-                    end -= pos;
-                    break;
-                }
-                pos += jend+1;
-            }
-
-            auto body = [&](auto j0, auto start, auto end, auto inca, auto incb)
-            {
-                // 2x2 diagonal
-                if (end == j0+1)
-                {
-                    auto i = j0;
-                    auto j = j0+1;
-                    Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
-                    end--;
+                    if (start < pos+jstart+1)
+                    {
+                        start -= pos;
+                        break;
+                    }
+                    pos += jstart+1;
                 }
 
-                for (auto pos = start; pos < end; pos++)
+                auto jend = n&1;
+                for (auto pos = 0; jend <= n-BS; jend += BS)
                 {
-                    auto i = pos;
-                    for (auto j = j0; j < j0+BS ; j++)
+                    if (end <= pos+jend+1)
+                    {
+                        end -= pos;
+                        break;
+                    }
+                    pos += jend+1;
+                }
+
+                //printf("[%d/%d]: %d:%d of %d, %d,%d -> %d,%d\n", tid, nt, start0, end0, work, jstart, start, jend, end);
+
+                auto body = [&](auto j0, auto start, auto end, auto inca, auto incb)
+                {
+                    // 2x2 diagonal
+                    if (end == j0+1)
+                    {
+                        auto i = j0;
+                        auto j = j0+1;
                         Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
-                }
-            };
+                        end--;
+                    }
 
-            if (inca == 1 && incb == 1)
-            {
-                if (jstart == jend)
+                    for (auto pos = start; pos < end; pos++)
+                    {
+                        auto i = pos;
+                        for (auto j = j0; j < j0+BS ; j++)
+                            Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
+                    }
+                };
+
+                if (inca == 1 && incb == 1)
                 {
-                    body(jstart, start, end, 1, 1);
+                    if (jstart == jend)
+                    {
+                        body(jstart, start, end, 1, 1);
+                    }
+                    else
+                    {
+                        body(jstart, start, jstart+1, 1, 1);
+                        for (auto j0 = jstart+BS; j0 < jend; j0 += BS)
+                            body(j0, 0, j0+1, 1, 1);
+                        body(jend, 0, end, 1, 1);
+                    }
                 }
                 else
                 {
-                    body(jstart, start, jstart+1, 1, 1);
-                    for (auto j0 = jstart+BS; j0 < jend; j0 += BS)
-                        body(j0, 0, j0+1, 1, 1);
-                    body(jend, 0, end, 1, 1);
-                }
-            }
-            else
-            {
-                if (jstart == jend)
-                {
-                    body(jstart, start, end, inca, incb);
-                }
-                else
-                {
-                    body(jstart, start, jstart+1, inca, incb);
-                    for (auto j0 = jstart+BS; j0 < jend; j0 += BS)
-                        body(j0, 0, j0+1, inca, incb);
-                    body(jend, 0, end, inca, incb);
+                    if (jstart == jend)
+                    {
+                        body(jstart, start, end, inca, incb);
+                    }
+                    else
+                    {
+                        body(jstart, start, jstart+1, inca, incb);
+                        for (auto j0 = jstart+BS; j0 < jend; j0 += BS)
+                            body(j0, 0, j0+1, inca, incb);
+                        body(jend, 0, end, inca, incb);
+                    }
                 }
             }
         }
