@@ -1,5 +1,6 @@
 #include "ltlt.hpp"
 
+template <int Options>
 void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k, bool first_column)
 {
     auto n = X.length(0);
@@ -16,14 +17,15 @@ void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<double>& 
 
         auto pi2 = blas::iamax(X[r2|R3][r1]);
         pi[r2] = pi2;
-        
+
         PROFILE_SECTION("pivot_row_UBRL")
         pivot_rows(X[r2|R3][r1], pi2);
         PROFILE_STOP
 
         L[R3][r2] = X[R3][r1] / X[r2][r1];
         t[r1] = L[r2][r2];
-        L[r2][r2] = 1;
+        if (Options & SEPARATE_T)
+            L[r2][r2] = 1;
 
         PROFILE_SECTION("pivot_both_UBRL")
         pivot_both(X[r2|R3][r2|R3], pi2, BLIS_LOWER, BLIS_SKEW_SYMMETRIC);
@@ -41,9 +43,8 @@ void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<double>& 
     auto [B0, B1] = split(B, k-B.front()-1);
     auto& R4 = B1;
 
-    blas::skr2('L', 1.0, L[B0][m], X[B0][m], 1.0, X[B0][B0]);
-    blas::ger(      1.0, L[B1][m], X[B0][m], 1.0, X[B1][B0]);
-    blas::ger(     -1.0, X[B1][m], L[B0][m], 1.0, X[B1][B0]);
+    skr2<Options>('L', 1.0, L[B0][m], X[B0][m], 1.0, X[B0][B0]);
+    ger2<Options>(1.0, L[B1][m], X[B0][m], -1.0, X[B1][m], L[B0][m], 1.0, X[B1][B0]);
 
     while (B0)
     {
@@ -58,25 +59,33 @@ void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<double>& 
 
         L[R3|R4][r2] = X[R3|R4][r1] / X[r2][r1];
         t[r1] = L[r2][r2];
-        L[r2][r2] = 1;
+        if (Options & SEPARATE_T)
+            L[r2][r2] = 1;
 
-        pivot_rows(L[r2|R3|R4][R0|r1   ], pi2);
+        pivot_rows(L[r2|R3|R4][R0|r1], pi2);
 
         pivot_both(X[r2|R3|R4][r2|R3|R4], pi2, BLIS_LOWER, BLIS_SKEW_SYMMETRIC);
 
-        blas::skr2('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
-        blas::ger(      1.0, L[R4][r2], X[R3][r2], 1.0, X[R4][R3]);
-        blas::ger(     -1.0, X[R4][r2], L[R3][r2], 1.0, X[R4][R3]);
+        skr2<Options>('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
+        ger2<Options>(1.0, L[R4][r2], X[R3][r2], -1.0, X[R4][r2], L[R3][r2], 1.0, X[R4][R3]);
 
         // ( R0 | r1 || r2 | R3 | R4 )
         // (    T    || m  | B0 | B1 )
         tie(T, m, B0) = continue_with(R0, r1, r2, R3);
     }
+
     B = B0|B1;
     auto [R0, r1, r2, R3] = repartition(T, m, B);
 
     L[R3][r2] = X[R3][r1] / X[r2][r1];
     t[r1] = L[r2][r2];
-    L[r2][r2] = 1;
+    if (Options & SEPARATE_T)
+        L[r2][r2] = 1;
 }
 
+template void ltlt_pivot_unblockRL<STEP_0>(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k, bool first_column);
+template void ltlt_pivot_unblockRL<STEP_1>(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k, bool first_column);
+template void ltlt_pivot_unblockRL<STEP_2>(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k, bool first_column);
+template void ltlt_pivot_unblockRL<STEP_3>(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k, bool first_column);
+template void ltlt_pivot_unblockRL<STEP_4>(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k, bool first_column);
+template void ltlt_pivot_unblockRL<STEP_5>(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k, bool first_column);

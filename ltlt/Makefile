@@ -13,10 +13,10 @@ M3=true
 endif
 endif
 
-CXXFLAGS = -std=c++17 -Wno-unused-result -Wno-unused-result -I../marray/marray \
+CXXFLAGS = -std=c++20 -Wno-unused-result -Wno-unused-result -I../marray/marray \
            -I../build/blis/include/$(CONFIG) -I../blis/frame/base -I../build/docopt.cpp/include/docopt/ -DPROFILE
-LDFLAGS = -L../build/blis/lib/$(CONFIG) -Wl,-rpath,$(shell pwd)/../build/blis/lib/$(CONFIG) -L../build/docopt.cpp/lib 
-LIBS = -lm -ldl -lblis -ldocopt 
+LDFLAGS = -L../build/blis/lib/$(CONFIG) -Wl,-rpath,$(shell pwd)/../build/blis/lib/$(CONFIG) -L../build/docopt.cpp/lib
+LIBS = -lm -ldl -lblis -ldocopt
 #/usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0
 #-lflame
 
@@ -31,7 +31,6 @@ LDFLAGS += -g -lomp -fsanitize=address -L/opt/homebrew/opt/libomp/lib
 endif
 
 debug_exe=../bin/ltlt_debug
-opt_exe=../bin/ltlt_opt
 perf_exe=../bin/ltlt_perf
 #benchmark_exe=../bin/ltlt_mbm
 objs=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
@@ -40,13 +39,13 @@ objs:=$(filter-out ltlt_debug.o ltlt_test.o ltlt_perf.o ltlt_opt.o ltlt_mbm.o,$(
 
 .PHONY: all
 #all: $(test_exe) $(perf_exe) $(debug_exe) $(benchmark_exe)
-all: $(perf_exe) $(debug_exe) $(opt_exe)
+all: $(perf_exe) $(debug_exe)
 
 -include $(deps)
 
 .PHONY: clean
 clean:
-	rm -f $(objs) $(debug_exe) $(perf_exe) $(opt_exe) ltlt_test.o ltlt_perf.o  ltlt_debug.o ltlt_opt.o
+	rm -f $(objs) $(debug_exe) $(perf_exe) ltlt_test.o ltlt_perf.o  ltlt_debug.o
 
 $(debug_exe): $(objs) ltlt_debug.o
 	@mkdir -p $(dir $(debug_exe))
@@ -55,10 +54,6 @@ $(debug_exe): $(objs) ltlt_debug.o
 $(perf_exe): $(objs) ltlt_perf.o
 	@mkdir -p $(dir $(perf_exe))
 	$(CXX) -o $(perf_exe) $(objs) ltlt_perf.o $(LDFLAGS) $(LIBS)
-
-$(opt_exe): $(objs) ltlt_opt.o
-	@mkdir -p $(dir $(opt_exe))
-	$(CXX) -o $(opt_exe) $(objs) ltlt_opt.o $(LDFLAGS) $(LIBS)
 
 %.o: %.cpp
 	@mkdir -p $(dir $@).deps

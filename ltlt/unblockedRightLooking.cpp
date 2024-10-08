@@ -1,5 +1,6 @@
 #include "ltlt.hpp"
 
+template <int Options>
 void ltlt_unblockRL(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column)
 {
     PROFILE_FUNCTION
@@ -15,9 +16,8 @@ void ltlt_unblockRL(const matrix_view<double>& X, const row_view<double>& t, len
 
     if (first_column)
     {
-        skr2('L', 1.0, L[B0][m], X[B0][m], 1.0, X[B0][B0]);
-        ger2(1.0, L[B1][m], X[B0][m], -1.0, X[B1][m], L[B0][m], 1.0, X[B1][B0]);
-
+        skr2<Options>('L', 1.0, L[B0][m], X[B0][m], 1.0, X[B0][B0]);
+        ger2<Options>(1.0, L[B1][m], X[B0][m], -1.0, X[B1][m], L[B0][m], 1.0, X[B1][B0]);
     }
 
     while (B0)
@@ -30,10 +30,11 @@ void ltlt_unblockRL(const matrix_view<double>& X, const row_view<double>& t, len
         L[R3|R4][r2] = X[R3|R4][r1] / X[r2][r1];
         PROFILE_STOP
         t[r1] = L[r2][r2];
-        L[r2][r2] = 1;
+        if (Options & SEPARATE_T)
+            L[r2][r2] = 1;
 
-        skr2('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
-        ger2(1.0, L[R4][r2], X[R3][r2], -1.0, X[R4][r2], L[R3][r2], 1.0, X[R4][R3]);
+        skr2<Options>('L', 1.0, L[R3][r2], X[R3][r2], 1.0, X[R3][R3]);
+        ger2<Options>(1.0, L[R4][r2], X[R3][r2], -1.0, X[R4][r2], L[R3][r2], 1.0, X[R4][R3]);
 
         // ( R0 | r1 || r2 | R3 | R4 )
         // (    T    || m  | B0 | B1 )
@@ -47,5 +48,13 @@ void ltlt_unblockRL(const matrix_view<double>& X, const row_view<double>& t, len
 
     L[R3][r2] = X[R3][r1] / X[r2][r1];
     t[r1] = L[r2][r2];
-    L[r2][r2] = 1;
+    if (Options & SEPARATE_T)
+        L[r2][r2] = 1;
 }
+
+template void ltlt_unblockRL<STEP_0>(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column);
+template void ltlt_unblockRL<STEP_1>(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column);
+template void ltlt_unblockRL<STEP_2>(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column);
+template void ltlt_unblockRL<STEP_3>(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column);
+template void ltlt_unblockRL<STEP_4>(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column);
+template void ltlt_unblockRL<STEP_5>(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column);

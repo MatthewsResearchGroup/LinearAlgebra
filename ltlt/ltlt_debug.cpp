@@ -5,34 +5,41 @@
 std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
-    // for (auto n : {11, })
-    // for (auto blocksize : {2})
-    for (auto n : range(11,501,50))
-    for (auto blocksize : range(128,190,128))
+    auto test = [] <int Options>
     {
-    //auto n = 19;
-    //auto blocksize = 7;
-    printf("matrixsize, blocksize = %d, %d\n", n, blocksize);
-    
-    // printf("Checking for error: unblockedRL\n"); test_bug(n, unblocked(ltlt_unblockRL));
-    // printf("Checking for error: unblockedLL\n"); test_bug(n, unblocked(ltlt_unblockLL));
-    printf("Checking for error: unblockedTSRL\n"); test_bug(n, unblocked(ltlt_unblockTSRL));
-    //printf("Checking for error: blockedRL_var0+unbLL\n"); test_bug(n, blocked(ltlt_blockRL_var0, ltlt_unblockLL, blocksize));
-    //printf("Checking for error: blockedRL_var1+unbLL\n"); test_bug(n, blocked(ltlt_blockRL_var1, ltlt_unblockLL, blocksize));
-    // printf("Checking for error: blockedRL_var1+unbRL\n"); test_bug(n, blocked(ltlt_blockRL_var1, ltlt_unblockRL, blocksize));
-    // printf("Checking for error: blockedRL_var0+unbRL\n"); test_bug(n, blocked(ltlt_blockRL_var0, ltlt_unblockRL, blocksize));
-    // printf("Checking for error: blockedLL+unbLL\n"); test_bug(n, blocked(ltlt_blockLL, ltlt_unblockLL, blocksize));
-    // printf("Checking for error: blockedLL+unbRL\n"); test_bug(n, blocked(ltlt_blockLL, ltlt_unblockRL, blocksize));
-    // printf("Checking for error: pivot+BRL+unbLL\n"); test_debug_piv(n, blocked(ltlt_pivot_blockRL_var0, ltlt_pivot_unblockLL, blocksize));
-    // printf("Checking for error: pivot+unbLL\n"); test_debug_piv(n, unblocked(ltlt_pivot_unblockLL));
-    // printf("Checking for error: pivot+unbLL\n"); test_debug_piv(n, unblocked(ltlt_pivot_unblockLL));
-    // printf("Checking for error: pivot+BRL+unbLL+var1\n"); test_debug_piv(n, blocked(ltlt_pivot_blockRL_var1, ltlt_pivot_unblockLL, blocksize));
-    // test_debug_piv(n, unblocked(ltlt_pivot_unblockLL));
-    // test_debug_piv(n, unblocked(ltlt_pivot_unblockRL));
-    //timer::print_timers();
-    }
-    // testing the multiple cores
- 
+        for (auto n : {11,24})
+        for (auto blocksize : {2,3,6,13})
+        {
+            printf("matrixsize, blocksize = %d, %d\n", n, blocksize);
+
+            printf("Checking for error: unblockedRL\n"); test_bug(n, unblocked(ltlt_unblockRL<Options>));
+            printf("Checking for error: unblockedLL\n"); test_bug(n, unblocked(ltlt_unblockLL<Options>));
+            if ((n%2) == 1)
+            { printf("Checking for error: unblockedTSRL\n"); test_bug(n, unblocked(ltlt_unblockTSRL<Options>)); }
+            printf("Checking for error: blockedRL+unbLL\n"); test_bug(n, blocked(ltlt_blockRL<Options>, ltlt_unblockLL<Options>, blocksize));
+            printf("Checking for error: blockedRL+unbRL\n"); test_bug(n, blocked(ltlt_blockRL<Options>, ltlt_unblockRL<Options>, blocksize));
+            printf("Checking for error: blockedLL+unbLL\n"); test_bug(n, blocked(ltlt_blockLL<Options>, ltlt_unblockLL<Options>, blocksize));
+            printf("Checking for error: blockedLL+unbRL\n"); test_bug(n, blocked(ltlt_blockLL<Options>, ltlt_unblockRL<Options>, blocksize));
+            printf("Checking for error: pivot+unbRL\n"); test_debug_piv(n, unblocked(ltlt_pivot_unblockRL<Options>));
+            printf("Checking for error: pivot+unbLL\n"); test_debug_piv(n, unblocked(ltlt_pivot_unblockLL<Options>));
+            printf("Checking for error: pivot+BRL+unbLL\n"); test_debug_piv(n, blocked(ltlt_pivot_blockRL<Options>, ltlt_pivot_unblockLL<Options>, blocksize));
+            //timer::print_timers();
+        }
+        // testing the multiple cores
+    };
+
+    printf("Testing step 0\n");
+    test.operator()<STEP_0>();
+    printf("Testing step 1\n");
+    test.operator()<STEP_1>();
+    printf("Testing step 2\n");
+    test.operator()<STEP_2>();
+    printf("Testing step 3\n");
+    test.operator()<STEP_3>();
+    printf("Testing step 4\n");
+    test.operator()<STEP_4>();
+    printf("Testing step 5\n");
+    test.operator()<STEP_5>();
 
     /*
      *
@@ -40,9 +47,9 @@ int main(int argc, char* argv[])
      *
      */
 
-    // // Matrix size 
+    // // Matrix size
     // auto n = 30;
-    // 
+    //
     // // Generate a raomdom square matrix A
     // auto A = random_matrix(n,n);
     // printf("----------Matrix A------------\n");
@@ -84,9 +91,9 @@ int main(int argc, char* argv[])
 
 
 
-    /* 
+    /*
      *  GEMV-SKTRI function
-     * 
+     *
      */
     //auto n = 51;
     //auto A = random_matrix(n,n,COLUMN_MAJOR);
@@ -106,44 +113,49 @@ int main(int argc, char* argv[])
 
 
 
-    /******** SKR2 ***********/ 
-    //for (auto n = 100; n <= 1000; n+=100)
-    //{
-    //auto a = random_row(n);
-    //// printf("----------Vector a------------\n");
-    //// for (auto i : range(a.length()))
-    ////     std::cout << a[i] << ", ";
-    //// printf("\n\n");
-    //auto b = random_row(n);
-    //// printf("----------Vector b------------\n");
-    //// for (auto i : range(b.length()))
-    ////     std::cout << b[i] << ", ";
-    //// printf("\n\n");
-    //auto C = random_matrix(n, n, ROW_MAJOR);
-    //auto C_copy = C;
-    //printf("Print X before SKR2\n");
-    //matrixprint(C);
-    //printf("Print C_COPY before SKR2\n");
-    //matrixprint(C_copy);
+    /******** SKR2 ***********/
+    for (auto layout : {ROW_MAJOR, COLUMN_MAJOR})
+    for (auto n = 100; n <= 1000; n+=101)
+    {
+        auto a = random_row(n);
+        // printf("----------Vector a------------\n");
+        // for (auto i : range(a.length()))
+        //     std::cout << a[i] << ", ";
+        // printf("\n\n");
+        auto b = random_row(n);
+        // printf("----------Vector b------------\n");
+        // for (auto i : range(b.length()))
+        //     std::cout << b[i] << ", ";
+        // printf("\n\n");
+        auto C = random_matrix(n, n, layout);
+        auto C_copy = C;
+        //printf("Print X before SKR2\n");
+        //matrixprint(C);
+        //printf("Print C_COPY before SKR2\n");
+        //matrixprint(C_copy);
 
-    //skr2('L', -1.0, a, b, 2.0, C);
-    //printf("Print X After SKR2\n");
-    //matrixprint(C);
+        skr2<STEP_5>('L', -1.0, a, b, 2.0, C);
+        //printf("Print X After SKR2\n");
+        //matrixprint(C);
 
-    //blas::syr2('L', -1.0, a, b, 2.0, C_copy);
-    //printf("Print C_COPY after SKR2\n");
-    //matrixprint(C_copy);
+        blas::skr2('L', -1.0, a, b, 2.0, C_copy);
+        //printf("Print C_COPY after SKR2\n");
+        //matrixprint(C_copy);
 
-    //C -= C_copy;
-    //printf("printf Error matrix\n");
-    //matrixprint(C);
-    //printf("Norm of Error Matrix : %e\n", norm(C));
-    
+        C -= C_copy;
+        for (auto i : range(n))
+        for (auto j : range(i,n))
+            C[i][j] = 0;
+        //printf("printf Error matrix\n");
+        //matrixprint(C);
+        printf("skr2 [n=%d]: Norm of Error Matrix : %e\n", n, norm(C));
+    }
+
 
 
 
     /********* GER2 *********/
-    
+
     //for (auto n = 7; n <= 100; n+=3)
     //{
     //auto a = random_row(n);
@@ -176,7 +188,7 @@ int main(int argc, char* argv[])
     ////matrixprint(E);
     ////printf("E_Copy after ger2\n");
     ////matrixprint(Ecopy);
-    //    
+    //
     //E -= Ecopy;
     ////printf("printf Error matrix\n");
     ////matrixprint(E);
@@ -185,7 +197,7 @@ int main(int argc, char* argv[])
     //
     //
     /************** GEMM-sktri ***************/
-    
+
     // //auto m = 257;
     // //auto n = 257;
     // //auto k = 540;

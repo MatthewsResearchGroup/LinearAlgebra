@@ -521,7 +521,10 @@ pivot_rows(MArray&& A_, const Pivot& p_)
 
     MARRAY_ASSERT(A.dimension() == 2);
     MARRAY_ASSERT(p.dimension() == 1);
-    MARRAY_ASSERT(A.length(0) == p.length(0));
+    MARRAY_ASSERT(A.length(0) >= p.length(0));
+
+    auto R3 = range(p.length(0),A.length(0));
+    B = range(p.length(0));
 
     while (B)
     {
@@ -529,7 +532,7 @@ pivot_rows(MArray&& A_, const Pivot& p_)
         // ( R0 || r1 | R2 )
         auto [R0, r1, R2] = repartition(T, B);
 
-        pivot_rows(A[r1|R2][slice::all], p[r1]);
+        pivot_rows(A[r1|R2|R3][slice::all], p[r1]);
 
         // ( R0 | r1 || R2 )
         // (    T    ||  B )

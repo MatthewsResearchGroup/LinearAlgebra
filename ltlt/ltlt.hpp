@@ -28,7 +28,23 @@
 #include "timer.h"
 #include "omp.h"
 
-template <typename T>                                                                                                                                    
+enum
+{
+    FUSED_L3 = 0x1,
+    FUSED_L2 = 0x2,
+    PARALLEL_L2 = 0x4,
+    SEPARATE_T = 0x8,
+    BLOCK_RL_VAR1 = 0x10,
+
+    STEP_0 = 0,
+    STEP_1 = FUSED_L2,
+    STEP_2 = STEP_1 | PARALLEL_L2,
+    STEP_3 = STEP_2 | SEPARATE_T,
+    STEP_4 = STEP_3 | FUSED_L3,
+    STEP_5 = STEP_4 | BLOCK_RL_VAR1,
+};
+
+template <typename T>
 bool foo() { static_assert(std::is_same_v<T,int>, ""); return true; }
 
 using namespace MArray;
@@ -166,7 +182,7 @@ inline void skew_tridiag_rankk(char uplo,
                                double beta,  const matrix_view<      double>& C)
 {
     PROFILE_FUNCTION
-    matrix<double> tempB = A.T(); 
+    matrix<double> tempB = A.T();
     sktrmm(1, T, tempB);
     PROFILE_SECTION("gemmt")
     gemmt(uplo, alpha, A, tempB, beta, C);
@@ -213,7 +229,7 @@ template <typename T, typename U> std::pair<range_t<T>,range_t<T>> split(const r
 
 
 
-template <typename T> 
+template <typename T>
 inline auto R3_trunc(const range_t<T>& R0, const range_t<T>& R3, len_type k)
 {
     if ( R0.from() + k < R3.from())
@@ -412,55 +428,35 @@ inline std::tuple<int, int> partition2(int64_t start, int64_t bs, unsigned idx)
     return std::tie(begin, end);
 }
 
-
+template <int Options>
 void ltlt_unblockRL(const matrix_view<double>& X, const row_view<double>& t, len_type k = -1, bool first_column = false);
 
+template <int Options>
 void ltlt_unblockLL(const matrix_view<double>& X, const row_view<double>& t, len_type k = -1, bool first_column = false);
 
-void ltlt_unblockLL_s0(const matrix_view<double>& X, const row_view<double>& t, len_type k = -1, bool first_column = false);
-
-void ltlt_unblockLL_s1(const matrix_view<double>& X, const row_view<double>& t, len_type k = -1, bool first_column = false);
-
+template <int Options>
 void ltlt_unblockTSRL(const matrix_view<double>& X, const row_view<double>& t, len_type k = -1, bool first_column = false);
 
-void ltlt_blockRL_var0(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
-
-void ltlt_blockRL_var0_s0(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
-
-void ltlt_blockRL_var0_s1(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
-
-void ltlt_blockRL_var0_s2(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
+template <int Options>
+void ltlt_blockRL(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
 
 void ltlt_blockRL_var1(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
 
-void ltlt_blockRL_var1_s0(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
-
-void ltlt_blockRL_var1_s1(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
-
+template <int Options>
 void ltlt_blockLL(const matrix_view<double>& X, const row_view<double>& t, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& LTLT_UNB);
 
+template <int Options>
 void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k = -1, bool first_column = false);
 
-void ltlt_pivot_unblockLL_s0(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k = -1, bool first_column = false);
+template <int Options>
+void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
 
-void ltlt_pivot_unblockLL_s1(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k = -1, bool first_column = false);
-
-void ltlt_pivot_blockRL_var0(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
- 
-void ltlt_pivot_blockRL_var0_s0(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
-
-void ltlt_pivot_blockRL_var0_s1(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
-
-void ltlt_pivot_blockRL_var0_s2(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
-
+template <int Options>
 void ltlt_pivot_unblockRL(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k = -1, bool first_column = false);
 
 void ltlt_pivot_blockRL_var1(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
 
-void ltlt_pivot_blockRL_var1_s0(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
-
-void ltlt_pivot_blockRL_var1_s1(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type block_size, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& LTLT_UNB);
-
+template <int Options>
 void gemm_sktri
      (
        double  alpha, \
@@ -468,32 +464,34 @@ void gemm_sktri
        const row_view<const double>& d,  \
        const matrix_view<const double>&  b, \
        double  beta, \
-       const matrix_view<double>&  c 
+       const matrix_view<double>&  c
      );
 
+template <int Options>
 void gemmt_sktri
-     ( 
-       char    uploc, \  
+     (
+       char    uploc, \
        double  alpha, \
        const matrix_view<const double>&  a, \
        const row_view<const double>& d,  \
        const matrix_view<const double>&  b, \
        double  beta, \
-       const matrix_view<double>&  c  
+       const matrix_view<double>&  c
      );
 
-
+template <int Options>
 void gemv_sktri(double alpha, const matrix_view<const double>& A,\
                                       const row_view   <const double>& T, \
                                       const row_view   <const double>& x,\
                         double beta,  const row_view   <      double>& y);
 
+template <int Options>
 void skr2(char uplo,\
           double alpha, const row_view<const double>& a,\
                         const row_view<const double>& b,\
           double beta,  const matrix_view<   double>& C);
 
-
+template <int Options>
 void ger2(double alpha, const row_view<const double> a,\
                         const row_view<const double> b,\
           double beta,  const row_view<const double> c,\

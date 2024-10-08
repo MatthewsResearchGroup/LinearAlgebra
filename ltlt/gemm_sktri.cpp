@@ -1,6 +1,7 @@
 #include "ltlt.hpp"
 #include "packing.hpp"
 
+template <int Options>
 void gemm_sktri
      (
        double  alpha, \
@@ -11,6 +12,12 @@ void gemm_sktri
        const matrix_view<double>&  c \
      )
 {
+    if (!(Options & FUSED_L3))
+    {
+        blas::skew_tridiag_gemm(alpha, a, d, b, beta, c);
+        return;
+    }
+
     //std::cout << "matrix a" << std::endl;
     //matrixprint(a);
     //std::cout << "matrix b" << std::endl;
@@ -98,10 +105,10 @@ void gemm_sktri
     else
         bli_gemm_cntl_set_packb_ukr_simple(&pack, &cntl); // packa
     skparams params;
-    params.t = static_cast<const void*>(d.data());   
-    params.inct = d.stride();   
+    params.t = static_cast<const void*>(d.data());
+    params.inct = d.stride();
     params.n = a.length(pack_side);
-    
+
     if (pack_side == 0)
         bli_gemm_cntl_set_packa_params(&params, &cntl);
     else
@@ -119,8 +126,7 @@ void gemm_sktri
 	);
 }
 
-
-
+template <int Options>
 void gemmt_sktri
      (
        char  uploc, \
@@ -132,6 +138,12 @@ void gemmt_sktri
        const matrix_view<double>&  c \
      )
 {
+    if (!(Options & FUSED_L3))
+    {
+        blas::skew_tridiag_rankk(uploc, alpha, a, d, beta, c);
+        return;
+    }
+
     PROFILE_FUNCTION
     PROFILE_FLOPS(a.length(0)*a.length(1)*b.length(1));
     if (a.length(1) == 1)
@@ -226,11 +238,18 @@ void gemmt_sktri
 	);
 }
 
+template <int Options>
 void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                                       const row_view   <const double>& T,
                                       const row_view   <const double>& x,
                         double beta,  const row_view   <      double>& y)
 {
+    if (!(Options & FUSED_L2))
+    {
+        blas::skewtrigemv(alpha, A, T, x, beta, y);
+        return;
+    }
+
     constexpr int BS = 5;
 
     PROFILE_FUNCTION
@@ -246,9 +265,10 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
 
     if (n == 1)
     {
-        y[0] *= beta;
+        y *= beta;
         return;
     }
+
     // to get the normal base (0), we create a new matrix A_temp with base as 0,
     // otherwise we will use A element wrong when we call it by index.
     // Question, I don't know how native gemv impletation solves this issue.
@@ -288,7 +308,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     if ((rsa == 1) && (incy == 1))
     {
         //printf("COLUMN major\n");
-        #pragma omp parallel
+        #pragma omp parallel if (Options & PARALLEL_L2)
         {
             int start, end;
             std::tie(start, end) = partition(m, BS, omp_get_num_threads(), omp_get_thread_num());
@@ -298,7 +318,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
             {
                 yp[i] *= beta;
             }
-            
+
             int begin = 0;
             auto body = [&](int& begin, int BS)
             {
@@ -313,8 +333,8 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                     for (auto i = start; i < end; i++)
                     for (auto j = j0; j < j0 + BS; j++)
                             yp[i] += alpha * Ap[i + j * csa] * Txj[j-j0];
-                }               
-                
+                }
+
                 begin = j0;
 
             };
@@ -326,37 +346,40 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     else if ((csa == 1) && (incx == 1))
     {
         //printf("row major\n");
-        double Txj[n];
-        for (auto j = 0;j < n;j++)
-            Txj[j] = Tx(j, n, incx);
-        #pragma omp parallel
+        //std::vector<double> Txj(n);
+        //for (auto j = 0;j < n;j++)
+        //    Txj[j] = Tx(j, n, incx);
+
+        #pragma omp parallel if (Options & PARALLEL_L2)
         {
             int start, end;
             std::tie(start, end) = partition(m, BS, omp_get_num_threads(), omp_get_thread_num());
             //printf("start, end, OMM_NUM_THREAD, THREAD_ID = %d, %d, %d, %d\n", start, end, omp_get_num_threads(), omp_get_thread_num());
 
+            double yi[BS];
+
             auto body = [&](int& start, int BS)
             {
-
                 auto i0 = start;
                 for (;i0+BS <= end;i0 += BS)
                 {
-                    double yi[BS];
                     memset(&yi, 0, BS*sizeof(double));
                     for (auto i = i0;i < i0+BS;i++)
                     {
-                        //yi[i-i0] += Ap[i*rsa + 0] * Tx(0, n, 1);
-                        yi[i-i0] += Ap[i*rsa + 0] * Txj[0];
+                       yi[i-i0] += Ap[i*rsa + 0] * Tx(0, n, 1);
+                       //yi[i-i0] += Ap[i*rsa + 0] * Txj[0];
                     }
                     for (auto j = 1;j < n-1;j++)
                     for (auto i = i0;i < i0+BS;i++)
                     {
-                        //yi[i-i0] += Ap[i*rsa + j] * Tx(j, n, 1);
-                        yi[i-i0] += Ap[i*rsa + j] * Txj[j];
+                        yi[i-i0] += Ap[i*rsa + j] * Tx(j, n, 1);
+                        //yi[i-i0] += Ap[i*rsa + j] * Txj[j];
                     }
                     for (auto i = i0;i < i0+BS;i++)
-                        //yi[i-i0] += Ap[i*rsa + n-1] * Tx(n-1, n, 1);
-                        yi[i-i0] += Ap[i*rsa + n-1] * Txj[n-1];
+                    {
+                        yi[i-i0] += Ap[i*rsa + n-1] * Tx(n-1, n, 1);
+                        //yi[i-i0] += Ap[i*rsa + n-1] * Txj[n-1];
+                    }
 
                     if (beta != 0.0)
                     {
@@ -380,7 +403,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     else
     {
         printf("gernel format\n");
-        #pragma omp parallel for 
+        #pragma omp parallel for if (Options & PARALLEL_L2)
         for (auto i : range(m))
         {
             // auto id = omp_get_thread_num();
@@ -407,12 +430,19 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     PROFILE_FLOPS(2*A.length(0)*A.length(1));
 }
 
+template <int Options>
 void skr2(char uplo, \
           double alpha, const row_view<const double>& a,
                         const row_view<const double>& b,
           double beta,  const matrix_view<   double>& C)
 {
-    constexpr int BS = 2;
+    if (!(Options & FUSED_L2))
+    {
+        blas::skr2(uplo, alpha, a, b, beta, C);
+        return;
+    }
+
+    constexpr int BS = 2; // DO NOT CHANGE!
 
     auto m = C.length(0);
     auto n = C.length(1);
@@ -428,8 +458,6 @@ void skr2(char uplo, \
 
     auto inca = a.stride();
     auto incb = a.stride();
-    //MARRAY_ASSERT(inca == 1);
-    //MARRAY_ASSERT(incb == 1);
     auto rsc = C.stride(0);
     auto csc = C.stride(1);
 
@@ -441,211 +469,196 @@ void skr2(char uplo, \
         return ;
     }
 
-    //printf("inca, incb, rsc, csc = %d, %d, %d, %d\n", inca, incb, rsc, csc);
+    if (csc == 1)
+    {
+        std::swap(ap, bp);
+        std::swap(inca, incb);
+        std::swap(rsc, csc);
+        uplo = uplo == 'L' ? 'U' : 'L';
+    }
+
+    assert(rsc == 1);
 
     if (uplo == 'L')
     {
-        //if (rsc == 1 && inca == 1 && incb == 1) // Column major
-        if (rsc == 1)
+        #pragma omp parallel if (Options & PARALLEL_L2)
         {
-            if ( inca == 1 && incb == 1 ) // a and b are unit stride.
+            auto tid = omp_get_thread_num();
+            auto nt = omp_get_num_threads();
+
+            auto work = (n*n)/4;
+            auto start = (work*tid)/nt;
+            auto end = (work*(tid+1))/nt;
+
+            auto jstart = 0;
+            for (auto pos = 0; jstart <= n-BS; jstart += BS)
             {
-                //printf("unit stride skr2 with COLUMN major\n");
-                //auto maxnt = std::min(omp_get_num_threads(), 12);
-                //#pragma omp parallel num_threads(maxnt)
-                #pragma omp parallel
+                if (start < pos+n-jstart-1)
                 {
-                    auto tid = omp_get_thread_num();
-                    auto nt = omp_get_num_threads();
+                    start -= pos;
+                    break;
+                }
+                pos += n-jstart-1;
+            }
 
-                    auto j0 = tid*BS;
+            auto jend = 0;
+            for (auto pos = 0; jend <= n-BS; jend += BS)
+            {
+                if (end <= pos+n-jend-1)
+                {
+                    end -= pos;
+                    break;
+                }
+                pos += n-jend-1;
+            }
 
-                    for (; j0 <= n-BS; j0 += BS*nt)
-                    {
-                        for (auto i = j0+BS; i < n; i++)
-                        {
-                            for (auto j = j0; j < j0+BS ; j++)
-                            {
-                                Cp[i+j*csc] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i+j*csc];
-                            }
-                        }
+            auto body = [&](auto j0, auto start, auto end, auto inca, auto incb)
+            {
+                // 2x2 diagonal
+                if (start == 0)
+                {
+                    auto i = j0+1;
+                    auto j = j0;
+                    Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
+                    start++;
+                }
 
-                        // triangle
-                        for ( auto j = j0 ; j < j0+BS; j++)
-                        {
-                            for (auto i = j+1; i < j0 + BS; i++)
-                            {
-                                Cp[i+j*csc] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i+j*csc];
-                            }
-                        }
-                    }
+                for (auto pos = start; pos < end; pos++)
+                {
+                    auto i = j0+BS+pos-1;
+                    for (auto j = j0; j < j0+BS ; j++)
+                        Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
+                }
+            };
 
-                    for (auto j = j0; j < n; j++)
-                    {
-                        for (auto i = j+1; i < n; i++)
-                        {
-                            Cp[i+j*csc] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i+j*csc];
-                        }
-                    }
+            if (inca == 1 && incb == 1)
+            {
+                if (jstart == jend)
+                {
+                    body(jstart, start, end, 1, 1);
+                }
+                else
+                {
+                    body(jstart, start, n-jstart-1, 1, 1);
+                    for (auto j0 = jstart+BS; j0 < jend; j0 += BS)
+                        body(j0, 0, n-j0-1, 1, 1);
+                    body(jend, 0, end, 1, 1);
                 }
             }
             else
             {
-                //printf("nonunit stride skr2 with COLUMN major\n");
-                //auto maxnt = std::min(omp_get_num_threads(), 12);
-                //#pragma omp parallel num_threads(maxnt)
-                #pragma omp parallel
+                if (jstart == jend)
                 {
-                    auto tid = omp_get_thread_num();
-                    auto nt = omp_get_num_threads();
-
-                    auto j0 = tid*BS;
-
-                    for (; j0 <= n-BS; j0 += BS*nt)
-                    {
-                        for (auto i = j0+BS; i < n; i++)
-                        {
-                            for (auto j = j0; j < j0+BS ; j++)
-                            {
-                                Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
-                            }
-                        }
-
-                        // triangle
-                        for ( auto j = j0 ; j < j0+BS; j++)
-                        {
-                            for (auto i = j+1; i < j0 + BS; i++)
-                            {
-                                Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
-                            }
-                        }
-                    }
-
-                    for (auto j = j0; j < n; j++)
-                    {
-                        for (auto i = j+1; i < n; i++)
-                        {
-                            Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
-                        }
-                    }
+                    body(jstart, start, end, inca, incb);
                 }
-
-            }
-        }
-        //else if (csc == 1 && inca == 1 && incb == 1) // Row major
-        else if (csc == 1) // ROW major
-        {
-            //printf("ROW MAJOR\n");
-            //if (omp_get_num_threads() > 12) // We get the best performance when we using 12 cores after testing with multiple cores
-            if ( inca == 1 && incb == 1 ) //  a and b are unit stride
-            {
-                //printf("unit stride skr2 with row major\n");
-                //auto maxnt = std::min(omp_get_num_threads(), 12);
-                //#pragma omp parallel num_threads(maxnt)
-                #pragma omp parallel
+                else
                 {
-                    auto tid = omp_get_thread_num();
-                    auto nt = omp_get_num_threads();
-
-                    auto i0 = tid*BS;
-                    for(; i0 <= n-BS; i0+= BS*nt)
-                    {
-                        for (auto j = 0; j < i0; j++)
-                        {
-                            for (auto i = i0; i < i0+BS ; i++)
-                            {
-                                // printf("idx, start, end, i0 , j =%d, %d,  %d, %d, %d\n", omp_get_thread_num(), start, end, i0, j);
-                                Cp[i*rsc+j] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i*rsc+j];
-                            }
-                        }
-
-                        // triangle
-                        for (auto i = i0; i < i0 + BS; i++)
-                        {
-                            for ( auto j = i0 ; j < i; j++)
-                            {
-                                Cp[i*rsc+j] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i*rsc+j];
-                            }
-                        }
-
-                    }
-
-                    for (auto i = i0 ; i < n;i++)
-                    {
-                        for (auto j = 0;j < i;j++)
-                        {
-                            Cp[i*rsc+j] = alpha * (ap[i] * bp[j] - ap[j] * bp[i]) + beta * Cp[i*rsc+j];
-                        }
-                    }
+                    body(jstart, start, n-jstart-1, inca, incb);
+                    for (auto j0 = jstart+BS; j0 < jend; j0 += BS)
+                        body(j0, 0, n-j0-1, inca, incb);
+                    body(jend, 0, end, inca, incb);
                 }
             }
-            else // a and b are not unit stride
-            {
-                //printf("nonunit stride skr2 with row major\n");
-                //    omp_set_num_threads(12);
-                //auto maxnt = std::min(omp_get_num_threads(), 12);
-                //#pragma omp parallel num_threads(maxnt)
-                #pragma omp parallel
-                {
-                    auto tid = omp_get_thread_num();
-                    auto nt = omp_get_num_threads();
-
-                    auto i0 = tid*BS;
-                    for(; i0 <= n-BS; i0+= BS*nt)
-                    {
-                        for (auto j = 0; j < i0; j++)
-                        {
-                            auto tmpa = ap[j*inca];
-                            auto tmpb = bp[j*incb];
-                            for (auto i = i0; i < i0+BS ; i++)
-                            {
-                                // printf("idx, start, end, i0 , j =%d, %d,  %d, %d, %d\n", omp_get_thread_num(), start, end, i0, j);
-                                Cp[i*rsc+j] = alpha * (ap[i*inca] * tmpb - tmpa * bp[i*incb]) + beta * Cp[i*rsc+j];
-                            }
-                        }
-
-                        // triangle
-                        for (auto i = i0; i < i0 + BS; i++)
-                        {
-                            for ( auto j = i0 ; j < i; j++)
-                            {
-                                Cp[i*rsc+j] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i*rsc+j];
-                            }
-                        }
-
-                    }
-
-                    for (auto i = i0 ; i < n;i++)
-                    {
-                        auto tmpa = ap[i*inca];
-                        auto tmpb = bp[i*incb];
-                        for (auto j = 0;j < i;j++)
-                        {
-                            Cp[i*rsc+j] = alpha * (tmpa * bp[j*incb] - ap[j*inca] * tmpb) + beta * Cp[i*rsc+j];
-                        }
-                    }
-                }
-
-            }
-
-        }
-        else
-        {
-            printf("skr2 Nothing to do\n");
         }
     }
+    else
+    {
+        #pragma omp parallel if (Options & PARALLEL_L2)
+        {
+            auto tid = omp_get_thread_num();
+            auto nt = omp_get_num_threads();
 
-    //
-    // Code for upper part update
+            auto work = (n*n)/4;
+            auto start = (work*tid)/nt;
+            auto end = (work*(tid+1))/nt;
+
+            auto jstart = n&1;
+            for (auto pos = 0; jstart <= n-BS; jstart += BS)
+            {
+                if (start < pos+jstart+1)
+                {
+                    start -= pos;
+                    break;
+                }
+                pos += jstart+1;
+            }
+
+            auto jend = n&1;
+            for (auto pos = 0; jend <= n-BS; jend += BS)
+            {
+                if (end <= pos+jend+1)
+                {
+                    end -= pos;
+                    break;
+                }
+                pos += jend+1;
+            }
+
+            auto body = [&](auto j0, auto start, auto end, auto inca, auto incb)
+            {
+                // 2x2 diagonal
+                if (end == j0+1)
+                {
+                    auto i = j0;
+                    auto j = j0+1;
+                    Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
+                    end--;
+                }
+
+                for (auto pos = start; pos < end; pos++)
+                {
+                    auto i = pos;
+                    for (auto j = j0; j < j0+BS ; j++)
+                        Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
+                }
+            };
+
+            if (inca == 1 && incb == 1)
+            {
+                if (jstart == jend)
+                {
+                    body(jstart, start, end, 1, 1);
+                }
+                else
+                {
+                    body(jstart, start, jstart+1, 1, 1);
+                    for (auto j0 = jstart+BS; j0 < jend; j0 += BS)
+                        body(j0, 0, j0+1, 1, 1);
+                    body(jend, 0, end, 1, 1);
+                }
+            }
+            else
+            {
+                if (jstart == jend)
+                {
+                    body(jstart, start, end, inca, incb);
+                }
+                else
+                {
+                    body(jstart, start, jstart+1, inca, incb);
+                    for (auto j0 = jstart+BS; j0 < jend; j0 += BS)
+                        body(j0, 0, j0+1, inca, incb);
+                    body(jend, 0, end, inca, incb);
+                }
+            }
+        }
+    }
 }
 
-
+template <int Options>
 void ger2(double alpha, const row_view<const double> a,
                         const row_view<const double> b,
           double beta,  const row_view<const double> c,
                         const row_view<const double> d,
           double gamma, const matrix_view<   double> E)
 {
+    if (!(Options & FUSED_L2))
+    {
+        blas::ger(alpha, a, b, gamma, E);
+        blas::ger(beta, c, d, 1.0, E);
+        return;
+    }
+
     constexpr int BS = 5;
 
     auto m = E.length(0);
@@ -676,11 +689,11 @@ void ger2(double alpha, const row_view<const double> a,
     int incd = d.stride();
 
     //if (rse == 1 && inca == 1 && incb == 1 && incc == 1 && incd == 1) // COLUMN MAJOR
-    if (rse == 1) 
+    if (rse == 1)
     {
         if ( inca == 1 && incb == 1 && incc == 1 && incd == 1 ) // a, b, c and d are unit stride.
         {
-            #pragma omp parallel
+            #pragma omp parallel if (Options & PARALLEL_L2)
             {
                 auto tid = omp_get_thread_num();
                 auto nt = omp_get_num_threads();
@@ -726,7 +739,7 @@ void ger2(double alpha, const row_view<const double> a,
         else
         {
             //printf("nonuint stride GER2 COLUMN MAJOR\n");
-            #pragma omp parallel
+            #pragma omp parallel if (Options & PARALLEL_L2)
             {
                 auto tid = omp_get_thread_num();
                 auto nt = omp_get_num_threads();
@@ -760,7 +773,7 @@ void ger2(double alpha, const row_view<const double> a,
     {
         if ( inca == 1 && incb == 1 && incc == 1 && incd == 1 ) // a, b , c and d are unit stride
         {
-            #pragma omp parallel
+            #pragma omp parallel if (Options & PARALLEL_L2)
             {
                 auto tid = omp_get_thread_num();
                 auto nt = omp_get_num_threads();
@@ -793,7 +806,7 @@ void ger2(double alpha, const row_view<const double> a,
         else
         {
             //printf("nonuint stride GER2 ROW MAJOR\n");
-            #pragma omp parallel
+            #pragma omp parallel if (Options & PARALLEL_L2)
             {
                 auto tid = omp_get_thread_num();
                 auto nt = omp_get_num_threads();
@@ -832,3 +845,48 @@ void ger2(double alpha, const row_view<const double> a,
     PROFILE_FLOPS(4*m*n);
 }
 
+#define INSTANTIATIONS(N) \
+\
+template void gemm_sktri<STEP_##N> \
+     ( \
+       double  alpha, \
+       const matrix_view<const double>&  a, \
+       const row_view<const double>& d,  \
+       const matrix_view<const double>&  b, \
+       double  beta, \
+       const matrix_view<double>&  c \
+     ); \
+\
+template void gemmt_sktri<STEP_##N> \
+     ( \
+       char  uploc, \
+       double  alpha, \
+       const matrix_view<const double>&  a, \
+       const row_view<const double>& d,  \
+       const matrix_view<const double>&  b, \
+       double  beta, \
+       const matrix_view<double>&  c \
+     ); \
+\
+template void gemv_sktri<STEP_##N>(double alpha,         const matrix_view<const double>& A, \
+                                      const row_view   <const double>& T, \
+                                      const row_view   <const double>& x, \
+                        double beta,  const row_view   <      double>& y); \
+\
+template void skr2<STEP_##N>(char uplo, \
+          double alpha, const row_view<const double>& a, \
+                        const row_view<const double>& b, \
+          double beta,  const matrix_view<   double>& C); \
+\
+template void ger2<STEP_##N>(double alpha, const row_view<const double> a, \
+                        const row_view<const double> b, \
+          double beta,  const row_view<const double> c, \
+                        const row_view<const double> d, \
+          double gamma, const matrix_view<   double> E);
+
+INSTANTIATIONS(0)
+INSTANTIATIONS(1)
+INSTANTIATIONS(2)
+INSTANTIATIONS(3)
+INSTANTIATIONS(4)
+INSTANTIATIONS(5)

@@ -65,8 +65,6 @@ static void bli_l3_thread_decorator_entry( thrcomm_t* gl_comm, dim_t tid, const 
 	// control tree node.
 	thrinfo_t* thread = bli_l3_thrinfo_create( tid, gl_comm, array, rntm, cntl );
 
-    //printf("I HAVE THIS MANY THREADS: %d\n", (int)bli_thrinfo_num_threads( thread ));
-
 	bli_l3_int
 	(
 	  a,

@@ -1,5 +1,6 @@
 #include "ltlt.hpp"
 
+template <int Options>
 void ltlt_unblockTSRL(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column)
 {
     auto [T, m, B] = partition_rows<DYNAMIC, 1, DYNAMIC>(X);
@@ -24,13 +25,16 @@ void ltlt_unblockTSRL(const matrix_view<double>& X, const row_view<double>& t, l
         t[r1] = X[r2][r1];
         t[r2] = X[r3][r2];
 
-        L[r2][r2] = 1;
-        L[r3][r3] = 1;
+        if (Options & SEPARATE_T)
+        {
+            L[r2][r2] = 1;
+            L[r3][r3] = 1;
+        }
 
         X[R4][r3] -= t[r2] * L[r3][r2] * L[R4][r3];
 
         //blas::skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
-        skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
+        skr2<Options>('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
 
         X[R4][r3] += t[r2] * L[R4][r2];
 
@@ -39,3 +43,10 @@ void ltlt_unblockTSRL(const matrix_view<double>& X, const row_view<double>& t, l
         tie(T, m, B) = continue_with<2>(R0, r1, r2, r3, R4);
     }
 }
+
+template void ltlt_unblockTSRL<STEP_0>(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column);
+template void ltlt_unblockTSRL<STEP_1>(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column);
+template void ltlt_unblockTSRL<STEP_2>(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column);
+template void ltlt_unblockTSRL<STEP_3>(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column);
+template void ltlt_unblockTSRL<STEP_4>(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column);
+template void ltlt_unblockTSRL<STEP_5>(const matrix_view<double>& X, const row_view<double>& t, len_type k, bool first_column);
