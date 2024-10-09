@@ -250,7 +250,10 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
         return;
     }
 
-    constexpr int BS = 5;
+    //constexpr int BS = 8;
+    auto cntx = bli_gks_query_cntx();
+	axpyf_ker_ft kfp_af = (axpyf_ker_ft)bli_cntx_get_ukr_dt( BLIS_DOUBLE, BLIS_AXPYF_KER, cntx );
+    auto BS = bli_cntx_get_blksz_def_dt(BLIS_DOUBLE, BLIS_AF, cntx);
 
     PROFILE_FUNCTION
     auto n = A.length(1);
@@ -272,12 +275,12 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     // to get the normal base (0), we create a new matrix A_temp with base as 0,
     // otherwise we will use A element wrong when we call it by index.
     // Question, I don't know how native gemv impletation solves this issue.
-    auto restrict Ap =  A.data();
+    const double* restrict Ap =  A.data();
     auto rsa = A.stride(0);
     auto csa = A.stride(1);
-    auto restrict xp = x.data();
-    auto restrict yp = y.data();
-    auto restrict Tp = T.data();
+    const double* restrict xp = x.data();
+          double* restrict yp = y.data();
+    const double* restrict Tp = T.data();
     auto incx = x.stride();
     auto incy = y.stride();
     auto inct = T.stride();
@@ -300,7 +303,6 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
         }
     };
 
-
     //
     // A as the column major, rsa = 1 and incy = 1
     //
@@ -312,7 +314,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
         {
             int start, end;
             std::tie(start, end) = partition(m, BS, omp_get_num_threads(), omp_get_thread_num());
-            double Txj[BS];
+            double Txj[16];
             //
             for (auto i = start; i < end; i++)
             {
@@ -330,9 +332,19 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                         Txj[j-j0] = Tx(j, n, incx);
                     }
 
-                    for (auto i = start; i < end; i++)
-                    for (auto j = j0; j < j0 + BS; j++)
-                            yp[i] += alpha * Ap[i + j * csa] * Txj[j-j0];
+                    kfp_af(BLIS_NO_CONJUGATE,
+                           BLIS_NO_CONJUGATE,
+                           end-start,
+                           BS,
+                           &alpha,
+                           &Ap[start + j0*csa], 1, csa,
+                           Txj, 1,
+                           &y[start], 1,
+                           cntx);
+
+                    //for (auto i = start; i < end; i++)
+                    //for (auto j = j0; j < j0 + BS; j++)
+                    //        yp[i] += Ap[i + j * csa] * Txj[j-j0];
                 }
 
                 begin = j0;
@@ -346,9 +358,9 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
     else if ((csa == 1) && (incx == 1))
     {
         //printf("row major\n");
-        //std::vector<double> Txj(n);
-        //for (auto j = 0;j < n;j++)
-        //    Txj[j] = Tx(j, n, incx);
+        std::vector<double> Txj(n);
+        for (auto j = 0;j < n;j++)
+            Txj[j] = Tx(j, n, incx);
 
         #pragma omp parallel if (Options & PARALLEL_L2)
         {
@@ -356,7 +368,7 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
             std::tie(start, end) = partition(m, BS, omp_get_num_threads(), omp_get_thread_num());
             //printf("start, end, OMM_NUM_THREAD, THREAD_ID = %d, %d, %d, %d\n", start, end, omp_get_num_threads(), omp_get_thread_num());
 
-            double yi[BS];
+            double yi[16];
 
             auto body = [&](int& start, int BS)
             {
@@ -366,19 +378,19 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
                     memset(&yi, 0, BS*sizeof(double));
                     for (auto i = i0;i < i0+BS;i++)
                     {
-                       yi[i-i0] += Ap[i*rsa + 0] * Tx(0, n, 1);
-                       //yi[i-i0] += Ap[i*rsa + 0] * Txj[0];
+                       //yi[i-i0] += Ap[i*rsa + 0] * Tx(0, n, 1);
+                       yi[i-i0] += Ap[i*rsa + 0] * Txj[0];
                     }
                     for (auto j = 1;j < n-1;j++)
                     for (auto i = i0;i < i0+BS;i++)
                     {
-                        yi[i-i0] += Ap[i*rsa + j] * Tx(j, n, 1);
-                        //yi[i-i0] += Ap[i*rsa + j] * Txj[j];
+                        //yi[i-i0] += Ap[i*rsa + j] * Tx(j, n, 1);
+                        yi[i-i0] += Ap[i*rsa + j] * Txj[j];
                     }
                     for (auto i = i0;i < i0+BS;i++)
                     {
-                        yi[i-i0] += Ap[i*rsa + n-1] * Tx(n-1, n, 1);
-                        //yi[i-i0] += Ap[i*rsa + n-1] * Txj[n-1];
+                        //yi[i-i0] += Ap[i*rsa + n-1] * Tx(n-1, n, 1);
+                        yi[i-i0] += Ap[i*rsa + n-1] * Txj[n-1];
                     }
 
                     if (beta != 0.0)
@@ -438,7 +450,9 @@ void skr2(char uplo, \
 {
     if (!(Options & FUSED_L2))
     {
+        PROFILE_SECTION("blas::skr2")
         blas::skr2(uplo, alpha, a, b, beta, C);
+        PROFILE_STOP
         return;
     }
 
@@ -532,8 +546,10 @@ void skr2(char uplo, \
                     for (auto pos = start; pos < end; pos++)
                     {
                         auto i = j0+BS+pos-1;
+                        auto alpha_ai = alpha * ap[i*inca];
+                        auto alpha_bi = alpha * bp[i*incb];
                         for (auto j = j0; j < j0+BS ; j++)
-                            Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
+                            Cp[i+j*csc] = alpha_ai * bp[j*incb] - ap[j*inca] * alpha_bi + beta * Cp[i+j*csc];
                     }
                 };
 
@@ -621,8 +637,10 @@ void skr2(char uplo, \
                     for (auto pos = start; pos < end; pos++)
                     {
                         auto i = pos;
+                        auto alpha_ai = alpha * ap[i*inca];
+                        auto alpha_bi = alpha * bp[i*incb];
                         for (auto j = j0; j < j0+BS ; j++)
-                            Cp[i+j*csc] = alpha * (ap[i*inca] * bp[j*incb] - ap[j*inca] * bp[i*incb]) + beta * Cp[i+j*csc];
+                            Cp[i+j*csc] = alpha_ai * bp[j*incb] - ap[j*inca] * alpha_bi + beta * Cp[i+j*csc];
                     }
                 };
 
@@ -668,8 +686,10 @@ void ger2(double alpha, const row_view<const double> a,
 {
     if (!(Options & FUSED_L2))
     {
+        PROFILE_SECTION("blas::ger")
         blas::ger(alpha, a, b, gamma, E);
         blas::ger(beta, c, d, 1.0, E);
+        PROFILE_STOP
         return;
     }
 

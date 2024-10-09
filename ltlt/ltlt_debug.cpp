@@ -14,8 +14,21 @@ int main(int argc, char* argv[])
         row<double> T{n-1};
         row<int> p{n};
 
-        for (auto r : range(3))
-            ltlt_pivot_blockRL<STEP_5>(X, T, p, 256, ltlt_pivot_unblockLL<STEP_5>);
+        for (auto r : range(2))
+            ltlt_blockRL<STEP_0>(X, T, 256, ltlt_unblockLL<STEP_0>);
+    }
+
+    timer::print_timers();
+    timer::clear_timers();
+
+    for (auto n : range(20000,20001,1000))
+    {
+        matrix<double> X = X0[range(n)][range(n)];
+        row<double> T{n-1};
+        row<int> p{n};
+
+        for (auto r : range(2))
+            ltlt_blockRL<STEP_1>(X, T, 256, ltlt_unblockLL<STEP_1>);
     }
 
     timer::print_timers();

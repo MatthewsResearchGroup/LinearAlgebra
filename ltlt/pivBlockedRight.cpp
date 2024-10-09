@@ -9,6 +9,8 @@ void ltlt_pivot_blockRL(const matrix_view<double>& X, const row_view<double>& t,
         return;
     }
 
+    PROFILE_FUNCTION
+
     auto [T, m, B] = partition_rows<DYNAMIC,1,DYNAMIC>(X);
 
     matrix_view<double> L = X.rebased(1, 1);
