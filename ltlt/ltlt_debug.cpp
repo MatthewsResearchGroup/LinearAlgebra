@@ -5,7 +5,8 @@
 std::mt19937_64 gen(5);
 int main(int argc, char* argv[])
 {
-    /*
+    #if 0
+
     auto X0 = random_matrix(20000,20000);
 
     for (auto n : range(20000,20001,1000))
@@ -34,7 +35,8 @@ int main(int argc, char* argv[])
     timer::print_timers();
 
     return 0;
-    */
+
+    #endif
 
     auto test = [] <int Options>
     {

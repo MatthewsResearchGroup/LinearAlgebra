@@ -314,45 +314,49 @@ void gemv_sktri(double alpha,         const matrix_view<const double>& A,
         {
             int start, end;
             std::tie(start, end) = partition(m, BS, omp_get_num_threads(), omp_get_thread_num());
-            double Txj[16];
-            //
-            for (auto i = start; i < end; i++)
-            {
-                yp[i] *= beta;
-            }
 
-            int begin = 0;
-            auto body = [&](int& begin, int BS)
+            if (start != end)
             {
-                int j0 = begin;
-                for (; j0 + BS <= n; j0+=BS)
+                double Txj[16];
+                //
+                for (auto i = start; i < end; i++)
                 {
-                    for (auto j = j0; j < j0+BS; j++)
-                    {
-                        Txj[j-j0] = Tx(j, n, incx);
-                    }
-
-                    kfp_af(BLIS_NO_CONJUGATE,
-                           BLIS_NO_CONJUGATE,
-                           end-start,
-                           BS,
-                           &alpha,
-                           &Ap[start + j0*csa], 1, csa,
-                           Txj, 1,
-                           &y[start], 1,
-                           cntx);
-
-                    //for (auto i = start; i < end; i++)
-                    //for (auto j = j0; j < j0 + BS; j++)
-                    //        yp[i] += Ap[i + j * csa] * Txj[j-j0];
+                    yp[i] *= beta;
                 }
 
-                begin = j0;
+                int begin = 0;
+                auto body = [&](int& begin, int BS)
+                {
+                    int j0 = begin;
+                    for (; j0 + BS <= n; j0+=BS)
+                    {
+                        for (auto j = j0; j < j0+BS; j++)
+                        {
+                            Txj[j-j0] = Tx(j, n, incx);
+                        }
 
-            };
+                        kfp_af(BLIS_NO_CONJUGATE,
+                               BLIS_NO_CONJUGATE,
+                               end-start,
+                               BS,
+                               &alpha,
+                               &Ap[start + j0*csa], 1, csa,
+                               Txj, 1,
+                               &y[start], 1,
+                               cntx);
 
-            body(begin, BS);
-            body(begin, 1);
+                        //for (auto i = start; i < end; i++)
+                        //for (auto j = j0; j < j0 + BS; j++)
+                        //        yp[i] += Ap[i + j * csa] * Txj[j-j0];
+                    }
+
+                    begin = j0;
+
+                };
+
+                body(begin, BS);
+                body(begin, 1);
+            }
         }
     }
     else if ((csa == 1) && (incx == 1))
@@ -456,6 +460,10 @@ void skr2(char uplo, \
         return;
     }
 
+    auto cntx = bli_gks_query_cntx();
+
+    axpy2v_ker_ft kfp_2v = (axpy2v_ker_ft)bli_cntx_get_ukr_dt( BLIS_DOUBLE, BLIS_AXPY2V_KER, cntx );
+
     constexpr int BS = 2; // DO NOT CHANGE!
 
     auto m = C.length(0);
@@ -543,14 +551,51 @@ void skr2(char uplo, \
                         start++;
                     }
 
+                    double alpha_aj[BS];
+                    double alpha_bj[BS];
+
+                    for (auto j = j0; j < j0+BS ; j++)
+                    {
+                        alpha_aj[j-j0] = -alpha * ap[j*inca];
+                        alpha_bj[j-j0] =  alpha * bp[j*incb];
+                    }
+
+                    #if 0
+
+                    assert(beta == 1.0);
+
+                    auto i0 = j0+BS+start-1;
+
+                    kfp_2v(BLIS_NO_CONJUGATE,
+                           BLIS_NO_CONJUGATE,
+                           end-start,
+                           &alpha_bj[0],
+                           &alpha_aj[0],
+                           ap + i0*inca, inca,
+                           bp + i0*incb, incb,
+                           Cp + i0 + j0*csc, 1,
+                           cntx);
+
+                    kfp_2v(BLIS_NO_CONJUGATE,
+                           BLIS_NO_CONJUGATE,
+                           end-start,
+                           &alpha_bj[1],
+                           &alpha_aj[1],
+                           ap + i0*inca, inca,
+                           bp + i0*incb, incb,
+                           Cp + i0 + (j0+1)*csc, 1,
+                           cntx);
+
+                    #else
+
                     for (auto pos = start; pos < end; pos++)
                     {
                         auto i = j0+BS+pos-1;
-                        auto alpha_ai = alpha * ap[i*inca];
-                        auto alpha_bi = alpha * bp[i*incb];
                         for (auto j = j0; j < j0+BS ; j++)
-                            Cp[i+j*csc] = alpha_ai * bp[j*incb] - ap[j*inca] * alpha_bi + beta * Cp[i+j*csc];
+                            Cp[i+j*csc] = ap[i*inca] * alpha_bj[j-j0] + alpha_aj[j-j0] * bp[i*incb] + beta * Cp[i+j*csc];
                     }
+
+                    #endif
                 };
 
                 if (inca == 1 && incb == 1)
