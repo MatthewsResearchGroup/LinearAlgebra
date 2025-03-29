@@ -9,6 +9,7 @@
 #ifndef docopt__value_h_
 #define docopt__value_h_
 
+#include <cstdio>
 #include <string>
 #include <vector>
 #include <functional> // std::hash

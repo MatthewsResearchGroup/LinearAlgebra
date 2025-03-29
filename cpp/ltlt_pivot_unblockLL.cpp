@@ -3,6 +3,8 @@
 template <int Options>
 void ltlt_pivot_unblockLL(const matrix_view<double>& X, const row_view<double>& t, const row_view<int>& pi, len_type k, bool first_column)
 {
+    PROFILE_FUNCTION
+    
     auto n = X.length(0);
     matrix<double> temp_{n, 1};
 

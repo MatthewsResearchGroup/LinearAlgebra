@@ -1,12 +1,95 @@
 #include <cstdlib>
 #include <map>
 #include <math.h>
+#include <filesystem>
 
-#include "test.hpp"
+#include "ltlt.hpp"
 #include "docopt.h"
-#include "io.hpp"
 
 std::mt19937_64 gen(time(nullptr));
+
+static void output_to_csv(const int& nt,
+                          const int& MatrixSize,
+                          const std::string& MajorAlgo,
+                          const std::string& MinorAlgo,
+                          const int& BlockSize,
+                          const double& time,
+                          const double& GFLOPS)
+{
+    auto filename = MinorAlgo.empty() ? "./time.csv" : "./time_" + std::to_string(BlockSize) + ".csv";
+    auto out_csv = fopen(filename.c_str(),"a+");
+
+    if (!out_csv)
+    {
+        printf("\nERROR: could not open %s for output\n",filename.c_str());
+        exit(1);
+    }
+
+    if (std::filesystem::is_empty(filename))
+        fprintf(out_csv,"%s\n", "NUM_THREADS, MatrixSize, MajorAlgo, MinorAlgo, BlockSize, Time, GFLOPS");
+
+    fprintf(out_csv, "%6d, %6d, %s, %s, %6d, %E, %E\n",  nt,
+    MatrixSize,         MajorAlgo.c_str(),
+    MinorAlgo.c_str(),  BlockSize,
+    time,               GFLOPS);
+
+    fclose(out_csv);
+}
+
+static double performance(int n, const std::function<void(const matrix_view<double>&, const row_view<double>&)>& LTLT, int repitation = 3)
+{
+    auto MinTime = std::numeric_limits<double>::max();
+    auto A = random_matrix(n, n);
+    matrix<double> B = A - A.T();
+    matrix<double> B0 = B;
+
+    for (auto i : range(repitation))
+    {
+        row<double> t{n-1};
+        auto B = B0;
+        auto B_deepcopy = B;
+
+        auto starting_point =  bli_clock();
+        LTLT(B,t);
+        auto ending_point = bli_clock();
+
+        auto time = ending_point - starting_point;
+        printf("Rep and time: %d, %f\n", i, time);
+
+        MinTime = (time < MinTime)? time : MinTime;
+
+    }
+
+    return MinTime;
+}
+
+static double pivperformance(int n, const std::function<void(const matrix_view<double>&, const row_view<double>&, const row_view<int>&)>& LTLT, int repitation = 3)
+{
+    auto MinTime = std::numeric_limits<double>::max();
+    auto A = random_matrix(n, n);
+    matrix<double> B = A - A.T();
+    matrix<double> B0 = B;
+
+    for (auto i : range(repitation))
+    {
+        row<double> t{n-1};
+        row<int> p{n};
+        auto B = B0;
+        auto B_deepcopy = B;
+
+        auto starting_point =  bli_clock();
+        LTLT(B,t,p);
+        auto ending_point = bli_clock();
+
+        auto time = ending_point - starting_point;
+        printf("Rep and time: %d, %f\n", i, time);
+
+        MinTime = (time < MinTime)? time : MinTime;
+    }
+
+    return MinTime;
+
+}
 
 int main(int argc, const char** argv)
 {
@@ -17,7 +100,7 @@ int main(int argc, const char** argv)
     static const char USAGE[] =
     R"(ltlt.
       Usage:
-        ltlt <majoralgo> <matrixsize_min> <matrixsize_max> <stepsize> <repitation> [--minoralgo=<minoralgo>] [--bs=<bs>] [--step=<step>]
+        ltlt <majoralgo> <matrixsize_min> <matrixsize_max> <stepsize> <repetition> [--minoralgo=<minoralgo>] [--bs=<bs>] [--step=<step>]
         ltlt (-h | --help)
         ltlt --version
 
@@ -41,7 +124,7 @@ int main(int argc, const char** argv)
 
         <stepsize>        The step of range of matrix size
 
-        <repitation>      Times of repitation [default: 3]
+        <repetition>      Times of repetition
 
         [--minoralgo]     If the majoralgo is Block algorithms, then a minoralgo is needed.
                           There are two options:
@@ -49,33 +132,31 @@ int main(int argc, const char** argv)
                                                 Unblock Left Loooking (ltlt_unblockLL).
                                                 Pivot Unblock Left Looking (ltlt_pivot_unblockLL) only work for piv right looking.
 
-        [--bs]            The block size for block algorithm
+        [--bs]            The block size for block algorithm [default: 256]
 
         [--step]          Step to use [default: 5]
 
         -h --help         Show this screen.
-         --version        Show version.
+        --version        Show version.
     )";
 
+    std::vector<std::string> raw_args;
+    for (auto i : range(1,argc))
+    raw_args.push_back(argv[i]);
+
     std::map<std::string, docopt::value> args = docopt::docopt(USAGE,
-                                             { argv+1, argv+argc },
+                                             raw_args,
                                              true,
                                              "LTLT 1.0");
-
-    // int n {0}, blocksize {0};
-    // std::string majoralgo {}, minoralgo {};
-    // double error, time;
-    // int repitation;
 
     auto majoralgo = args["<majoralgo>"].asString();
     auto matrixsize_min = args["<matrixsize_min>"].asLong();
     auto matrixsize_max = args["<matrixsize_max>"].asLong();
     auto step = args["<stepsize>"].asLong();
-    auto repitation = args["<repitation>"].asLong();
+    auto repetition = args["<repetition>"].asLong();
     auto minoralgo = args["--minoralgo"] ? args["--minoralgo"].asString() : std::string("");
-    auto blocksize = args["--bs"] ? args["--bs"].asLong(): 0;
-    auto algo_step = args["--step"] ? args["--step"].asLong(): 0;
-    //PROFILE_SECTION("main function")
+    auto blocksize = args["--bs"] ? args["--bs"].asLong(): 256;
+    auto algo_step = args["--step"] ? args["--step"].asLong(): 5;
 
     auto perf = [&] <int Options>
     {
@@ -85,19 +166,19 @@ int main(int argc, const char** argv)
             if (minoralgo.empty())
             {
                 if (majoralgo == "ltlt_unblockLL")
-                    time = performance(matrixsize, unblocked(ltlt_unblockLL<Options>), repitation);
+                    time = performance(matrixsize, unblocked(ltlt_unblockLL<Options>), repetition);
 
                 else if (majoralgo == "ltlt_unblockRL")
-                    time = performance(matrixsize, unblocked(ltlt_unblockRL<Options>), repitation);
+                    time = performance(matrixsize, unblocked(ltlt_unblockRL<Options>), repetition);
 
                 else if (majoralgo == "ltlt_pivot_unblockLL")
-                    time = pivperformance(matrixsize, unblocked(ltlt_pivot_unblockLL<Options>), repitation);
+                    time = pivperformance(matrixsize, unblocked(ltlt_pivot_unblockLL<Options>), repetition);
 
                 else if (majoralgo == "ltlt_pivot_unblockRL")
-                    time = pivperformance(matrixsize, unblocked(ltlt_pivot_unblockRL<Options>), repitation);
+                    time = pivperformance(matrixsize, unblocked(ltlt_pivot_unblockRL<Options>), repetition);
 
                 else if (majoralgo == "ltlt_unblockTSRL")
-                    time = performance(matrixsize, unblocked(ltlt_unblockTSRL<Options>), repitation);
+                    time = performance(matrixsize, unblocked(ltlt_unblockTSRL<Options>), repetition);
 
                 else
                 {
@@ -108,19 +189,19 @@ int main(int argc, const char** argv)
             else
             {
                 if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockRL")
-                    time = performance(matrixsize, blocked(ltlt_blockRL<Options>, ltlt_unblockRL<Options>, blocksize), repitation);
+                    time = performance(matrixsize, blocked(ltlt_blockRL<Options>, ltlt_unblockRL<Options>, blocksize), repetition);
 
                 else if (majoralgo == "ltlt_blockRL" && minoralgo == "ltlt_unblockLL")
-                    time = performance(matrixsize, blocked(ltlt_blockRL<Options>, ltlt_unblockLL<Options>, blocksize), repitation);
+                    time = performance(matrixsize, blocked(ltlt_blockRL<Options>, ltlt_unblockLL<Options>, blocksize), repetition);
 
                 else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockRL")
-                    time = performance(matrixsize, blocked(ltlt_blockLL<Options>, ltlt_unblockRL<Options>, blocksize), repitation);
+                    time = performance(matrixsize, blocked(ltlt_blockLL<Options>, ltlt_unblockRL<Options>, blocksize), repetition);
 
                 else if (majoralgo == "ltlt_blockLL" && minoralgo == "ltlt_unblockLL")
-                    time = performance(matrixsize, blocked(ltlt_blockLL<Options>, ltlt_unblockLL<Options>, blocksize), repitation);
+                    time = performance(matrixsize, blocked(ltlt_blockLL<Options>, ltlt_unblockLL<Options>, blocksize), repetition);
 
                 else if (majoralgo == "ltlt_pivot_blockRL" && minoralgo == "ltlt_pivot_unblockLL")
-                    time = pivperformance(matrixsize, blocked(ltlt_pivot_blockRL<Options>, ltlt_pivot_unblockLL<Options>, blocksize), repitation);
+                    time = pivperformance(matrixsize, blocked(ltlt_pivot_blockRL<Options>, ltlt_pivot_unblockLL<Options>, blocksize), repetition);
 
                 else
                 {
@@ -129,20 +210,18 @@ int main(int argc, const char** argv)
                 }
 
             }
-            //auto GFLOPS = check_RL(majoralgo)? 3*pow(matrixsize,3)/(time*3e9) : pow(matrixsize,3)/(time*3e9);
+
             auto GFLOPS = pow(matrixsize,3)/(time*3e9);
             printf("matrixsize, blocksize, time, GFLOPS = %d, %d, %f, %f\n", (int)matrixsize, (int)blocksize, time, GFLOPS);
-             // for (auto i : range(repitation))
+
             int nt = 0;
             #pragma omp parallel
             {
                 nt = omp_get_num_threads();
             }
-            //printf("We are using %d threads\n", nt);
             output_to_csv(nt, matrixsize, majoralgo, minoralgo, blocksize, time, GFLOPS);
         }
     };
-    //PROFILE_STOP
 
     switch (algo_step)
     {
@@ -157,5 +236,4 @@ int main(int argc, const char** argv)
     timer::print_timers();
 
     return 0;
-
 }

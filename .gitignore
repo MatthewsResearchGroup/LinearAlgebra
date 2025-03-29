@@ -3,9 +3,9 @@
 .DS_Store
 /build
 .deps
-marray/.git
-blis/.git
-docopt.cpp/.git
+cpp/marray/.git
+cpp/blis/.git
+cpp/docopt.cpp/.git
 blis/lib
 bin
 .clangd

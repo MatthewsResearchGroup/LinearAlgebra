@@ -1,8 +1,6 @@
 #ifndef LTLT_HPP
 #define LTLT_HPP
 
-#define MARRAY_DEFAULT_LAYOUT COLUMN_MAJOR
-
 #include <type_traits>
 #include <utility>
 #include <tuple>
@@ -14,17 +12,14 @@
 #include <algorithm>
 #include <tuple>
 
-//must come first
-#define MARRAY_USE_BLIS
-#define BLIS_ENABLE_STD_COMPLEX
-#define BLIS_DISABLE_BLAS_DEFS
-#include "blis.h"
+#define MARRAY_DEFAULT_LAYOUT COLUMN_MAJOR
+#define MARRAY_USE_BLIS 1
+#define PROFILE 1
 
 #include "marray_view.hpp"
 #include "expression.hpp"
 #include "blas.h"
 #include "flame.hpp"
-#include "bli_clock.h"
 #include "timer.h"
 #include "omp.h"
 
@@ -44,154 +39,9 @@ enum
     STEP_5 = STEP_4 | BLOCK_RL_VAR1,
 };
 
-template <typename T>
-bool foo() { static_assert(std::is_same_v<T,int>, ""); return true; }
-
 using namespace MArray;
 using MArray::slice::all;
 using std::tie;
-
-
-namespace MArray
-{
-namespace blas
-{
-
-/*
- * x <- alpha T x
- */
-inline void sktrmv(double alpha, const row_view<const double>& T, const row_view<double>& x)
-{
-    PROFILE_FUNCTION
-    auto n = x.length();
-    MARRAY_ASSERT(T.length(0) == n-1);
-
-    if (n == 0)
-        return;
-
-    if (n == 1)
-    {
-        x[0] = 0.0;
-        return;
-    }
-
-    auto ximinus1 = x[0];
-    x[0] = alpha * (-T[0] * x[1]);
-
-    for (auto i : range(1,n-1))
-    {
-        auto xi = alpha * (T[i-1] * ximinus1 - T[i] * x[i+1]);
-        ximinus1 = x[i];
-        x[i] = xi;
-    }
-
-    x[n-1] = alpha * (T[n-2] * ximinus1);
-    PROFILE_FLOPS(3*n);
-}
-
-/*
- * y = alpha A T x + beta y
- */
-inline void skewtrigemv(double alpha, const matrix_view<const double>& A,
-                                      const row_view   <const double>& T,
-                                      const row_view   <const double>& x,
-                        double beta,  const row_view   <      double>& y)
-{
-    /*
-     * x <- T x
-     */
-    PROFILE_FUNCTION
-    row<double> tempx = x;
-    // printf("print A inside of skewtrigemv\n\n");
-    // for (auto i : range(A.length(0)))
-    // {
-    // for (auto j : range(A.length(1)))
-    // {
-    //     printf("%f, ", A[i][j]);
-    // }
-    // printf("\n");
-    // }
-    // printf("Print T\n");
-    // for (auto i : range(T.length()))
-    //     printf("%f, ", T[i]);
-    // printf("\n");
-    // printf("Print x\n");
-    // for (auto i : range(x.length()))
-    //     printf("%f, ", x[i]);
-    // printf("\n");
-    // printf("Print y\n");
-    // for (auto i : range(y.length()))
-    //     printf("%f, ", y[i]);
-    // printf("\n");
-    sktrmv(1.0, T, tempx);
-    gemv(alpha, A, tempx, beta, y);
-    PROFILE_FLOPS(2*A.length(0)*A.length(1));
-}
-
-inline void sktrmm(double alpha, const row_view<const double>& T, const matrix_view<double>& A)
-{
-    /*
-     * A =alpha T A
-     */
-    PROFILE_FUNCTION
-    for (auto i : columns(A))
-    {
-        sktrmv(alpha, T, A[all][i]);
-    }
-    PROFILE_FLOPS(3*A.length(0)*A.length(1));
-}
-
-/*
-* C = alpha A ( T B ) + beta C
-*/
-inline void skew_tridiag_gemm(double alpha, const matrix_view<const double>& A,
-                                            const row_view   <const double>& T,
-                                            const matrix_view<const double>& B,
-                              double beta,  const matrix_view<      double>& C)
-{
-    PROFILE_FUNCTION
-    matrix<double> tempB = B;
-    sktrmm(1, T, tempB);
-    PROFILE_SECTION("gemm")
-    gemm(alpha, A, tempB, beta, C);
-    PROFILE_STOP
-    PROFILE_FLOPS(2*A.length(0)*A.length(1)*tempB.length(1));
-}
-
-
-/**
- * Perform the upper or lower triangular portion of the skew tridiag matrix multiplication \f$ C = \alpha ABA^T + \beta C \f$.
- *
- * @param uplo  'L' if C is lower-triangular or 'U' if C is upper-triangular.
- *
- * @param alpha Scalar factor for the product `ABA^T`.
- *
- * @param A     A `m`x`k`  matrix or matrix view. Must have either a row or
- *              column stride of one.
- *
- * @param B     A `k`x`k` skew matrix or matrix view.
- *
- * @param beta  Scalar factor for the original matrix `C`.
- *
- * @param C     A `m`x`m` skew matrix or matrix view.
- */
-
-inline void skew_tridiag_rankk(char uplo,
-                               double alpha, const matrix_view<const double>& A,
-                                             const row_view   <const double>& T,
-                               double beta,  const matrix_view<      double>& C)
-{
-    PROFILE_FUNCTION
-    matrix<double> tempB = A.T();
-    sktrmm(1, T, tempB);
-    PROFILE_SECTION("gemmt")
-    gemmt(uplo, alpha, A, tempB, beta, C);
-    PROFILE_STOP
-    PROFILE_FLOPS(A.length(0)*A.length(1)*tempB.length(1));
-}
-
-} //namespace blas
-} //namespace MArray
 
 template <typename T, typename U> range_t<T> head(const range_t<T>& x, U n)
 {
@@ -213,21 +63,6 @@ template <typename T, typename U> std::pair<range_t<T>,range_t<T>> split(const r
 {
     return std::make_pair(head(x, n), tail(x, n == 0 ? x.size() : -n));
 }
-
-// template <typename T> range_t<T> R3_trunc(const range_t<T>& R0, const range_t<T>& R3, len_type k)
-// {
-//     if ( R0.from() + k < R3.from())
-//     {
-//         return range(R3.from(), -1);
-//     }
-//     else
-//     {
-//         return range(R3.from(), R0.from() + k);
-//     }
-// }
-
-
-
 
 template <typename T>
 inline auto R3_trunc(const range_t<T>& R0, const range_t<T>& R3, len_type k)
@@ -256,22 +91,6 @@ inline matrix<double> make_L(const matrix_view<const double>& X)
     return B;
 }
 
-// inline matrix<double> make_T(const matrix_view<const double>& X)
-// {
-//     auto n = X.length(0);
-//     matrix<double> B{n, n};
-//     for (auto i : range(n))
-//     for (auto j : range(i))
-//     {
-//         if (i == j + 1)
-//         {
-//             B[i][j] = X[i][j];
-//             B[j][i] = -X[i][j];
-//         }
-//     }
-//     return B;
-// }
-//
 inline matrix<double> make_T(const row_view<double>& t)
 {
     auto n = t.length(0);
@@ -287,7 +106,6 @@ inline matrix<double> make_T(const row_view<double>& t)
     }
     return B;
 }
-
 
 /**
  * Return the squared 2-norm of the given tensor.
@@ -322,64 +140,74 @@ inline double norm(const Tensor& x)
     return sqrt(norm2(x));
 }
 
-inline matrix<double> gemm_chao(const double alpha,
-               const matrix_view<double>& A,
-               const matrix_view<double>& B)
+inline auto unblocked(const std::function<void(const matrix_view<double>&, const row_view<double>&, len_type,bool)>& unblock)
 {
-    auto m = A.length(0);
-    auto k = A.length(1);
-    auto n = B.length(1);
-
-
-    matrix<double> C{m, n};
-
-    MARRAY_ASSERT(C.length(0) == m);
-    MARRAY_ASSERT(C.length(1) == n);
-    MARRAY_ASSERT(B.length(0) == k);
-
-    for (auto i : range(m))
-    {
-        for (auto j : range(n))
-        {
-            double s = 0.0;
-            for (auto p : range(k))
-            {
-                s += alpha * A[i][p] * B[p][j];
-            }
-            C[i][j] = s;
-        }
-    }
-    return C;
+    return std::bind(unblock, std::placeholders::_1, std::placeholders::_2, -1, false);
 }
 
-inline matrix<double> gemm_chao(
-               const matrix_view<double>& A,
-               const matrix_view<double>& B)
+inline auto unblocked(const std::function<void(const matrix_view<double>&,const row_view<double>&, const row_view<int>&, len_type, bool)>& unblock)
 {
-    auto m = A.length(0);
-    auto k = A.length(1);
-    auto n = B.length(1);
+    return std::bind(unblock, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, -1, false);
+}
 
+template <typename BL>
+auto blocked(const BL& block, const std::function<void(const matrix_view<double>&,const row_view<double>&,len_type,bool)>& unblock, int blocksize)
+{
+    return std::bind(block, std::placeholders::_1, std::placeholders::_2, blocksize, unblock);
+}
 
-    matrix<double> C{m, n};
+template <typename BL>
+auto blocked(const BL& block, const std::function<void(const matrix_view<double>&,const row_view<double>&,const row_view<int>&,len_type,bool)>& unblock, int blocksize)
+{
+    return std::bind(block, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, blocksize, unblock);
+}
 
-    MARRAY_ASSERT(C.length(0) == m);
-    MARRAY_ASSERT(C.length(1) == n);
-    MARRAY_ASSERT(B.length(0) == k);
+extern std::mt19937_64 gen;
+
+struct skparams
+{
+    const void* t;
+    inc_t inct;
+    dim_t n;
+};
+
+void packing
+     (
+      struc_t strucc, \
+     diag_t  diagc, \
+     uplo_t  uploc, \
+     conj_t  conjc, \
+     pack_t  schema, \
+     bool    invdiag, \
+     dim_t   panel_dim, \
+     dim_t   panel_len, \
+     dim_t   panel_dim_max, \
+     dim_t   panel_len_max, \
+     dim_t   panel_dim_off, \
+     dim_t   panel_len_off, \
+     dim_t   panel_bcast, \
+       const double*   kappa, \
+       const double*   c, inc_t incc, inc_t ldc, \
+             double*   p,             inc_t ldp, \
+       const void*   params, \
+       const cntx_t* cntx \
+
+     );
+
+template <typename T=double>
+auto random_matrix(int m, int n, MArray::layout layout=MArray::DEFAULT_LAYOUT)
+{
+    static std::uniform_real_distribution<> dist;
+    matrix<T> A({m, n}, layout);
 
     for (auto i : range(m))
-    {
-        for (auto j : range(n))
-        {
-            double s = 0.0;
-            for (auto p : range(k))
-            {
-                s += A[i][p] * B[p][j];
-            }
-            C[i][j] = s;
-        }
-    }
-    return C;
+    for (auto j : range(n))
+        if constexpr (MArray::detail::is_complex_v<T>)
+            A[i][j] = T{dist(gen), dist(gen)};
+        else
+            A[i][j] = dist(gen);
+
+    return A;
 }
 
 inline void matrixprint(const matrix_view<double>& B)
@@ -418,7 +246,6 @@ inline std::tuple<int, int> partition(int64_t n, int64_t bs, unsigned nthreads, 
     int end = ((idx + 1) * n) / nthreads;
 
     return std::tie(start, end);
-
 }
 
 inline std::tuple<int, int> partition2(int64_t start, int64_t bs, unsigned idx)

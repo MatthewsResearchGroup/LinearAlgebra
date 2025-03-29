@@ -1,21 +1,10 @@
 #ifndef _TIMER_H_
 #define _TIMER_H_
 
-
-#include <type_traits>
-
-#ifdef MPI
-#undef MPI
-#define USE_MPI 1
-#include <mpi.h>
-#endif
-
 #ifdef _OPENMP
 #define USE_OMP 1
 #include <omp.h>
 #endif
-
-#include <thread>
 
 #if USE_OMP
 
@@ -31,10 +20,10 @@
 
 #endif
 
-
 #include <cstdint>
 #include <list>
 #include <string>
+#include <cstdint>
 
 #ifdef PROFILE
 

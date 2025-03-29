@@ -31,12 +31,9 @@ void ltlt_unblockTSRL(const matrix_view<double>& X, const row_view<double>& t, l
             L[r3][r3] = 1;
         }
 
-        X[R4][r3] -= t[r2] * L[r3][r2] * L[R4][r3];
-
-        //blas::skr2('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
         skr2<Options>('L', 1.0, L[R4][r3], X[R4][r3], 1.0, X[R4][R4]);
 
-        X[R4][r3] += t[r2] * L[R4][r2];
+        X[R4][r3] += t[r2] * L[R4][r2] - t[r2] * L[r3][r2] * L[R4][r3];
 
         // ( R0 | r1 | r2 || r3 | R4 )
         // (      T       || m  | B  )

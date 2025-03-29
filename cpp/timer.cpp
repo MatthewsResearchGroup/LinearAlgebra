@@ -1,37 +1,20 @@
-//#include "parallel.h"
-//#include "error.h"
 #include "timer.h"
-//#include "stl_ext.h"
-#include "marray.hpp"
 
-
+#include <array>
 #include <string>
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
 #include <vector>
-#include <tuple>
-#include <utility>
-#include <sstream>
 #include <unistd.h>
 #include <cctype>
-#include <iomanip>
-
-#include <cstring>
-#include <errno.h>
-#include <type_traits>
-#include <vector>
-#include <ostream>
-#include <functional>
-#include <unistd.h>
-#include <signal.h>
-
+#include <cassert>
 
 #ifdef __MACH__
 #include <mach/mach_time.h>
 #endif
 
-static std::vector<interval> tics[128];
+static std::array<std::vector<interval>,128> tics;
 
 interval interval::time()
 {
@@ -53,7 +36,7 @@ interval interval::time()
     {
         printf("ERROR!");
         exit(1);
-    } 
+    }
     return interval(ts.tv_sec + 1e-9*ts.tv_nsec, 0);
 
     #endif
@@ -72,7 +55,7 @@ interval interval::cputime()
     {
         printf("ERROR!");
         exit(1);
-    } 
+    }
     return interval(ts.tv_sec + 1e-9*ts.tv_nsec, 0);
 
     #endif
@@ -186,7 +169,6 @@ void timer::print_timers()
             printf("%s:%*s %13.6f s %10ld x %11.6f gflops/sec\n",
                  timer._name.c_str(), int(max_len-timer._name.size()), "",
                  tot, long(count), gflops);
-            // printf("{:11.6f} gflops/sec\n", gflops);
         }
     }
     if (found) printf("\n");
@@ -212,7 +194,7 @@ void tic()
     auto ntd = 1;
     #endif
 
-    for (auto td : MArray::rangeN(tid,ntd))
+    for (auto td = tid;td < tid+ntd;td++)
         tics[td].push_back(td == tid ? interval::time() : interval());
 }
 
@@ -228,9 +210,9 @@ interval toc()
 
     auto dt = interval::time();
 
-    for (auto td : MArray::rangeN(tid,ntd))
+    for (auto td = tid;td < tid+ntd;td++)
     {
-        MARRAY_ASSERT(!tics[td].empty());
+        assert(!tics[td].empty());
         dt -= tics[td].back();
         tics[td].pop_back();
     }
@@ -250,7 +232,7 @@ void cputic()
     auto ntd = 1;
     #endif
 
-    for (auto td : MArray::rangeN(tid,ntd))
+    for (auto td = tid;td < tid+ntd;td++)
         tics[td].push_back(td == tid ? interval::cputime() : interval());
 }
 
@@ -266,9 +248,9 @@ interval cputoc()
 
     interval dt = interval::cputime();
 
-    for (auto td : MArray::rangeN(tid,ntd))
+    for (auto td = tid;td < tid+ntd;td++)
     {
-        MARRAY_ASSERT(!tics[td].empty());
+        assert(!tics[td].empty());
         dt -= tics[td].back();
         tics[td].pop_back();
     }
