@@ -6,7 +6,7 @@
 *.o
 
 # CMake build tree
-/build/
+/out/
 
 # Developer-local presets (see CMakeUserPresets.json.example)
 /CMakeUserPresets.json

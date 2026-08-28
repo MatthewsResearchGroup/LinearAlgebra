@@ -5,11 +5,11 @@
     {
       "name": "base",
       "hidden": true,
-      "binaryDir": "${sourceDir}/build/${presetName}/build",
+      "binaryDir": "${sourceDir}/out/${presetName}/build",
       "cacheVariables": {
         "BLIS_BUILD_ROOT": {
           "type": "PATH",
-          "value": "${sourceDir}/build/blis"
+          "value": "${sourceDir}/out/blis"
         }
       }
     },

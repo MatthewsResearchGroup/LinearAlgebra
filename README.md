@@ -37,8 +37,8 @@ percent.
     cmake --build --preset local-release
 
 `local-release` inherits its build type from `release` and its compiler from
-your `local`. Binaries go to `build/<preset>/build/bin/`; all presets share one
-BLIS build under `build/blis/`.
+your `local`. Binaries go to `out/<preset>/build/bin/`; all presets share one
+BLIS build under `out/blis/`.
 
 ## Running
 
