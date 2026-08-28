@@ -1,0 +1,17 @@
+CompileFlags:
+  # Path is out/<preset>/build. Swap `debug` for whichever configure preset
+  # from CMakePresets.json you want clangd to index.
+  CompilationDatabase: out/local-debug/build
+
+Index:
+  Background: Build
+
+Completion:
+  HeaderInsertion: Never
+
+---
+
+If:
+  PathMatch: .*/_deps/.*
+Diagnostics:
+  Suppress: '*'
