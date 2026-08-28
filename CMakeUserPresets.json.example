@@ -1,0 +1,37 @@
+{
+  "version": 4,
+  "cmakeMinimumRequired": { "major": 3, "minor": 23, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "local",
+      "hidden": true,
+      "description": "Everything machine-specific. Edit the paths below.",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm/bin/clang",
+        "CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm/bin/clang++"
+      }
+    },
+    {
+      "name": "local-debug",
+      "inherits": ["local", "debug"],
+      "displayName": "Debug (this machine)"
+    },
+    {
+      "name": "local-release",
+      "inherits": ["local", "release"],
+      "displayName": "Release (this machine)"
+    },
+    {
+      "name": "local-bench",
+      "inherits": ["local", "bench"],
+      "displayName": "Benchmark (this machine)"
+    }
+  ],
+  "buildPresets": [
+    { "name": "local-debug", "configurePreset": "local-debug" },
+    { "name": "local-release", "configurePreset": "local-release" },
+    { "name": "local-bench", "configurePreset": "local-bench" }
+  ]
+}

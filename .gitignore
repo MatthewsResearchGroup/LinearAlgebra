@@ -1,15 +1,16 @@
 *.swp
 .vscode
 .DS_Store
-/build
-.deps
-cpp/marray/.git
-cpp/blis/.git
-cpp/docopt.cpp/.git
-blis/lib
-bin
 .clangd
 .project
-/build/*
-.deps
 *.o
+
+# CMake build tree
+/build/
+
+# Developer-local presets (see CMakeUserPresets.json.example)
+/CMakeUserPresets.json
+
+# ltlt_perf output
+time.csv
+time_*.csv
