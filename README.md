@@ -13,48 +13,40 @@ Austin. See [LICENSE](LICENSE).
 
 ## Building
 
-    cmake -B build
-    cmake --build build -j
-
-Needs CMake 3.23+, Python 3 (for BLIS's build), and a C/C++20 toolchain taking
-`-fopenmp` — macOS's `/usr/bin/cc` does not, so set `CMAKE_C_COMPILER` and
-`CMAKE_CXX_COMPILER` to one that does. The first build compiles BLIS and
-dominates; everything lands under the build directory, so `rm -rf build` is a
-full reset.
-
-`NDEBUG` is left undefined on purpose, keeping MArray's bounds checking live at
-`-O3`. Add `-DCMAKE_CXX_FLAGS=-DNDEBUG` for timing runs needing the last few
-percent.
-
-### Presets
-
-`CMakePresets.json` defines `debug`, `release`, and `bench` (`release` plus
-`-DNDEBUG`) with portable settings only. Pick a compiler and generator in
-`CMakeUserPresets.json`, which CMake reads alongside it and git ignores:
-
     cp CMakeUserPresets.json.example CMakeUserPresets.json   # then edit paths
     cmake --preset local-release
     cmake --build --preset local-release
 
-`local-release` inherits its build type from `release` and its compiler from
-your `local`. Binaries go to `out/<preset>/build/bin/`; all presets share one
-BLIS build under `out/blis/`.
+Needs CMake 3.23+, Python 3 (for BLIS's build), and a C/C++20 toolchain that
+takes `-fopenmp`. macOS's `/usr/bin/cc` does not, which is why
+`CMakeUserPresets.json` names a compiler.
+
+Three build types: `debug`, `release`, and `bench` (`release` plus `-DNDEBUG`).
+Each has a `local-*` counterpart adding the compiler and generator from your
+`CMakeUserPresets.json`.
+
+Binaries go to `out/<preset>/build/bin/`. All presets share one BLIS build
+under `out/blis/`, so only the first configure pays for it, and that first
+configure dominates. `rm -rf out` is a full reset, BLIS included.
+
+`NDEBUG` stays undefined under `release`, so MArray's bounds checking is still
+live at `-O3`. Use `bench` for timing runs that need the last few percent.
 
 ## Running
 
-`ltlt_debug` sweeps every variant and reports residuals, which should be at
-machine precision.
+`ltlt_debug` takes no arguments. It sweeps every variant, size, and step and
+reports residuals, which should be at machine precision.
 
 `ltlt_perf --help` documents the timing harness. It **appends** to `time.csv` /
 `time_<bs>.csv` in the working directory, so delete those between experiment
-series or results will be mixed together.
+series or results get mixed together.
 
 ## Optimization steps
 
 Each algorithm is a `template <int Options>` instantiated for the six
-cumulative steps in [`src/ltlt.hpp`](src/ltlt.hpp). A new optimization is added
-as a new flag bit and a new `STEP_N`, never as an edit that changes the
-behaviour of an earlier step.
+cumulative steps in [`src/ltlt.hpp`](src/ltlt.hpp). Add a new optimization as a
+new flag bit and a new `STEP_N`; never edit one so that it changes an earlier
+step's behaviour.
 
 [`docs/optimization-steps.md`](docs/optimization-steps.md) explains what each
 flag switches, how the fused paths reach into BLIS, and what is still unmeasured.
