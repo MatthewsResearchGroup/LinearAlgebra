@@ -51,5 +51,6 @@ level below the factorization, and it accounts for a good share of the speedup.
 There is no single winner to find here. The point is to measure: what
 left-looking buys over right-looking at a given size, what a blocked algorithm
 gains from each choice of panel factorization, what pivoting costs. So old
-variants stay, and each is instantiated at all six optimization steps (see the
-README) instead of being replaced by its improved form.
+variants stay, and each is instantiated at all six optimization steps (see
+[the optimization ladder](optimization-steps.md)) instead of being replaced by
+its improved form.

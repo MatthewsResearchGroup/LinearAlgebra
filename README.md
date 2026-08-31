@@ -56,6 +56,11 @@ cumulative steps in [`src/ltlt.hpp`](src/ltlt.hpp). A new optimization is added
 as a new flag bit and a new `STEP_N`, never as an edit that changes the
 behaviour of an earlier step.
 
+[`docs/optimization-steps.md`](docs/optimization-steps.md) explains what each
+flag switches, how the fused paths reach into BLIS, and what is still unmeasured.
+[`docs/ltl-algorithms.md`](docs/ltl-algorithms.md) covers how the variants
+themselves differ.
+
 ## MATLAB
 
 Run `Test_LTLt_all` from within `matlab/` to check every variant.
