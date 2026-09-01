@@ -74,7 +74,9 @@ behaviour.
 [`docs/optimization-steps.md`](docs/optimization-steps.md) explains what each
 flag switches, how the fused paths reach into BLIS, and what is still
 unmeasured. [`docs/ltl-algorithms.md`](docs/ltl-algorithms.md) covers how the
-variants themselves differ.
+variants themselves differ. [`docs/blas-blis-apis.md`](docs/blas-blis-apis.md)
+compares what BLAS and BLIS each expose, and why the fused paths have to reach
+as deep into BLIS as they do.
 
 ## MATLAB
 
